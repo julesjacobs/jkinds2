@@ -1,0 +1,12 @@
+# Dune/OCaml
+_build/
+.opam/
+.merlin*
+.ocamlformat
+.DS_Store
+*.log
+# Editors
+.vscode/
+.idea/
+# Installed symlinks
+_build/install/
