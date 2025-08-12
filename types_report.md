@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-12 02:26:06 UTC
+Generated: 2025-08-12 02:27:59 UTC
 
 ## btree.types
 
@@ -70,7 +70,8 @@ oddlist: {'a0 -> {{cons.0}}, 'a1 -> {{cons.1}}}
 type list('a1) = unit + 'a1 * list('a1)
 type lily('a1) = list(portable('a1) * lily(list('a1)))
 type tulip('a1) = unit + 'a1 * tulip(portable('a1 * 'a1))
-type orchid('a1) = unit + portable('a1) * orchid('a1 * 'a1)```
+type orchid('a1) = unit + portable('a1) * orchid('a1 * 'a1)
+```
 
 Program output:
 ```
