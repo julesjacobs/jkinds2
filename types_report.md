@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-12 02:13:45 UTC
+Generated: 2025-08-12 02:26:06 UTC
 
 ## btree.types
 
@@ -62,6 +62,44 @@ Least fixpoint kinds:
   oddlist: {oddlist.0 -> {{cons.0}}, oddlist.1 -> {{cons.1}}}
 evenlist: {'a0 -> {{cons.0}}, 'a1 -> {{cons.1}}}
 oddlist: {'a0 -> {{cons.0}}, 'a1 -> {{cons.1}}}
+```
+
+## portable.types
+
+```
+type list('a1) = unit + 'a1 * list('a1)
+type lily('a1) = list(portable('a1) * lily(list('a1)))
+type tulip('a1) = unit + 'a1 * tulip(portable('a1 * 'a1))
+type orchid('a1) = unit + portable('a1) * orchid('a1 * 'a1)```
+
+Program output:
+```
+Kinds:
+lily: {lily.0 -> {{lily.0 ⊓ list.1} ⊔ {list.0} ⊔ {list.1 ⊓ portable.0}}, lily.1 -> {{lily.1 ⊓ list.1} ⊔ {list.1 ⊓ portable.1}}}
+list: {list.0 -> {{list.0}}, list.1 -> ⊤}
+orchid: {orchid.0 -> {{orchid.0} ⊔ {portable.0}}, orchid.1 -> {{orchid.1} ⊔ {portable.1}}}
+tulip: {tulip.0 -> {{portable.0 ⊓ tulip.1} ⊔ {tulip.0}}, tulip.1 -> ⊤}
+
+Least fixpoint kinds:
+[lfp] iter 0:
+  lily: {lily.0 -> ⊥, lily.1 -> ⊥}
+  list: {list.0 -> ⊥, list.1 -> ⊥}
+  orchid: {orchid.0 -> ⊥, orchid.1 -> ⊥}
+  tulip: {tulip.0 -> ⊥, tulip.1 -> ⊥}
+[lfp] iter 1:
+  lily: {lily.0 -> ⊥, lily.1 -> ⊥}
+  list: {list.0 -> ⊥, list.1 -> ⊤}
+  orchid: {orchid.0 -> {{portable.0}}, orchid.1 -> {{portable.1}}}
+  tulip: {tulip.0 -> ⊥, tulip.1 -> ⊤}
+[lfp] iter 2:
+  lily: {lily.0 -> {{portable.0}}, lily.1 -> {{portable.1}}}
+  list: {list.0 -> ⊥, list.1 -> ⊤}
+  orchid: {orchid.0 -> {{portable.0}}, orchid.1 -> {{portable.1}}}
+  tulip: {tulip.0 -> {{portable.0}}, tulip.1 -> ⊤}
+lily: {'a0 -> {{portable.0}}, 'a1 -> {{portable.1}}}
+list: {'a0 -> ⊥, 'a1 -> ⊤}
+orchid: {'a0 -> {{portable.0}}, 'a1 -> {{portable.1}}}
+tulip: {'a0 -> {{portable.0}}, 'a1 -> ⊤}
 ```
 
 ## rose_sum_pair.types
