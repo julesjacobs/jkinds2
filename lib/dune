@@ -1,0 +1,5 @@
+(library
+ (public_name jkinds)
+ (name jkinds_lib)
+ (modules :standard 
+  type_syntax modality kind infer type_parser decl_parser jkinds_lib))

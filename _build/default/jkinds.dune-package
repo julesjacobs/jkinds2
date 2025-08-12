@@ -1,0 +1,112 @@
+(lang dune 3.18)
+(name jkinds)
+(sections (lib .) (libexec .) (bin ../../bin) (doc ../../doc/jkinds))
+(files
+ (lib
+  (META
+   decl_parser.ml
+   dune-package
+   infer.ml
+   infer.mli
+   jkinds_lib.a
+   jkinds_lib.cma
+   jkinds_lib.cmi
+   jkinds_lib.cmt
+   jkinds_lib.cmti
+   jkinds_lib.cmx
+   jkinds_lib.cmxa
+   jkinds_lib.ml
+   jkinds_lib.mli
+   jkinds_lib__.cmi
+   jkinds_lib__.cmt
+   jkinds_lib__.cmx
+   jkinds_lib__.ml
+   jkinds_lib__Decl_parser.cmi
+   jkinds_lib__Decl_parser.cmt
+   jkinds_lib__Decl_parser.cmx
+   jkinds_lib__Infer.cmi
+   jkinds_lib__Infer.cmt
+   jkinds_lib__Infer.cmti
+   jkinds_lib__Infer.cmx
+   jkinds_lib__Kind.cmi
+   jkinds_lib__Kind.cmt
+   jkinds_lib__Kind.cmti
+   jkinds_lib__Kind.cmx
+   jkinds_lib__Modality.cmi
+   jkinds_lib__Modality.cmt
+   jkinds_lib__Modality.cmti
+   jkinds_lib__Modality.cmx
+   jkinds_lib__Type_parser.cmi
+   jkinds_lib__Type_parser.cmt
+   jkinds_lib__Type_parser.cmx
+   jkinds_lib__Type_syntax.cmi
+   jkinds_lib__Type_syntax.cmt
+   jkinds_lib__Type_syntax.cmti
+   jkinds_lib__Type_syntax.cmx
+   kind.ml
+   kind.mli
+   modality.ml
+   modality.mli
+   opam
+   type_parser.ml
+   type_syntax.ml
+   type_syntax.mli))
+ (libexec (jkinds_lib.cmxs))
+ (bin (jkinds))
+ (doc (README.md)))
+(library
+ (name jkinds)
+ (kind normal)
+ (archives (byte jkinds_lib.cma) (native jkinds_lib.cmxa))
+ (plugins (byte jkinds_lib.cma) (native jkinds_lib.cmxs))
+ (native_archives jkinds_lib.a)
+ (main_module_name Jkinds_lib)
+ (modes byte native)
+ (modules
+  (wrapped
+   (group
+    (alias
+     (obj_name jkinds_lib__)
+     (visibility public)
+     (kind alias)
+     (source (path Jkinds_lib__) (impl (path jkinds_lib__.ml-gen))))
+    (name Jkinds_lib)
+    (modules
+     (module
+      (obj_name jkinds_lib__Decl_parser)
+      (visibility public)
+      (source (path Decl_parser) (impl (path decl_parser.ml))))
+     (module
+      (obj_name jkinds_lib__Infer)
+      (visibility public)
+      (source (path Infer) (intf (path infer.mli)) (impl (path infer.ml))))
+     (module
+      (obj_name jkinds_lib)
+      (visibility public)
+      (source
+       (path Jkinds_lib)
+       (intf (path jkinds_lib.mli))
+       (impl (path jkinds_lib.ml))))
+     (module
+      (obj_name jkinds_lib__Kind)
+      (visibility public)
+      (source (path Kind) (intf (path kind.mli)) (impl (path kind.ml))))
+     (module
+      (obj_name jkinds_lib__Modality)
+      (visibility public)
+      (source
+       (path Modality)
+       (intf (path modality.mli))
+       (impl (path modality.ml))))
+     (module
+      (obj_name jkinds_lib__Type_parser)
+      (visibility public)
+      (source (path Type_parser) (impl (path type_parser.ml))))
+     (module
+      (obj_name jkinds_lib__Type_syntax)
+      (visibility public)
+      (source
+       (path Type_syntax)
+       (intf (path type_syntax.mli))
+       (impl (path type_syntax.ml))))))
+   (wrapped true))))

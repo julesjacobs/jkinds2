@@ -1,0 +1,6 @@
+description = ""
+requires = ""
+archive(byte) = "jkinds_lib.cma"
+archive(native) = "jkinds_lib.cmxa"
+plugin(byte) = "jkinds_lib.cma"
+plugin(native) = "jkinds_lib.cmxs"

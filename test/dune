@@ -1,0 +1,11 @@
+(tests
+ (names
+  test_modality
+  test_kind
+  test_type_parser
+  test_decl_parser
+  test_substitute)
+ (libraries jkinds_lib))
+(test
+ (name test_list_demo)
+ (libraries jkinds_lib))

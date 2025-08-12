@@ -1,0 +1,3 @@
+type list('a1) = unit + 'a1 * list('a1)
+type rose('a1) = list(rose(list('a1)))
+type lily('a1) = list('a1 * lily(list('a1)))
