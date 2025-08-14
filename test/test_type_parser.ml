@@ -17,10 +17,10 @@ let () =
     let k = Infer.kindof t in
     Kind.pp k
   in
-  (* Adjust to ctor-qualified kind pp and ⊤/⊥ printing *)
+  (* Updated to numeric indices and new modality pretty-printer *)
   let s = parse_kind_pp "'a5" in
   print_endline ("debug kind 'a5: " ^ s);
-  assert_equal "pp kind of 'a5" s "{'a5 -> ⊤}";
-  assert_equal "pp kind of F('a5)" (parse_kind_pp "F('a5)") "{'a0 -> {{F.0}}, 'a5 -> {{F.1}}}";
-  assert_equal "pp kind of F('a1, G('a2))" (parse_kind_pp "F('a1, G('a2))") "{'a0 -> {{F.0} ⊔ {F.2 ⊓ G.0}}, 'a1 -> {{F.1}}, 'a2 -> {{F.2 ⊓ G.1}}}";
+  assert_equal "pp kind of 'a5" s "{0 ↦ ⊥, 5 ↦ ⊤}";
+  assert_equal "pp kind of F('a5)" (parse_kind_pp "F('a5)") "{0 ↦ F.0, 5 ↦ F.1}";
+  assert_equal "pp kind of F('a1, G('a2))" (parse_kind_pp "F('a1, G('a2))") "{0 ↦ (F.0 ⊔ (F.2 ⊓ G.0)), 1 ↦ F.1, 2 ↦ (F.2 ⊓ G.1)}";
 

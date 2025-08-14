@@ -24,10 +24,13 @@ let () =
   in
   let content = read_file file in
   let decls = Decl_parser.parse_exn content in
+  let decl_items = Decl_parser.parse_items_exn content in
+  let abstracts = Decl_parser.abstract_ctors decl_items in
   let decls_bindings = Decl_parser.NameMap.bindings decls in
   let kinds = Infer.kinds_of_decls_bindings decls_bindings in
   print_endline "Kinds:";
   List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds;
   print_endline "\nLeast fixpoint kinds:";
-  let _ = Infer.least_fixpoint_bindings ~max_iters kinds in
+  let kinds_lfp = Infer.least_fixpoint_bindings_with_self_init ~max_iters ~abstracts kinds in
+  List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds_lfp;
   ()

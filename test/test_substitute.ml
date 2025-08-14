@@ -51,14 +51,11 @@ let () =
   let rhs = [ ("F", rhs_f) ] in
   let lhs_h = Kind.set Kind.empty 1 (mk_atom "F" 2) in
   let lhs = [ ("H", lhs_h) ] in
-  let raised =
-    try
-      let _ = Infer.substitute_kinds_bindings ~lhs ~rhs in
-      false
-    with Kind.Substitution_error _ -> true
-  in
-  assert raised;
-  print_endline "✓ substitution arity error passed";
+  (* New behavior: missing indices default to ⊥ rather than raising *)
+  let res = Infer.substitute_kinds_bindings ~lhs ~rhs in
+  let h' = List.assoc "H" res in
+  assert (Kind.get h' 1 = Modality.zero);
+  print_endline "✓ substitution out-of-bounds defaults to ⊥ passed";
 ;;
 
 let () =

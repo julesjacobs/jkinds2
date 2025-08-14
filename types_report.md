@@ -1,6 +1,48 @@
 # jkinds Types Report
 
-Generated: 2025-08-14 17:42:33 UTC
+Generated: 2025-08-14 18:42:41 UTC
+
+## abstracts.types
+
+```
+type foo() : unit
+type bar() : [0,1]
+type baz() : [2,1] 
+
+type one() : two() @@ [0,1]
+type two() = one()
+```
+
+Program output:
+```
+Kinds:
+bar: {0 ↦ [0,1]}
+baz: {0 ↦ ⊤}
+foo: {0 ↦ ⊥}
+one: {0 ↦ ([0,1] ⊓ two.0)}
+two: {0 ↦ one.0}
+
+Least fixpoint kinds:
+[lfp] iter 0:
+  two: {0 ↦ ⊥}
+[lfp] iter 1:
+  two: {0 ↦ one.0}
+[lfp] iter 0:
+  bar: {0 ↦ bar.0}
+  baz: {0 ↦ baz.0}
+  foo: {0 ↦ foo.0}
+  one: {0 ↦ one.0}
+[lfp] iter 1:
+  bar: {0 ↦ ([0,1] ⊓ bar.0)}
+  baz: {0 ↦ baz.0}
+  foo: {0 ↦ ⊥}
+  one: {0 ↦ ([0,1] ⊓ one.0)}
+bar: {0 ↦ ([0,1] ⊓ bar.0)}
+baz: {0 ↦ baz.0}
+foo: {0 ↦ ⊥}
+one: {0 ↦ ([0,1] ⊓ one.0)}
+two: {0 ↦ ([0,1] ⊓ one.0)}
+```
 
 ## benjamin.types
 
@@ -15,8 +57,8 @@ Program output:
 ```
 Kinds:
 bar: {0 ↦ (bar.0 ⊔ (bar.1 ⊓ t1.0) ⊔ (bar.1 ⊓ t2.0)), 1 ↦ ⊤}
-foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ {(t1.1 ⊓ t2.1)}}
-foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ {(t1.1 ⊓ t2.1)}}
+foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
+foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 
 Least fixpoint kinds:
 [lfp] iter 0:
@@ -25,12 +67,17 @@ Least fixpoint kinds:
   foo2: {0 ↦ ⊥, 1 ↦ ⊥}
 [lfp] iter 1:
   bar: {0 ↦ ⊥, 1 ↦ ⊤}
-  foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ {(t1.1 ⊓ t2.1)}}
-  foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ {(t1.1 ⊓ t2.1)}}
+  foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
+  foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 [lfp] iter 2:
   bar: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ ⊤}
-  foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ {(t1.1 ⊓ t2.1)}}
-  foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ {(t1.1 ⊓ t2.1)}}
+  foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
+  foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
+[lfp] iter 0:
+
+bar: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ ⊤}
+foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
+foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 ```
 
 ## btree.types
@@ -49,6 +96,9 @@ Least fixpoint kinds:
   btree: {0 ↦ ⊥, 1 ↦ ⊥}
 [lfp] iter 1:
   btree: {0 ↦ (leaf.0 ⊔ node.0), 1 ↦ leaf.1}
+[lfp] iter 0:
+
+btree: {0 ↦ (leaf.0 ⊔ node.0), 1 ↦ leaf.1}
 ```
 
 ## list_sum_pair.types
@@ -67,6 +117,9 @@ Least fixpoint kinds:
   list: {0 ↦ ⊥, 1 ↦ ⊥}
 [lfp] iter 1:
   list: {0 ↦ ⊥, 1 ↦ ⊤}
+[lfp] iter 0:
+
+list: {0 ↦ ⊥, 1 ↦ ⊤}
 ```
 
 ## modalities.types
@@ -117,11 +170,11 @@ id_bot: {0 ↦ ⊥, 1 ↦ ⊥}
 inner_vs_outer: {0 ↦ ⊥, 1 ↦ [1,0]}
 list: {0 ↦ list.0, 1 ↦ ⊤}
 list2: {0 ↦ (cons.0 ⊔ nil.0 ⊔ (cons.2 ⊓ list2.0)), 1 ↦ (cons.1 ⊔ (cons.2 ⊓ list2.1))}
-list2_inner: {0 ↦ list2.0, 1 ↦ {([1,0] ⊓ list2.1)}}
-list2_outer: {0 ↦ {([1,0] ⊓ list2.0)}, 1 ↦ {([1,0] ⊓ list2.1)}}
-list_ann: {0 ↦ {([1,0] ⊓ list_ann.0)}, 1 ↦ [1,0]}
-list_inner: {0 ↦ list.0, 1 ↦ {([1,0] ⊓ list.1)}}
-list_outer: {0 ↦ {([1,0] ⊓ list.0)}, 1 ↦ {([1,0] ⊓ list.1)}}
+list2_inner: {0 ↦ list2.0, 1 ↦ ([1,0] ⊓ list2.1)}
+list2_outer: {0 ↦ ([1,0] ⊓ list2.0), 1 ↦ ([1,0] ⊓ list2.1)}
+list_ann: {0 ↦ ([1,0] ⊓ list_ann.0), 1 ↦ [1,0]}
+list_inner: {0 ↦ list.0, 1 ↦ ([1,0] ⊓ list.1)}
+list_outer: {0 ↦ ([1,0] ⊓ list.0), 1 ↦ ([1,0] ⊓ list.1)}
 mix_pair: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [0,1]}
 mix_sum: {0 ↦ ⊥, 1 ↦ [1,1]}
 modal_pair: {0 ↦ [1,0], 1 ↦ ⊤}
@@ -130,7 +183,7 @@ nested: {0 ↦ ⊥, 1 ↦ [1,1]}
 outer_vs_inner: {0 ↦ ⊥, 1 ↦ [1,0]}
 pair_annot: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
 tree: {0 ↦ (([0,1] ⊓ Node.0) ⊔ ([0,1] ⊓ Node.2 ⊓ tree.0)), 1 ↦ (([0,1] ⊓ Node.1) ⊔ ([0,1] ⊓ Node.2 ⊓ tree.1))}
-two_axes: {0 ↦ {([0,1] ⊓ G.0)}, 1 ↦ {([0,1] ⊓ G.1)}}
+two_axes: {0 ↦ ([0,1] ⊓ G.0), 1 ↦ ([0,1] ⊓ G.1)}
 
 Least fixpoint kinds:
 [lfp] iter 0:
@@ -175,8 +228,8 @@ Least fixpoint kinds:
   nested: {0 ↦ ⊥, 1 ↦ [1,1]}
   outer_vs_inner: {0 ↦ ⊥, 1 ↦ [1,0]}
   pair_annot: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
-  tree: {0 ↦ {([0,1] ⊓ Node.0)}, 1 ↦ {([0,1] ⊓ Node.1)}}
-  two_axes: {0 ↦ {([0,1] ⊓ G.0)}, 1 ↦ {([0,1] ⊓ G.1)}}
+  tree: {0 ↦ ([0,1] ⊓ Node.0), 1 ↦ ([0,1] ⊓ Node.1)}
+  two_axes: {0 ↦ ([0,1] ⊓ G.0), 1 ↦ ([0,1] ⊓ G.1)}
 [lfp] iter 2:
   both: {0 ↦ ⊥, 1 ↦ ⊤}
   deeply: {0 ↦ (([1,0] ⊓ F.0) ⊔ ([0,1] ⊓ G.0)), 1 ↦ (([1,0] ⊓ F.1) ⊔ ([0,1] ⊓ G.1))}
@@ -185,8 +238,8 @@ Least fixpoint kinds:
   inner_vs_outer: {0 ↦ ⊥, 1 ↦ [1,0]}
   list: {0 ↦ ⊥, 1 ↦ ⊤}
   list2: {0 ↦ (cons.0 ⊔ nil.0), 1 ↦ cons.1}
-  list2_inner: {0 ↦ (cons.0 ⊔ nil.0), 1 ↦ {([1,0] ⊓ cons.1)}}
-  list2_outer: {0 ↦ (([1,0] ⊓ cons.0) ⊔ ([1,0] ⊓ nil.0)), 1 ↦ {([1,0] ⊓ cons.1)}}
+  list2_inner: {0 ↦ (cons.0 ⊔ nil.0), 1 ↦ ([1,0] ⊓ cons.1)}
+  list2_outer: {0 ↦ (([1,0] ⊓ cons.0) ⊔ ([1,0] ⊓ nil.0)), 1 ↦ ([1,0] ⊓ cons.1)}
   list_ann: {0 ↦ ⊥, 1 ↦ [1,0]}
   list_inner: {0 ↦ ⊥, 1 ↦ [1,0]}
   list_outer: {0 ↦ ⊥, 1 ↦ [1,0]}
@@ -197,8 +250,31 @@ Least fixpoint kinds:
   nested: {0 ↦ ⊥, 1 ↦ [1,1]}
   outer_vs_inner: {0 ↦ ⊥, 1 ↦ [1,0]}
   pair_annot: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
-  tree: {0 ↦ {([0,1] ⊓ Node.0)}, 1 ↦ {([0,1] ⊓ Node.1)}}
-  two_axes: {0 ↦ {([0,1] ⊓ G.0)}, 1 ↦ {([0,1] ⊓ G.1)}}
+  tree: {0 ↦ ([0,1] ⊓ Node.0), 1 ↦ ([0,1] ⊓ Node.1)}
+  two_axes: {0 ↦ ([0,1] ⊓ G.0), 1 ↦ ([0,1] ⊓ G.1)}
+[lfp] iter 0:
+
+both: {0 ↦ ⊥, 1 ↦ ⊤}
+deeply: {0 ↦ (([1,0] ⊓ F.0) ⊔ ([0,1] ⊓ G.0)), 1 ↦ (([1,0] ⊓ F.1) ⊔ ([0,1] ⊓ G.1))}
+id_annot: {0 ↦ ⊥, 1 ↦ ⊤}
+id_bot: {0 ↦ ⊥, 1 ↦ ⊥}
+inner_vs_outer: {0 ↦ ⊥, 1 ↦ [1,0]}
+list: {0 ↦ ⊥, 1 ↦ ⊤}
+list2: {0 ↦ (cons.0 ⊔ nil.0), 1 ↦ cons.1}
+list2_inner: {0 ↦ (cons.0 ⊔ nil.0), 1 ↦ ([1,0] ⊓ cons.1)}
+list2_outer: {0 ↦ (([1,0] ⊓ cons.0) ⊔ ([1,0] ⊓ nil.0)), 1 ↦ ([1,0] ⊓ cons.1)}
+list_ann: {0 ↦ ⊥, 1 ↦ [1,0]}
+list_inner: {0 ↦ ⊥, 1 ↦ [1,0]}
+list_outer: {0 ↦ ⊥, 1 ↦ [1,0]}
+mix_pair: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [0,1]}
+mix_sum: {0 ↦ ⊥, 1 ↦ [1,1]}
+modal_pair: {0 ↦ [1,0], 1 ↦ ⊤}
+modal_plus: {0 ↦ [1,0], 1 ↦ ⊤}
+nested: {0 ↦ ⊥, 1 ↦ [1,1]}
+outer_vs_inner: {0 ↦ ⊥, 1 ↦ [1,0]}
+pair_annot: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
+tree: {0 ↦ ([0,1] ⊓ Node.0), 1 ↦ ([0,1] ⊓ Node.1)}
+two_axes: {0 ↦ ([0,1] ⊓ G.0), 1 ↦ ([0,1] ⊓ G.1)}
 ```
 
 ## modals.types
@@ -211,7 +287,7 @@ type bar() = foo() @@ [1,0]
 Program output:
 ```
 Kinds:
-bar: {0 ↦ {([1,0] ⊓ foo.0)}}
+bar: {0 ↦ ([1,0] ⊓ foo.0)}
 foo: {0 ↦ [1,1]}
 
 Least fixpoint kinds:
@@ -224,6 +300,10 @@ Least fixpoint kinds:
 [lfp] iter 2:
   bar: {0 ↦ [1,0]}
   foo: {0 ↦ [1,1]}
+[lfp] iter 0:
+
+bar: {0 ↦ [1,0]}
+foo: {0 ↦ [1,1]}
 ```
 
 ## mutual.types
@@ -246,6 +326,10 @@ Least fixpoint kinds:
 [lfp] iter 1:
   evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
   oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
+[lfp] iter 0:
+
+evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
+oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 ```
 
 ## portable.types
@@ -281,6 +365,12 @@ Least fixpoint kinds:
   list: {0 ↦ ⊥, 1 ↦ ⊤}
   orchid: {0 ↦ portable.0, 1 ↦ portable.1}
   tulip: {0 ↦ portable.0, 1 ↦ ⊤}
+[lfp] iter 0:
+
+lily: {0 ↦ portable.0, 1 ↦ portable.1}
+list: {0 ↦ ⊥, 1 ↦ ⊤}
+orchid: {0 ↦ portable.0, 1 ↦ portable.1}
+tulip: {0 ↦ portable.0, 1 ↦ ⊤}
 ```
 
 ## ref.types
@@ -292,13 +382,16 @@ type foo('a1) = portended(ref('a1))
 Program output:
 ```
 Kinds:
-foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ {(portended.1 ⊓ ref.1)}}
+foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
 
 Least fixpoint kinds:
 [lfp] iter 0:
   foo: {0 ↦ ⊥, 1 ↦ ⊥}
 [lfp] iter 1:
-  foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ {(portended.1 ⊓ ref.1)}}
+  foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
+[lfp] iter 0:
+
+foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
 ```
 
 ## rose_sum_pair.types
@@ -314,7 +407,7 @@ Program output:
 Kinds:
 lily: {0 ↦ (list.0 ⊔ (lily.0 ⊓ list.1)), 1 ↦ list.1}
 list: {0 ↦ list.0, 1 ↦ ⊤}
-rose: {0 ↦ (list.0 ⊔ (list.1 ⊓ rose.0)), 1 ↦ {(list.1 ⊓ rose.1)}}
+rose: {0 ↦ (list.0 ⊔ (list.1 ⊓ rose.0)), 1 ↦ (list.1 ⊓ rose.1)}
 
 Least fixpoint kinds:
 [lfp] iter 0:
@@ -329,6 +422,11 @@ Least fixpoint kinds:
   lily: {0 ↦ ⊥, 1 ↦ ⊤}
   list: {0 ↦ ⊥, 1 ↦ ⊤}
   rose: {0 ↦ ⊥, 1 ↦ ⊥}
+[lfp] iter 0:
+
+lily: {0 ↦ ⊥, 1 ↦ ⊤}
+list: {0 ↦ ⊥, 1 ↦ ⊤}
+rose: {0 ↦ ⊥, 1 ↦ ⊥}
 ```
 
 ## zipper.types
@@ -359,4 +457,9 @@ Least fixpoint kinds:
   ctx: {0 ↦ down.0, 1 ↦ down.1}
   list: {0 ↦ cons.0, 1 ↦ cons.1}
   zipper: {0 ↦ (cons.0 ⊔ down.0), 1 ↦ (cons.1 ⊔ down.1)}
+[lfp] iter 0:
+
+ctx: {0 ↦ down.0, 1 ↦ down.1}
+list: {0 ↦ cons.0, 1 ↦ cons.1}
+zipper: {0 ↦ (cons.0 ⊔ down.0), 1 ↦ (cons.1 ⊔ down.1)}
 ```

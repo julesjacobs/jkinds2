@@ -71,8 +71,9 @@ let least_fixpoint ?(max_iters = 10) (km : Kind.t Decl_parser.NameMap.t) : Kind.
     |> String.concat "\n"
   in
   let rec loop i current =
-    if i > max_iters then
-      failwith "least_fixpoint: did not converge within bound"
+    if i > max_iters then (
+      prerr_endline "[warn] least_fixpoint: did not converge within bound; returning last iterate";
+      current)
     else (
       Printf.printf "[lfp] iter %d:\n%s\n" i (pp_map_lines current);
       let next = substitute_kinds ~lhs:km ~rhs:current in
@@ -86,8 +87,9 @@ let least_fixpoint ?(max_iters = 10) (km : Kind.t Decl_parser.NameMap.t) : Kind.
 
 let least_fixpoint_bindings ?(max_iters = 10) (bs : (string * Kind.t) list) : (string * Kind.t) list =
   let rec loop i current =
-    if i > max_iters then
-      failwith "least_fixpoint: did not converge within bound"
+    if i > max_iters then (
+      prerr_endline "[warn] least_fixpoint_bindings: did not converge within bound; returning last iterate";
+      current)
     else (
       let lines = List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current |> String.concat "\n" in
       Printf.printf "[lfp] iter %d:\n%s\n" i lines;
@@ -101,4 +103,76 @@ let least_fixpoint_bindings ?(max_iters = 10) (bs : (string * Kind.t) list) : (s
   in
   let start = zero_constructor_entries_bindings bs in
   loop 0 start
+let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
+    ~(abstracts : (string * int) list)
+    (bs : (string * Kind.t) list)
+  : (string * Kind.t) list =
+  let arity_by_name = List.fold_left (fun acc (n,a) -> Decl_parser.NameMap.add n a acc) Decl_parser.NameMap.empty abstracts in
+  let self_kind name arity : Kind.t =
+    let rec loop i acc =
+      if i > arity then acc
+      else loop (i + 1) (Kind.set acc i (Modality.of_atom { Modality.ctor = name; index = i }))
+    in
+    loop 0 Kind.empty
+  in
+  let lists_equal l1 l2 =
+    let sort = List.sort (fun (a, _) (b, _) -> String.compare a b) in
+    let l1 = sort l1 and l2 = sort l2 in
+    List.length l1 = List.length l2 && List.for_all2 (fun (n1, k1) (n2, k2) -> n1 = n2 && Kind.equal k1 k2) l1 l2
+  in
+  let is_abstract name = Decl_parser.NameMap.mem name arity_by_name in
+  let conc_bs, abs_bs = List.partition (fun (n, _) -> not (is_abstract n)) bs in
+  (* Phase 1: iterate concretes only from ⊥ until convergence *)
+  let rec loop_conc i current =
+    if i > max_iters then (
+      prerr_endline "[warn] least_fixpoint (concrete phase): did not converge within bound; returning last iterate";
+      current)
+    else (
+      let lines = List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current |> String.concat "\n" in
+      Printf.printf "[lfp] iter %d:\n%s\n" i lines;
+      let next = substitute_kinds_bindings ~lhs:conc_bs ~rhs:current in
+      if lists_equal next current then current else loop_conc (i + 1) next)
+  in
+  let start_conc = zero_constructor_entries_bindings conc_bs in
+  let conc_sol = loop_conc 0 start_conc in
+  (* Phase 2: iterate abstracts, substituting concrete solutions in RHS, with self init and meet with self each iteration *)
+  let rec loop_abs i current =
+    if i > max_iters then (
+      prerr_endline "[warn] least_fixpoint (abstract phase): did not converge within bound; returning last iterate";
+      current)
+    else (
+      let lines = List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current |> String.concat "\n" in
+      Printf.printf "[lfp] iter %d:\n%s\n" i lines;
+      let rhs = conc_sol @ current in
+      let next0 = substitute_kinds_bindings ~lhs:abs_bs ~rhs in
+      let next =
+        List.map (fun (n,k) ->
+          match Decl_parser.NameMap.find_opt n arity_by_name with
+          | Some arity ->
+              let rec meet_self i acc =
+                if i > arity then acc
+                else
+                  let mi = Modality.of_atom { Modality.ctor = n; index = i } in
+                  let cur = Kind.get acc i in
+                  let m' = Modality.compose mi cur in
+                  meet_self (i + 1) (Kind.set acc i m')
+              in
+              (n, meet_self 0 k)
+          | None -> (n, k)) next0
+      in
+      if lists_equal next current then current else loop_abs (i + 1) next)
+  in
+  let start_abs = List.map (fun (n, _) ->
+      let arity = Decl_parser.NameMap.find n arity_by_name in
+      (n, self_kind n arity)) abs_bs
+  in
+  let abs_sol = loop_abs 0 start_abs in
+  (* Phase 3: substitute abstract solutions back into concrete ones and return combined *)
+  let conc_final = substitute_kinds_bindings ~lhs:conc_bs ~rhs:(abs_sol @ conc_sol) in
+  (* Reassemble in original order *)
+  List.map (fun (n, _) ->
+      match List.assoc_opt n conc_final with
+      | Some k -> (n, k)
+      | None -> (n, List.assoc n abs_sol)
+    ) bs
 

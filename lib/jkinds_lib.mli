@@ -11,6 +11,8 @@ module Infer : sig
   val zero_constructor_entries_bindings : (string * Kind.t) list -> (string * Kind.t) list
   val least_fixpoint : ?max_iters:int -> Kind.t Decl_parser.NameMap.t -> Kind.t Decl_parser.NameMap.t
   val least_fixpoint_bindings : ?max_iters:int -> (string * Kind.t) list -> (string * Kind.t) list
+  val least_fixpoint_bindings_with_self_init :
+    ?max_iters:int -> abstracts:(string * int) list -> (string * Kind.t) list -> (string * Kind.t) list
 end
 module Type_parser : sig
   val parse : string -> (Type_syntax.t, string) result
@@ -18,6 +20,9 @@ module Type_parser : sig
 end
 module Decl_parser : sig
   module NameMap : Map.S with type key = string
+  type decl_item = { name : string; arity : int; rhs : Type_syntax.t; abstract : bool }
+  val parse_items_exn : string -> decl_item list
+  val abstract_ctors : decl_item list -> (string * int) list
   val parse : string -> (Type_syntax.t NameMap.t, string) result
   val parse_exn : string -> Type_syntax.t NameMap.t
 end

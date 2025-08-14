@@ -46,19 +46,7 @@ let pp (m : t) : string =
                  (* Coefficient meet variables, flatten without extra braces *)
                  "(" ^ String.concat " ⊓ " (pp_coeff c :: pp_vars vars) ^ ")")
       in
-      (match term_strings with
-       | [s] ->
-           (* Single term: drop braces if it's a plain constant or a single identifier *)
-           let is_plain_const =
-             match ts with
-             | [ (vars,c) ] -> (vars = []) && not (Coeff.equal c Coeff.top)
-             | _ -> false
-           in
-           let is_single_ident =
-             match ts with
-             | [ (vars,c) ] -> Coeff.equal c Coeff.top && (match vars with [_] -> true | _ -> false)
-             | _ -> false
-           in
-           if is_plain_const || is_single_ident then s else "{" ^ s ^ "}"
+       (match term_strings with
+       | [s] -> s
        | _ -> "(" ^ (String.concat " ⊔ " term_strings) ^ ")")
 

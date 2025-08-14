@@ -1,0 +1,6 @@
+type foo() : unit
+type bar() : [0,1]
+type baz() : [2,1] 
+
+type one() : two() @@ [0,1]
+type two() = one()

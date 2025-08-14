@@ -25,3 +25,9 @@ val least_fixpoint_bindings :
   ?max_iters:int ->
   (string * Kind.t) list ->
   (string * Kind.t) list
+
+val least_fixpoint_bindings_with_self_init :
+  ?max_iters:int ->
+  abstracts:(string * int) list ->
+  (string * Kind.t) list ->
+  (string * Kind.t) list
