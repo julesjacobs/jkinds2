@@ -71,6 +71,7 @@ let parse_exn (s : string) : Type_syntax.t NameMap.t =
             raise (Parse_error (Printf.sprintf "variable 'a%d is out of scope" n))
       | Type_syntax.C (_, args) -> List.iter check_vars args
       | Type_syntax.Unit -> ()
+      | Type_syntax.Mod_annot (t', _) -> check_vars t'
       | Type_syntax.Pair (a, b) | Type_syntax.Sum (a, b) ->
           check_vars a; check_vars b
     in

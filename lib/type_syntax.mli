@@ -6,6 +6,7 @@ type t =
   | Sum of t * t
   | C of string * t list
   | Var of var
+  | Mod_annot of t * int array
 
 val pp : t -> string
  

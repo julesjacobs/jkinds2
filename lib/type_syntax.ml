@@ -6,6 +6,7 @@ type t =
   | Sum of t * t
   | C of string * t list
   | Var of var
+  | Mod_annot of t * int array
 
 let rec pp (t : t) : string =
   match t with
@@ -18,4 +19,7 @@ let rec pp (t : t) : string =
       else
         let args_s = args |> List.map pp |> String.concat ", " in
         Printf.sprintf "%s(%s)" name args_s
+  | Mod_annot (t, levels) ->
+      Printf.sprintf "%s @@ [%s]" (pp t)
+        (levels |> Array.to_list |> List.map string_of_int |> String.concat ",")
 

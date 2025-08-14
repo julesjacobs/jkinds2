@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-12 13:18:40 UTC
+Generated: 2025-08-14 02:06:07 UTC
 
 ## benjamin.types
 
@@ -21,8 +21,6 @@ Least fixpoint kinds:
 [lfp] iter 1:
   foo1: {foo1.0 -> {{t1.0} ⊔ {t2.0}}, foo1.1 -> {{t1.1 ⊓ t2.1}}}
   foo2: {foo2.0 -> {{t1.0} ⊔ {t2.0}}, foo2.1 -> {{t1.1 ⊓ t2.1}}}
-foo1: {'a0 -> {{t1.0} ⊔ {t2.0}}, 'a1 -> {{t1.1 ⊓ t2.1}}}
-foo2: {'a0 -> {{t1.0} ⊔ {t2.0}}, 'a1 -> {{t1.1 ⊓ t2.1}}}
 ```
 
 ## btree.types
@@ -34,14 +32,13 @@ type btree('a1) = (leaf('a1) + node(btree('a1), btree('a1)))
 Program output:
 ```
 Kinds:
-btree: {btree.0 -> {{btree.0 ⊓ node.1} ⊔ {btree.0 ⊓ node.2} ⊔ {leaf.0} ⊔ {node.0}}, btree.1 -> {{btree.1 ⊓ node.1} ⊔ {btree.1 ⊓ node.2} ⊔ {leaf.1}}}
+btree: {btree.0 -> {{leaf.0} ⊔ {node.0} ⊔ {btree.0 ⊓ node.1} ⊔ {btree.0 ⊓ node.2}}, btree.1 -> {{leaf.1} ⊔ {btree.1 ⊓ node.1} ⊔ {btree.1 ⊓ node.2}}}
 
 Least fixpoint kinds:
 [lfp] iter 0:
   btree: {btree.0 -> ⊥, btree.1 -> ⊥}
 [lfp] iter 1:
   btree: {btree.0 -> {{leaf.0} ⊔ {node.0}}, btree.1 -> {{leaf.1}}}
-btree: {'a0 -> {{leaf.0} ⊔ {node.0}}, 'a1 -> {{leaf.1}}}
 ```
 
 ## list_sum_pair.types
@@ -60,7 +57,6 @@ Least fixpoint kinds:
   list: {list.0 -> ⊥, list.1 -> ⊥}
 [lfp] iter 1:
   list: {list.0 -> ⊥, list.1 -> ⊤}
-list: {'a0 -> ⊥, 'a1 -> ⊤}
 ```
 
 ## mutual.types
@@ -83,8 +79,6 @@ Least fixpoint kinds:
 [lfp] iter 1:
   evenlist: {evenlist.0 -> {{cons.0}}, evenlist.1 -> {{cons.1}}}
   oddlist: {oddlist.0 -> {{cons.0}}, oddlist.1 -> {{cons.1}}}
-evenlist: {'a0 -> {{cons.0}}, 'a1 -> {{cons.1}}}
-oddlist: {'a0 -> {{cons.0}}, 'a1 -> {{cons.1}}}
 ```
 
 ## portable.types
@@ -99,10 +93,10 @@ type orchid('a1) = unit + portable('a1) * orchid('a1 * 'a1)
 Program output:
 ```
 Kinds:
-lily: {lily.0 -> {{lily.0 ⊓ list.1} ⊔ {list.0} ⊔ {list.1 ⊓ portable.0}}, lily.1 -> {{lily.1 ⊓ list.1} ⊔ {list.1 ⊓ portable.1}}}
+lily: {lily.0 -> {{list.0} ⊔ {lily.0 ⊓ list.1} ⊔ {list.1 ⊓ portable.0}}, lily.1 -> {{lily.1 ⊓ list.1} ⊔ {list.1 ⊓ portable.1}}}
 list: {list.0 -> {{list.0}}, list.1 -> ⊤}
 orchid: {orchid.0 -> {{orchid.0} ⊔ {portable.0}}, orchid.1 -> {{orchid.1} ⊔ {portable.1}}}
-tulip: {tulip.0 -> {{portable.0 ⊓ tulip.1} ⊔ {tulip.0}}, tulip.1 -> ⊤}
+tulip: {tulip.0 -> {{tulip.0} ⊔ {portable.0 ⊓ tulip.1}}, tulip.1 -> ⊤}
 
 Least fixpoint kinds:
 [lfp] iter 0:
@@ -120,10 +114,6 @@ Least fixpoint kinds:
   list: {list.0 -> ⊥, list.1 -> ⊤}
   orchid: {orchid.0 -> {{portable.0}}, orchid.1 -> {{portable.1}}}
   tulip: {tulip.0 -> {{portable.0}}, tulip.1 -> ⊤}
-lily: {'a0 -> {{portable.0}}, 'a1 -> {{portable.1}}}
-list: {'a0 -> ⊥, 'a1 -> ⊤}
-orchid: {'a0 -> {{portable.0}}, 'a1 -> {{portable.1}}}
-tulip: {'a0 -> {{portable.0}}, 'a1 -> ⊤}
 ```
 
 ## ref.types
@@ -141,7 +131,6 @@ Least fixpoint kinds:
   foo: {foo.0 -> ⊥, foo.1 -> ⊥}
 [lfp] iter 1:
   foo: {foo.0 -> {{portended.0} ⊔ {portended.1 ⊓ ref.0}}, foo.1 -> {{portended.1 ⊓ ref.1}}}
-foo: {'a0 -> {{portended.0} ⊔ {portended.1 ⊓ ref.0}}, 'a1 -> {{portended.1 ⊓ ref.1}}}
 ```
 
 ## rose_sum_pair.types
@@ -155,7 +144,7 @@ type lily('a1) = list('a1 * lily(list('a1)))
 Program output:
 ```
 Kinds:
-lily: {lily.0 -> {{lily.0 ⊓ list.1} ⊔ {list.0}}, lily.1 -> {{list.1}}}
+lily: {lily.0 -> {{list.0} ⊔ {lily.0 ⊓ list.1}}, lily.1 -> {{list.1}}}
 list: {list.0 -> {{list.0}}, list.1 -> ⊤}
 rose: {rose.0 -> {{list.0} ⊔ {list.1 ⊓ rose.0}}, rose.1 -> {{list.1 ⊓ rose.1}}}
 
@@ -172,9 +161,6 @@ Least fixpoint kinds:
   lily: {lily.0 -> ⊥, lily.1 -> ⊤}
   list: {list.0 -> ⊥, list.1 -> ⊤}
   rose: {rose.0 -> ⊥, rose.1 -> ⊥}
-lily: {'a0 -> ⊥, 'a1 -> ⊤}
-list: {'a0 -> ⊥, 'a1 -> ⊤}
-rose: {'a0 -> ⊥, 'a1 -> ⊥}
 ```
 
 ## zipper.types
@@ -188,7 +174,7 @@ type zipper('a1) = (ctx('a1) * list('a1))
 Program output:
 ```
 Kinds:
-ctx: {ctx.0 -> {{ctx.0 ⊓ down.2} ⊔ {down.0}}, ctx.1 -> {{ctx.1 ⊓ down.2} ⊔ {down.1}}}
+ctx: {ctx.0 -> {{down.0} ⊔ {ctx.0 ⊓ down.2}}, ctx.1 -> {{down.1} ⊔ {ctx.1 ⊓ down.2}}}
 list: {list.0 -> {{cons.0} ⊔ {cons.2 ⊓ list.0}}, list.1 -> {{cons.1} ⊔ {cons.2 ⊓ list.1}}}
 zipper: {zipper.0 -> {{ctx.0} ⊔ {list.0}}, zipper.1 -> {{ctx.1} ⊔ {list.1}}}
 
@@ -205,7 +191,4 @@ Least fixpoint kinds:
   ctx: {ctx.0 -> {{down.0}}, ctx.1 -> {{down.1}}}
   list: {list.0 -> {{cons.0}}, list.1 -> {{cons.1}}}
   zipper: {zipper.0 -> {{cons.0} ⊔ {down.0}}, zipper.1 -> {{cons.1} ⊔ {down.1}}}
-ctx: {'a0 -> {{down.0}}, 'a1 -> {{down.1}}}
-list: {'a0 -> {{cons.0}}, 'a1 -> {{cons.1}}}
-zipper: {'a0 -> {{cons.0} ⊔ {down.0}}, 'a1 -> {{cons.1} ⊔ {down.1}}}
 ```

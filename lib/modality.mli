@@ -5,6 +5,7 @@ type t
 val zero : t
 val id : t
 val of_atom : atom -> t
+val of_levels : int array -> t
 val max : t -> t -> t
 val compose : t -> t -> t
 val pp : t -> string

@@ -8,6 +8,10 @@ let kindof (t : Type_syntax.t) : Kind.t =
         Kind.set Kind.empty Kind.Var.a0 Modality.zero
     | Pair (a, b) | Sum (a, b) ->
         Kind.max (go a) (go b)
+    | Mod_annot (t', levels) ->
+        let k = go t' in
+        let m = Modality.of_levels levels in
+        Kind.apply m k
     | C (name, args) ->
         let base =
           Kind.set Kind.empty Kind.Var.a0 (Modality.of_atom { Modality.ctor = name; index = 0 })

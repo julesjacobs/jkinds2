@@ -1,0 +1,11 @@
+type id_annot('a1) = 'a1 @@ [2,1]
+
+type pair_annot('a1,'a2) = ('a1 * 'a2) @@ [1,0]
+
+type nested('a1) = (('a1 @@ [2,1]) + unit) @@ [1,1]
+
+type tree('a1) = Node('a1, tree('a1)) @@ [0,1]
+
+type both('a1) = ('a1 @@ [2,0]) + ('a1 @@ [1,1])
+
+

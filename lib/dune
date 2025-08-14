@@ -2,4 +2,4 @@
  (public_name jkinds)
  (name jkinds_lib)
 (modules :standard 
-  type_syntax modality kind infer type_parser decl_parser lattice_intf product_lattice lattice_polynomial lattice_solver jkinds_lib))
+  type_syntax modality modality_poly kind infer type_parser decl_parser lattice_intf product_lattice lattice_polynomial lattice_solver jkinds_lib))
