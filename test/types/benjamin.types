@@ -1,2 +1,4 @@
 type foo1('a1) = t2(t1('a1)) * t1(unit)
 type foo2('a1) = t1(t2('a1)) * t2(unit)
+
+type bar('a1) = bar(t1('a1)) + bar(t2('a1)) + 'a1

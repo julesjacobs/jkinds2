@@ -1,25 +1,34 @@
 # jkinds Types Report
 
-Generated: 2025-08-14 12:05:40 UTC
+Generated: 2025-08-14 13:11:11 UTC
 
 ## benjamin.types
 
 ```
 type foo1('a1) = t2(t1('a1)) * t1(unit)
 type foo2('a1) = t1(t2('a1)) * t2(unit)
+
+type bar('a1) = bar(t1('a1)) + bar(t2('a1)) + 'a1
 ```
 
 Program output:
 ```
 Kinds:
+bar: {bar.0 -> {{bar.0} ⊔ {bar.1 ⊓ t1.0} ⊔ {bar.1 ⊓ t2.0}}, bar.1 -> ⊤}
 foo1: {foo1.0 -> {{t1.0} ⊔ {t2.0}}, foo1.1 -> {{t1.1 ⊓ t2.1}}}
 foo2: {foo2.0 -> {{t1.0} ⊔ {t2.0}}, foo2.1 -> {{t1.1 ⊓ t2.1}}}
 
 Least fixpoint kinds:
 [lfp] iter 0:
+  bar: {bar.0 -> ⊥, bar.1 -> ⊥}
   foo1: {foo1.0 -> ⊥, foo1.1 -> ⊥}
   foo2: {foo2.0 -> ⊥, foo2.1 -> ⊥}
 [lfp] iter 1:
+  bar: {bar.0 -> ⊥, bar.1 -> ⊤}
+  foo1: {foo1.0 -> {{t1.0} ⊔ {t2.0}}, foo1.1 -> {{t1.1 ⊓ t2.1}}}
+  foo2: {foo2.0 -> {{t1.0} ⊔ {t2.0}}, foo2.1 -> {{t1.1 ⊓ t2.1}}}
+[lfp] iter 2:
+  bar: {bar.0 -> {{t1.0} ⊔ {t2.0}}, bar.1 -> ⊤}
   foo1: {foo1.0 -> {{t1.0} ⊔ {t2.0}}, foo1.1 -> {{t1.1 ⊓ t2.1}}}
   foo2: {foo2.0 -> {{t1.0} ⊔ {t2.0}}, foo2.1 -> {{t1.1 ⊓ t2.1}}}
 ```
