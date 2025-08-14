@@ -65,6 +65,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
            if is_bot c' then SetMap.remove s acc else SetMap.add s c' acc)
       SetMap.empty ts
 
+  (* Alias for of_terms to match interface *)
+  let of_list = of_terms
+
   let terms (p:t) : term list =
     (* Sorted by (cardinality, lexicographic) *)
     let with_deg =
@@ -183,6 +186,38 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let subst1 ~(v:V.t) ~(by:t) (p:t) : t =
     subst ~subs:(VarMap.add v by VarMap.empty) p
+
+  (* q_down s = ⋁_{T ⊆ s} q̂[T] *)
+  let q_down (q:t) (s:vars) : coeff =
+    SetMap.fold
+      (fun t ct acc -> if VarSet.subset t s then C.join acc ct else acc)
+      q C.bot
+
+  (* Polynomial co-Heyting subtraction:
+     r = least x such that p ≤ q ∨ x. Result is canonical. *)
+  let co_sub (p:t) (q:t) : t =
+    if SetMap.is_empty p then SetMap.empty
+    else if SetMap.is_empty q then p                    (* p \ ⊥ = p *)
+    else
+      let raw =
+        SetMap.fold
+          (fun s cp acc ->
+             let cover = q_down q s in
+             let r = C.co_sub cp cover in
+             if is_bot r then acc else SetMap.add s r acc)
+          p SetMap.empty
+      in
+      canonicalize raw
+
+  (* Evaluate a polynomial given a valuation for variables *)
+  let eval (rho: V.t -> C.t) (p:t) : C.t =
+    SetMap.fold
+      (fun s c acc ->
+         let var_val = 
+           VarSet.fold (fun v acc' -> C.meet acc' (rho v)) s C.top
+         in
+         C.join acc (C.meet c var_val))
+      p C.bot
 
   (* Pretty printer (ASCII); you can pass printers for variables and coeffs. *)
   let pp ?(pp_var=(fun _ -> "_")) ?(pp_coeff=(fun _ -> "<c>")) (p:t) : string =

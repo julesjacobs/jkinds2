@@ -6,9 +6,6 @@ module C = Product_lattice.Make(struct let axis_sizes = [|3;2|] end)
 module V = struct type t = string let compare = String.compare end
 module P = Lattice_polynomial.Make(C)(V)
 
-let axis_names = [| "a"; "b" |]
-let show_c (x:C.t) = C.pp ~axis_names x
-
 let eval (rho : V.t -> C.t) (p : P.t) : C.t =
   let eval_set s =
     P.VarSet.fold (fun v acc -> C.meet acc (rho v)) s C.top

@@ -23,6 +23,9 @@ module Make (C : LATTICE) (V : ORDERED) : sig
 
   (* Build from a list of (vars, coeff) and canonicalize; convenient for tests. *)
   val of_list   : (vars * coeff) list -> t
+  val of_terms  : (vars * coeff) list -> t  (* Alias for of_list *)
+  val terms     : t -> (vars * coeff) list
+  val canonicalize : t -> t
 
   include LATTICE with type t := t
 
