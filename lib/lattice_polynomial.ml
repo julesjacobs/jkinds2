@@ -106,8 +106,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       if c <> 0 then c else VarSet.compare s1 s2
     in
     List.sort cmp with_deg |> List.map (fun (_,s,c) -> (s,c))
-  
-  let terms = to_list
 
   (* Lattice operations on polynomials *)
   let join (p:t) (q:t) : t =
@@ -229,7 +227,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
           " ⊓ " ^ String.concat " ⊓ " xs
       in
       let terms_str = 
-        terms p
+        to_list p
         |> List.map (fun (s,c) ->
               "{" ^ pp_coeff c ^ show_set s ^ "}")
         |> String.concat " ⊔ "
