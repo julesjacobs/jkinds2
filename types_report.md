@@ -1,12 +1,13 @@
 # jkinds Types Report
 
-Generated: 2025-08-14 02:24:07 UTC
+Generated: 2025-08-14 12:05:40 UTC
 
 ## benjamin.types
 
 ```
 type foo1('a1) = t2(t1('a1)) * t1(unit)
-type foo2('a1) = t1(t2('a1)) * t2(unit)```
+type foo2('a1) = t1(t2('a1)) * t2(unit)
+```
 
 Program output:
 ```
@@ -86,7 +87,10 @@ type list('a1) = unit + 'a1 * list('a1)
 type list_inner('a1) = list('a1 @@ [1,0])
 type list_outer('a1) = list('a1) @@ [1,0]
 
-
+(* Alternative list using explicit nil/cons constructors *)
+type list2('a1) = nil() + cons('a1, list2('a1))
+type list2_inner('a1) = list2('a1 @@ [1,0])
+type list2_outer('a1) = list2('a1) @@ [1,0]
 ```
 
 Program output:
@@ -98,6 +102,9 @@ id_annot: {id_annot.1 -> ⊤}
 id_bot: {id_bot.1 -> ⊥}
 inner_vs_outer: {inner_vs_outer.1 -> {{[1,0]}}}
 list: {list.0 -> {{list.0}}, list.1 -> ⊤}
+list2: {list2.0 -> {{cons.0} ⊔ {nil.0} ⊔ {cons.2 ⊓ list2.0}}, list2.1 -> {{cons.1} ⊔ {cons.2 ⊓ list2.1}}}
+list2_inner: {list2_inner.0 -> {{list2.0}}, list2_inner.1 -> {{[1,0] ⊓ {list2.1}}}}
+list2_outer: {list2_outer.0 -> {{[1,0] ⊓ {list2.0}}}, list2_outer.1 -> {{[1,0] ⊓ {list2.1}}}}
 list_ann: {list_ann.0 -> {{[1,0] ⊓ {list_ann.0}}}, list_ann.1 -> {{[1,0]}}}
 list_inner: {list_inner.0 -> {{list.0}}, list_inner.1 -> {{[1,0] ⊓ {list.1}}}}
 list_outer: {list_outer.0 -> {{[1,0] ⊓ {list.0}}}, list_outer.1 -> {{[1,0] ⊓ {list.1}}}}
@@ -117,6 +124,9 @@ Least fixpoint kinds:
   id_bot: {id_bot.1 -> ⊥}
   inner_vs_outer: {inner_vs_outer.1 -> ⊥}
   list: {list.0 -> ⊥, list.1 -> ⊥}
+  list2: {list2.0 -> ⊥, list2.1 -> ⊥}
+  list2_inner: {list2_inner.0 -> ⊥, list2_inner.1 -> ⊥}
+  list2_outer: {list2_outer.0 -> ⊥, list2_outer.1 -> ⊥}
   list_ann: {list_ann.0 -> ⊥, list_ann.1 -> ⊥}
   list_inner: {list_inner.0 -> ⊥, list_inner.1 -> ⊥}
   list_outer: {list_outer.0 -> ⊥, list_outer.1 -> ⊥}
@@ -134,6 +144,9 @@ Least fixpoint kinds:
   id_bot: {id_bot.1 -> ⊥}
   inner_vs_outer: {inner_vs_outer.1 -> {{[1,0]}}}
   list: {list.0 -> ⊥, list.1 -> ⊤}
+  list2: {list2.0 -> {{cons.0} ⊔ {nil.0}}, list2.1 -> {{cons.1}}}
+  list2_inner: {list2_inner.0 -> ⊥, list2_inner.1 -> ⊥}
+  list2_outer: {list2_outer.0 -> ⊥, list2_outer.1 -> ⊥}
   list_ann: {list_ann.0 -> ⊥, list_ann.1 -> {{[1,0]}}}
   list_inner: {list_inner.0 -> ⊥, list_inner.1 -> ⊥}
   list_outer: {list_outer.0 -> ⊥, list_outer.1 -> ⊥}
@@ -151,6 +164,9 @@ Least fixpoint kinds:
   id_bot: {id_bot.1 -> ⊥}
   inner_vs_outer: {inner_vs_outer.1 -> {{[1,0]}}}
   list: {list.0 -> ⊥, list.1 -> ⊤}
+  list2: {list2.0 -> {{cons.0} ⊔ {nil.0}}, list2.1 -> {{cons.1}}}
+  list2_inner: {list2_inner.0 -> {{cons.0} ⊔ {nil.0}}, list2_inner.1 -> {{[1,0] ⊓ {cons.1}}}}
+  list2_outer: {list2_outer.0 -> {{[1,0] ⊓ {cons.0}} ⊔ {[1,0] ⊓ {nil.0}}}, list2_outer.1 -> {{[1,0] ⊓ {cons.1}}}}
   list_ann: {list_ann.0 -> ⊥, list_ann.1 -> {{[1,0]}}}
   list_inner: {list_inner.0 -> ⊥, list_inner.1 -> {{[1,0]}}}
   list_outer: {list_outer.0 -> ⊥, list_outer.1 -> {{[1,0]}}}
@@ -223,7 +239,8 @@ Least fixpoint kinds:
 ## ref.types
 
 ```
-type foo('a1) = portended(ref('a1))```
+type foo('a1) = portended(ref('a1))
+```
 
 Program output:
 ```

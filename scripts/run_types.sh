@@ -32,7 +32,10 @@ for f in "${FILES[@]}"; do
     echo
     echo '```'
   } >>"$TMP_OUT"
-  cat "$f" >>"$TMP_OUT"
+  # Write file content trimmed of trailing blank lines
+  sed -e :a -e '/^[[:space:]]*$/{$d;N;ba' -e '}' "$f" >>"$TMP_OUT"
+  # Ensure exactly one newline after content (without creating extras)
+  if [ -n "$(tail -c1 "$TMP_OUT")" ]; then echo >>"$TMP_OUT"; fi
   {
     echo '```'
     echo
@@ -41,11 +44,12 @@ for f in "${FILES[@]}"; do
   } >>"$TMP_OUT"
 
   if [[ -n "$MAX_ITERS_FLAG" ]]; then
-    "$CLI" "$f" --max-iters "$MAX_ITERS_FLAG" >>"$TMP_OUT"
+    "$CLI" "$f" --max-iters "$MAX_ITERS_FLAG" | sed -e :a -e '/^[[:space:]]*$/{$d;N;ba' -e '}' >>"$TMP_OUT"
   else
-    "$CLI" "$f" >>"$TMP_OUT"
+    "$CLI" "$f" | sed -e :a -e '/^[[:space:]]*$/{$d;N;ba' -e '}' >>"$TMP_OUT"
   fi
-
+  # Ensure exactly one newline after program output
+  if [ -n "$(tail -c1 "$TMP_OUT")" ]; then echo >>"$TMP_OUT"; fi
   echo '```' >>"$TMP_OUT"
 done
 
