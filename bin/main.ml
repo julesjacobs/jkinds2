@@ -7,8 +7,6 @@ let read_file path =
   close_in ic;
   s
 
-let print_kind_bindings (bs : (string * Kind.t) list) =
-  List.iter (fun (n, k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) bs
 
 let () =
   let usage = "Usage: jkinds <typedef-file> [--max-iters N]" in

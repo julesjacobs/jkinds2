@@ -61,16 +61,16 @@ let zero_constructor_entries_bindings (bs : (string * Kind.t) list) : (string * 
   List.map (fun (n, k) -> (n, Kind.zero_entries k)) bs
 
 let least_fixpoint ?(max_iters = 10) (km : Kind.t Decl_parser.NameMap.t) : Kind.t Decl_parser.NameMap.t =
+  let pp_map_lines (m : Kind.t Decl_parser.NameMap.t) : string =
+    Decl_parser.NameMap.bindings m
+    |> List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp_with_ctor n k))
+    |> String.concat "\n"
+  in
   let rec loop i current =
     if i > max_iters then
       failwith "least_fixpoint: did not converge within bound"
     else (
-      let lines =
-        Decl_parser.NameMap.bindings current
-        |> List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp_with_ctor n k))
-        |> String.concat "\n"
-      in
-      Printf.printf "[lfp] iter %d:\n%s\n" i lines;
+      Printf.printf "[lfp] iter %d:\n%s\n" i (pp_map_lines current);
       let next = substitute_kinds ~lhs:km ~rhs:current in
       let kinds_equal a b =
         Decl_parser.NameMap.equal (fun k1 k2 -> Kind.equal k1 k2) a b
@@ -85,11 +85,7 @@ let least_fixpoint_bindings ?(max_iters = 10) (bs : (string * Kind.t) list) : (s
     if i > max_iters then
       failwith "least_fixpoint: did not converge within bound"
     else (
-      let lines =
-        current
-        |> List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp_with_ctor n k))
-        |> String.concat "\n"
-      in
+      let lines = List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp_with_ctor n k)) current |> String.concat "\n" in
       Printf.printf "[lfp] iter %d:\n%s\n" i lines;
       let next = substitute_kinds_bindings ~lhs:bs ~rhs:current in
       let lists_equal l1 l2 =

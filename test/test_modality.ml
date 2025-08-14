@@ -20,6 +20,7 @@ let () =
   let b1 = of_atom { ctor = "B"; index = 1 } in
   let ab = compose a1 b1 in
   let m = max ab a1 in
-  assert (equal m ab);
+  (* With supersets pruned, {{A.1 ⊓ B.1} ⊔ {A.1}} -> {{A.1}} *)
+  assert (equal m a1);
   print_endline "✓ modality pruning test passed"
 

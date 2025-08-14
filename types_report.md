@@ -1,6 +1,29 @@
 # jkinds Types Report
 
-Generated: 2025-08-12 02:27:59 UTC
+Generated: 2025-08-12 13:18:40 UTC
+
+## benjamin.types
+
+```
+type foo1('a1) = t2(t1('a1)) * t1(unit)
+type foo2('a1) = t1(t2('a1)) * t2(unit)```
+
+Program output:
+```
+Kinds:
+foo1: {foo1.0 -> {{t1.0} ⊔ {t2.0}}, foo1.1 -> {{t1.1 ⊓ t2.1}}}
+foo2: {foo2.0 -> {{t1.0} ⊔ {t2.0}}, foo2.1 -> {{t1.1 ⊓ t2.1}}}
+
+Least fixpoint kinds:
+[lfp] iter 0:
+  foo1: {foo1.0 -> ⊥, foo1.1 -> ⊥}
+  foo2: {foo2.0 -> ⊥, foo2.1 -> ⊥}
+[lfp] iter 1:
+  foo1: {foo1.0 -> {{t1.0} ⊔ {t2.0}}, foo1.1 -> {{t1.1 ⊓ t2.1}}}
+  foo2: {foo2.0 -> {{t1.0} ⊔ {t2.0}}, foo2.1 -> {{t1.1 ⊓ t2.1}}}
+foo1: {'a0 -> {{t1.0} ⊔ {t2.0}}, 'a1 -> {{t1.1 ⊓ t2.1}}}
+foo2: {'a0 -> {{t1.0} ⊔ {t2.0}}, 'a1 -> {{t1.1 ⊓ t2.1}}}
+```
 
 ## btree.types
 
@@ -101,6 +124,24 @@ lily: {'a0 -> {{portable.0}}, 'a1 -> {{portable.1}}}
 list: {'a0 -> ⊥, 'a1 -> ⊤}
 orchid: {'a0 -> {{portable.0}}, 'a1 -> {{portable.1}}}
 tulip: {'a0 -> {{portable.0}}, 'a1 -> ⊤}
+```
+
+## ref.types
+
+```
+type foo('a1) = portended(ref('a1))```
+
+Program output:
+```
+Kinds:
+foo: {foo.0 -> {{portended.0} ⊔ {portended.1 ⊓ ref.0}}, foo.1 -> {{portended.1 ⊓ ref.1}}}
+
+Least fixpoint kinds:
+[lfp] iter 0:
+  foo: {foo.0 -> ⊥, foo.1 -> ⊥}
+[lfp] iter 1:
+  foo: {foo.0 -> {{portended.0} ⊔ {portended.1 ⊓ ref.0}}, foo.1 -> {{portended.1 ⊓ ref.1}}}
+foo: {'a0 -> {{portended.0} ⊔ {portended.1 ⊓ ref.0}}, 'a1 -> {{portended.1 ⊓ ref.1}}}
 ```
 
 ## rose_sum_pair.types

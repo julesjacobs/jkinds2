@@ -21,3 +21,5 @@ module Decl_parser : sig
   val parse : string -> (Type_syntax.t NameMap.t, string) result
   val parse_exn : string -> Type_syntax.t NameMap.t
 end
+module Product_lattice : module type of Product_lattice
+module Lattice_polynomial : module type of Lattice_polynomial

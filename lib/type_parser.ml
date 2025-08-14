@@ -121,17 +121,13 @@ let parse_exn s =
   and parse_after_ident name i =
     match List.nth tokens i with
     | Lparen ->
-        (* could be constructor call, or a(var) variable form when name = "a" *)
+        let (args, j) = parse_args (i + 1) in
         if String.equal name "a" then (
-          match List.nth tokens (i + 1) with
-          | Int_lit v -> (
-              match List.nth tokens (i + 2) with
-              | Rparen -> (make_var v, i + 3)
-              | _ -> fail "expected ')' after a(<int>)")
-          | _ -> fail "expected integer inside a(<int>)")
-        else
-          let (args, j) = parse_args (i + 1) in
-          (make_c name args, j)
+          match args with
+          | [ Var v ] -> (make_var v, j)
+          | _ -> fail "expected a(<int>)")
+        else if String.equal name "unit" && args = [] then (Unit, j)
+        else (make_c name args, j)
     | _ ->
         (* special base identifiers without parens *)
         (match name with

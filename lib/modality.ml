@@ -41,16 +41,14 @@ let max (m1 : t) (m2 : t) : t =
   prune (CompSet.union m1 m2)
 
 let compose (m1 : t) (m2 : t) : t =
-  if CompSet.is_empty m1 || CompSet.is_empty m2 then zero
-  else
-    let res = CompSet.fold
-      (fun c1 acc ->
-        CompSet.fold
-          (fun c2 acc' -> CompSet.add (AtomSet.union c1 c2) acc')
-          m2 acc)
-      m1 CompSet.empty
-    in
-    prune res
+  let res = CompSet.fold
+    (fun c1 acc ->
+      CompSet.fold
+        (fun c2 acc' -> CompSet.add (AtomSet.union c1 c2) acc')
+        m2 acc)
+    m1 CompSet.empty
+  in
+  prune res
 
 let pp_atom (a : atom) = Printf.sprintf "%s.%d" a.ctor a.index
 
@@ -78,26 +76,24 @@ let equal (a : t) (b : t) : bool = CompSet.equal a b
 (* substitute each atom using the provided function, distributing over ⊓ and ⊔.
    If f a = None, keep the atom as-is. *)
 let substitute (f : atom -> t option) (m : t) : t =
-  if CompSet.is_empty m then m
-  else
-    let substitute_comp (comp : AtomSet.t) : t =
-      (* Start with id to represent empty composition *)
-      let start = Some id in
-      let res =
-        AtomSet.elements comp
-        |> List.fold_left
-             (fun acc a ->
-               let term = match f a with Some t -> t | None -> of_atom a in
-               match acc with
-               | None -> Some term
-               | Some acc' -> Some (compose acc' term))
-             start
-      in
-      match res with Some r -> r | None -> id
-    in
+  let substitute_comp (comp : AtomSet.t) : t =
+    (* Start with id to represent empty composition *)
+    let start = Some id in
     let res =
-      CompSet.elements m
-      |> List.fold_left (fun acc comp -> max acc (substitute_comp comp)) zero
+      AtomSet.elements comp
+      |> List.fold_left
+           (fun acc a ->
+             let term = match f a with Some t -> t | None -> of_atom a in
+             match acc with
+             | None -> Some term
+             | Some acc' -> Some (compose acc' term))
+           start
     in
-    prune res
+    match res with Some r -> r | None -> id
+  in
+  let res =
+    CompSet.elements m
+    |> List.fold_left (fun acc comp -> max acc (substitute_comp comp)) zero
+  in
+  prune res
 
