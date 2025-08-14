@@ -4,3 +4,14 @@ type baz() : [2,1]
 
 type one() : two() @@ [0,1]
 type two() = one()
+
+# Additional abstract examples
+type maybe('a1) : none() + some('a1)
+type wrap('a1) : 'a1 @@ [1,0]
+type wrap2('a1) : [2,1] * ('a1 @@ [1,0])
+type pairish('a1,'a2) : ('a1 * 'a2) @@ [1,0]
+type treeA('a1) : leaf() + node('a1, treeA('a1))
+
+# Mutually recursive abstracts
+type H('a1) : F('a1) + 'a1
+type F('a1) : H('a1) @@ [0,1]

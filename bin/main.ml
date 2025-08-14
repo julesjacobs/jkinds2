@@ -32,6 +32,7 @@ let () =
   List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds;
   print_endline "\nLeast fixpoint kinds:";
   let kinds_lfp = Infer.least_fixpoint_bindings_with_self_init ~max_iters ~abstracts kinds in
+  print_endline "\nNormalized kinds:";
   List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds_lfp;
   print_endline "\nCeil/Floor kinds:";
   List.iter (fun (n,k) ->

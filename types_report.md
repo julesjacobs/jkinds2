@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-14 18:56:04 UTC
+Generated: 2025-08-14 19:06:51 UTC
 
 ## abstracts.types
 
@@ -11,16 +11,34 @@ type baz() : [2,1]
 
 type one() : two() @@ [0,1]
 type two() = one()
+
+# Additional abstract examples
+type maybe('a1) : none() + some('a1)
+type wrap('a1) : 'a1 @@ [1,0]
+type wrap2('a1) : [2,1] * ('a1 @@ [1,0])
+type pairish('a1,'a2) : ('a1 * 'a2) @@ [1,0]
+type treeA('a1) : leaf() + node('a1, treeA('a1))
+
+# Mutually recursive abstracts
+type H('a1) : F('a1) + 'a1
+type F('a1) : H('a1) @@ [0,1]
 ```
 
 Program output:
 ```
 Kinds:
+F: {0 ↦ ([0,1] ⊓ H.0), 1 ↦ ([0,1] ⊓ H.1)}
+H: {0 ↦ F.0, 1 ↦ ⊤}
 bar: {0 ↦ [0,1]}
 baz: {0 ↦ ⊤}
 foo: {0 ↦ ⊥}
+maybe: {0 ↦ (none.0 ⊔ some.0), 1 ↦ some.1}
 one: {0 ↦ ([0,1] ⊓ two.0)}
+pairish: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
+treeA: {0 ↦ (leaf.0 ⊔ node.0 ⊔ (node.2 ⊓ treeA.0)), 1 ↦ (node.1 ⊔ (node.2 ⊓ treeA.1))}
 two: {0 ↦ one.0}
+wrap: {0 ↦ ⊥, 1 ↦ [1,0]}
+wrap2: {0 ↦ ⊤, 1 ↦ [1,0]}
 
 Least fixpoint kinds:
 [lfp] iter 0:
@@ -28,34 +46,83 @@ Least fixpoint kinds:
 [lfp] iter 1:
   two: {0 ↦ one.0}
 [lfp] iter 0:
+  F: {0 ↦ F.0, 1 ↦ F.1}
+  H: {0 ↦ H.0, 1 ↦ H.1}
   bar: {0 ↦ bar.0}
   baz: {0 ↦ baz.0}
   foo: {0 ↦ foo.0}
+  maybe: {0 ↦ maybe.0, 1 ↦ maybe.1}
   one: {0 ↦ one.0}
+  pairish: {0 ↦ pairish.0, 1 ↦ pairish.1, 2 ↦ pairish.2}
+  treeA: {0 ↦ treeA.0, 1 ↦ treeA.1}
+  wrap: {0 ↦ wrap.0, 1 ↦ wrap.1}
+  wrap2: {0 ↦ wrap2.0, 1 ↦ wrap2.1}
 [lfp] iter 1:
+  F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1)}
+  H: {0 ↦ (F.0 ⊓ H.0), 1 ↦ H.1}
   bar: {0 ↦ ([0,1] ⊓ bar.0)}
   baz: {0 ↦ baz.0}
   foo: {0 ↦ ⊥}
+  maybe: {0 ↦ ((maybe.0 ⊓ none.0) ⊔ (maybe.0 ⊓ some.0)), 1 ↦ (maybe.1 ⊓ some.1)}
   one: {0 ↦ ([0,1] ⊓ one.0)}
+  pairish: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ pairish.1), 2 ↦ ([1,0] ⊓ pairish.2)}
+  treeA: {0 ↦ ((leaf.0 ⊓ treeA.0) ⊔ (node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0)), 1 ↦ ((node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1))}
+  wrap: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ wrap.1)}
+  wrap2: {0 ↦ wrap2.0, 1 ↦ ([1,0] ⊓ wrap2.1)}
+[lfp] iter 2:
+  F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1)}
+  H: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ H.1}
+  bar: {0 ↦ ([0,1] ⊓ bar.0)}
+  baz: {0 ↦ baz.0}
+  foo: {0 ↦ ⊥}
+  maybe: {0 ↦ ((maybe.0 ⊓ none.0) ⊔ (maybe.0 ⊓ some.0)), 1 ↦ (maybe.1 ⊓ some.1)}
+  one: {0 ↦ ([0,1] ⊓ one.0)}
+  pairish: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ pairish.1), 2 ↦ ([1,0] ⊓ pairish.2)}
+  treeA: {0 ↦ ((leaf.0 ⊓ treeA.0) ⊔ (node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0)), 1 ↦ ((node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1))}
+  wrap: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ wrap.1)}
+  wrap2: {0 ↦ wrap2.0, 1 ↦ ([1,0] ⊓ wrap2.1)}
+
+Normalized kinds:
+F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1)}
+H: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ H.1}
 bar: {0 ↦ ([0,1] ⊓ bar.0)}
 baz: {0 ↦ baz.0}
 foo: {0 ↦ ⊥}
+maybe: {0 ↦ ((maybe.0 ⊓ none.0) ⊔ (maybe.0 ⊓ some.0)), 1 ↦ (maybe.1 ⊓ some.1)}
 one: {0 ↦ ([0,1] ⊓ one.0)}
+pairish: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ pairish.1), 2 ↦ ([1,0] ⊓ pairish.2)}
+treeA: {0 ↦ ((leaf.0 ⊓ treeA.0) ⊔ (node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0)), 1 ↦ ((node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1))}
 two: {0 ↦ ([0,1] ⊓ one.0)}
+wrap: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ wrap.1)}
+wrap2: {0 ↦ wrap2.0, 1 ↦ ([1,0] ⊓ wrap2.1)}
 
 Ceil/Floor kinds:
+F: ceil={0 ↦ [0,1], 1 ↦ [0,1]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+H: ceil={0 ↦ [0,1], 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 bar: ceil={0 ↦ [0,1]}, floor={0 ↦ ⊥}
 baz: ceil={0 ↦ ⊤}, floor={0 ↦ ⊥}
 foo: ceil={0 ↦ ⊥}, floor={0 ↦ ⊥}
+maybe: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 one: ceil={0 ↦ [0,1]}, floor={0 ↦ ⊥}
+pairish: ceil={0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥, 2 ↦ ⊥}
+treeA: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 two: ceil={0 ↦ [0,1]}, floor={0 ↦ ⊥}
+wrap: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+wrap2: ceil={0 ↦ ⊤, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 
 LEQ relationships:
+F <= H
+H <= (none)
 bar <= (none)
 baz <= (none)
 foo <= bar, baz, one, two
+maybe <= (none)
 one <= two
+pairish <= (none)
+treeA <= (none)
 two <= one
+wrap <= (none)
+wrap2 <= (none)
 ```
 
 ## benjamin.types
@@ -89,6 +156,8 @@ Least fixpoint kinds:
   foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 [lfp] iter 0:
 
+
+Normalized kinds:
 bar: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ ⊤}
 foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
@@ -122,6 +191,8 @@ Least fixpoint kinds:
   btree: {0 ↦ (leaf.0 ⊔ node.0), 1 ↦ leaf.1}
 [lfp] iter 0:
 
+
+Normalized kinds:
 btree: {0 ↦ (leaf.0 ⊔ node.0), 1 ↦ leaf.1}
 
 Ceil/Floor kinds:
@@ -149,6 +220,8 @@ Least fixpoint kinds:
   list: {0 ↦ ⊥, 1 ↦ ⊤}
 [lfp] iter 0:
 
+
+Normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 
 Ceil/Floor kinds:
@@ -290,6 +363,8 @@ Least fixpoint kinds:
   two_axes: {0 ↦ ([0,1] ⊓ G.0), 1 ↦ ([0,1] ⊓ G.1)}
 [lfp] iter 0:
 
+
+Normalized kinds:
 both: {0 ↦ ⊥, 1 ↦ ⊤}
 deeply: {0 ↦ (([1,0] ⊓ F.0) ⊔ ([0,1] ⊓ G.0)), 1 ↦ (([1,0] ⊓ F.1) ⊔ ([0,1] ⊓ G.1))}
 id_annot: {0 ↦ ⊥, 1 ↦ ⊤}
@@ -384,6 +459,8 @@ Least fixpoint kinds:
   foo: {0 ↦ [1,1]}
 [lfp] iter 0:
 
+
+Normalized kinds:
 bar: {0 ↦ [1,0]}
 foo: {0 ↦ [1,1]}
 
@@ -418,6 +495,8 @@ Least fixpoint kinds:
   oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 [lfp] iter 0:
 
+
+Normalized kinds:
 evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 
@@ -465,6 +544,8 @@ Least fixpoint kinds:
   tulip: {0 ↦ portable.0, 1 ↦ ⊤}
 [lfp] iter 0:
 
+
+Normalized kinds:
 lily: {0 ↦ portable.0, 1 ↦ portable.1}
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 orchid: {0 ↦ portable.0, 1 ↦ portable.1}
@@ -501,6 +582,8 @@ Least fixpoint kinds:
   foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
 [lfp] iter 0:
 
+
+Normalized kinds:
 foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
 
 Ceil/Floor kinds:
@@ -540,6 +623,8 @@ Least fixpoint kinds:
   rose: {0 ↦ ⊥, 1 ↦ ⊥}
 [lfp] iter 0:
 
+
+Normalized kinds:
 lily: {0 ↦ ⊥, 1 ↦ ⊤}
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 rose: {0 ↦ ⊥, 1 ↦ ⊥}
@@ -585,6 +670,8 @@ Least fixpoint kinds:
   zipper: {0 ↦ (cons.0 ⊔ down.0), 1 ↦ (cons.1 ⊔ down.1)}
 [lfp] iter 0:
 
+
+Normalized kinds:
 ctx: {0 ↦ down.0, 1 ↦ down.1}
 list: {0 ↦ cons.0, 1 ↦ cons.1}
 zipper: {0 ↦ (cons.0 ⊔ down.0), 1 ↦ (cons.1 ⊔ down.1)}
