@@ -30,9 +30,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   (* Canonical polynomial: map from variable-set to canonical coefficient. *)
   type t = coeff SetMap.t
 
-  let empty : t = SetMap.empty
-  let is_empty (p : t) = SetMap.is_empty p
-
   (* Equality on coefficients via lattice order; avoids requiring physical equality. *)
   let eqc (a:coeff) (b:coeff) = C.equal a b
   let is_bot c = eqc c C.bot
@@ -48,7 +45,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   (* Constant polynomial (empty set is the neutral element for /\ over variables). *)
   let const (c:coeff) : t = singleton VarSet.empty c
 
-  let bot : t = empty
+  let bot : t = SetMap.empty
   let top : t = const C.top
 
   (* Variable as a polynomial: x = (⊤ /\ x) *)
@@ -64,21 +61,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
            let c' = C.join prev c in
            if is_bot c' then SetMap.remove s acc else SetMap.add s c' acc)
       SetMap.empty ts
-
-  (* Alias for of_terms to match interface *)
-  let of_list = of_terms
-
-  let terms (p:t) : term list =
-    (* Sorted by (cardinality, lexicographic) *)
-    let with_deg =
-      SetMap.bindings p
-      |> List.map (fun (s,c) -> (VarSet.cardinal s, s, c))
-    in
-    let cmp (d1,s1,_) (d2,s2,_) =
-      let c = Int.compare d1 d2 in
-      if c <> 0 then c else VarSet.compare s1 s2
-    in
-    List.sort cmp with_deg |> List.map (fun (_,s,c) -> (s,c))
 
   (* Canonicalization:
      Given a (non-canonical) map m, compute coeff_hat[S] = c[S] \ bigvee_{T ⊂ S} coeff_hat[T]. *)
@@ -109,6 +91,23 @@ module Make (C : LATTICE) (V : ORDERED) = struct
          if not (is_bot c_hat) then res := SetMap.add s c_hat !res)
       sorted;
     !res
+
+  (* of_list: Build from a list of terms and return canonical form *)
+  let of_list ts = canonicalize (of_terms ts)
+
+  let to_list (p:t) : term list =
+    (* Sorted by (cardinality, lexicographic) *)
+    let with_deg =
+      SetMap.bindings p
+      |> List.map (fun (s,c) -> (VarSet.cardinal s, s, c))
+    in
+    let cmp (d1,s1,_) (d2,s2,_) =
+      let c = Int.compare d1 d2 in
+      if c <> 0 then c else VarSet.compare s1 s2
+    in
+    List.sort cmp with_deg |> List.map (fun (_,s,c) -> (s,c))
+  
+  let terms = to_list
 
   (* Lattice operations on polynomials *)
   let join (p:t) (q:t) : t =
@@ -221,17 +220,19 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* Pretty printer (ASCII); you can pass printers for variables and coeffs. *)
   let pp ?(pp_var=(fun _ -> "_")) ?(pp_coeff=(fun _ -> "<c>")) (p:t) : string =
-    if is_empty p then "bot"
+    if SetMap.is_empty p then "⊥"
     else
       let show_set s =
-        if VarSet.is_empty s then "⊤"
+        if VarSet.is_empty s then ""
         else
           let xs = VarSet.elements s |> List.map pp_var in
-          String.concat " /\\ " xs
+          " ⊓ " ^ String.concat " ⊓ " xs
       in
-      terms p
-      |> List.map (fun (s,c) ->
-            "(" ^ pp_coeff c ^
-            (if VarSet.is_empty s then "" else " /\\ " ^ show_set s) ^ ")")
-      |> String.concat " \\/ "
+      let terms_str = 
+        terms p
+        |> List.map (fun (s,c) ->
+              "{" ^ pp_coeff c ^ show_set s ^ "}")
+        |> String.concat " ⊔ "
+      in
+      "{" ^ terms_str ^ "}"
 end

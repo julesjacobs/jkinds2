@@ -15,17 +15,12 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   (* Canonical polynomial type. All constructors and operations return canonical form. *)
   type t
 
-  val empty     : t
-  val is_empty  : t -> bool
-
   val const     : coeff -> t
   val var       : V.t -> t
 
   (* Build from a list of (vars, coeff) and canonicalize; convenient for tests. *)
   val of_list   : (vars * coeff) list -> t
-  val of_terms  : (vars * coeff) list -> t  (* Alias for of_list *)
-  val terms     : t -> (vars * coeff) list
-  val canonicalize : t -> t
+  val to_list   : t -> (vars * coeff) list
 
   include LATTICE with type t := t
 

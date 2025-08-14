@@ -157,9 +157,10 @@ let test_edge_and_stress () =
   
   (* Empty polynomial edge cases *)
   let test_empty () =
-    assert_poly_eq "empty\\empty" (P.co_sub P.empty P.empty) P.bot;
-    assert_poly_eq "x\\empty" (P.co_sub x P.empty) x;
-    assert_poly_eq "empty\\x" (P.co_sub P.empty x) P.bot
+    assert_poly_eq "bot\\bot" (P.co_sub P.bot P.bot) P.bot;
+    let x = gen_poly () in
+    assert_poly_eq "x\\bot" (P.co_sub x P.bot) x;
+    assert_poly_eq "bot\\x" (P.co_sub P.bot x) P.bot
   in
   
   (* Constant polynomial edge cases *)

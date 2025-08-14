@@ -4,7 +4,7 @@ open Poly
 (* Test: Canonical form reconstruction property *)
 let test_canonical_reconstruction () =
   let reconstruct_from_canonical (p : P.t) : P.t =
-    let bindings = P.terms p in
+    let bindings = P.to_list p in
     let sets = List.map fst bindings in
     let raw_terms =
       List.map
@@ -17,7 +17,7 @@ let test_canonical_reconstruction () =
            (s, c))
         sets
     in
-    P.of_terms raw_terms |> P.canonicalize
+    P.of_list raw_terms
   in
   
   run_property_test "canonical reconstruction" ~count:200 (fun () ->
@@ -27,29 +27,29 @@ let test_canonical_reconstruction () =
       (v ["x";"y"], encode (Random.int 3) (Random.int 2));
       (v [], encode (Random.int 3) (Random.int 2));
     ] in
-    let p = P.of_terms ts |> P.canonicalize in
+    let p = P.of_list ts in
     let p' = reconstruct_from_canonical p in
     assert_poly_eq "reconstruct canonical" p p'
   )
 
 (* Test: Canonical form minimality and no redundancy *)
 let test_canonical_minimality () =
-  let base = P.of_terms [ (v ["x"], encode 2 1); (v ["y"], encode 1 1); (v [], encode 1 0) ] |> P.canonicalize in
+  let base = P.of_list [ (v ["x"], encode 2 1); (v ["y"], encode 1 1); (v [], encode 1 0) ] in
   
   (* No ⊥ entries in canonical form *)
   List.iter (fun (_s,c) -> 
     assert_false "no bot in canonical" (C.equal c C.bot)
-  ) (P.terms base);
+  ) (P.to_list base);
   
   (* For any S⊂T present, adding lower into upper then canonicalize yields same *)
-  let bindings = P.terms base in
+  let bindings = P.to_list base in
   List.iter (fun (s,c_s) ->
     List.iter (fun (t,_) ->
       if s != t && P.VarSet.subset s t then (
         let mutated =
           bindings
           |> List.map (fun (u,c) -> if P.VarSet.compare u t = 0 then (u, C.join c c_s) else (u,c))
-          |> P.of_terms |> P.canonicalize
+          |> P.of_list
         in
         assert_poly_eq "superset join lower unchanged" mutated base
       )
@@ -58,14 +58,14 @@ let test_canonical_minimality () =
 
 (* Test: Deterministic ordering of terms *)
 let test_canonical_ordering () =
-  let p_order = P.of_terms [ 
+  let p_order = P.of_list [ 
     (v ["y"], encode 1 0); 
     (v [], encode 1 1); 
     (v ["x";"y"], encode 2 1); 
     (v ["x"], encode 2 0) 
-  ] |> P.canonicalize in
+  ] in
   
-  let terms = P.terms p_order in
+  let terms = P.to_list p_order in
   let degrees = List.map (fun (s,_) -> P.VarSet.cardinal s) terms in
   
   (* Check nondecreasing degree *)
@@ -85,14 +85,14 @@ let test_canonical_ordering () =
 let test_duplicate_merging () =
   let sxy = v ["x";"y"] in
   let c1 = encode 1 1 and c2 = encode 2 0 in
-  let p_dup = P.of_terms [ (sxy, c1); (sxy, c2); (v ["x"], encode 0 1) ] |> P.canonicalize in
-  let p_merged = P.of_terms [ (sxy, C.join c1 c2); (v ["x"], encode 0 1) ] |> P.canonicalize in
+  let p_dup = P.of_list [ (sxy, c1); (sxy, c2); (v ["x"], encode 0 1) ] in
+  let p_merged = P.of_list [ (sxy, C.join c1 c2); (v ["x"], encode 0 1) ] in
   assert_poly_eq "duplicates merged via join" p_dup p_merged
 
 (* Test: Support laws *)
 let test_support_laws () =
-  let p1 = P.of_terms [ (v ["x"], encode 1 0); (v ["y"], encode 0 1) ] |> P.canonicalize in
-  let p2 = P.of_terms [ (v ["z"], encode 2 1); (v ["x";"y"], encode 1 1) ] |> P.canonicalize in
+  let p1 = P.of_list [ (v ["x"], encode 1 0); (v ["y"], encode 0 1) ] in
+  let p2 = P.of_list [ (v ["z"], encode 2 1); (v ["x";"y"], encode 1 1) ] in
   
   let sup_join = P.support (P.join p1 p2) in
   let sup_meet = P.support (P.meet p1 p2) in
@@ -103,10 +103,10 @@ let test_support_laws () =
 
 (* Test: Substitution homomorphisms *)
 let test_substitution_homomorphisms () =
-  let p1 = P.of_terms [ (v ["x"], encode 1 0); (v ["y"], encode 0 1) ] |> P.canonicalize in
-  let p2 = P.of_terms [ (v ["z"], encode 2 1); (v ["x";"y"], encode 1 1) ] |> P.canonicalize in
+  let p1 = P.of_list [ (v ["x"], encode 1 0); (v ["y"], encode 0 1) ] in
+  let p2 = P.of_list [ (v ["z"], encode 2 1); (v ["x";"y"], encode 1 1) ] in
   
-  let sub = P.VarMap.(empty |> add "x" (P.of_terms [ (v ["z"], encode 1 1) ] |> P.canonicalize)) in
+  let sub = P.VarMap.(empty |> add "x" (P.of_list [ (v ["z"], encode 1 1) ])) in
   
   (* Substitution distributes over join *)
   let lhs_j = P.subst ~subs:sub (P.join p1 p2) in
@@ -120,13 +120,13 @@ let test_substitution_homomorphisms () =
 
 (* Test: Edge cases *)
 let test_edge_cases () =
-  (* Empty polynomial *)
-  assert_poly_eq "empty = bot" P.empty P.bot;
-  assert_true "empty is_empty" (P.is_empty P.empty);
+  (* Bot polynomial *)
+  assert_poly_eq "bot = bot" P.bot P.bot;
+  assert_true "bot equals bot" (P.equal P.bot P.bot);
   
   (* Constant polynomials *)
   let c1 = P.const (encode 1 1) in
-  assert_false "const not empty" (P.is_empty c1);
+  assert_false "const not bot" (P.equal c1 P.bot);
   
   (* Bot constant *)
   let c_bot = P.const C.bot in

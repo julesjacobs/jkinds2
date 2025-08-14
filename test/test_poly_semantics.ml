@@ -156,9 +156,9 @@ let test_specific_semantics () =
   let result2 = P.eval rho c in
   assert_eq "const eval" (encode 2 1) result2;
   
-  (* Test 3: Empty polynomial *)
-  let result3 = P.eval rho P.empty in
-  assert_eq "empty eval" C.bot result3
+  (* Test 3: Bot polynomial *)
+  let result3 = P.eval rho P.bot in
+  assert_eq "bot eval" C.bot result3
 
 (* Main test runner *)
 let () =
