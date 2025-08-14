@@ -75,6 +75,7 @@ let parse_exn (s : string) : Type_syntax.t NameMap.t =
       | Type_syntax.C (_, args) -> List.iter check_vars args
       | Type_syntax.Unit -> ()
       | Type_syntax.Mod_annot (t', _) -> check_vars t'
+      | Type_syntax.Mod_const _ -> ()
       | Type_syntax.Pair (a, b) | Type_syntax.Sum (a, b) ->
           check_vars a; check_vars b
     in

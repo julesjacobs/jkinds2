@@ -27,7 +27,7 @@ let () =
   let decls_bindings = Decl_parser.NameMap.bindings decls in
   let kinds = Infer.kinds_of_decls_bindings decls_bindings in
   print_endline "Kinds:";
-  List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp_with_ctor n k)) kinds;
+  List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds;
   print_endline "\nLeast fixpoint kinds:";
   let _ = Infer.least_fixpoint_bindings ~max_iters kinds in
   ()

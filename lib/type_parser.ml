@@ -9,6 +9,8 @@ type token =
   | Lparen
   | Rparen
   | Comma
+  | Lbrack
+  | Rbrack
   | Star
   | Plus
   | AtAt
@@ -38,8 +40,8 @@ let tokenize (s : string) : (token list, string) result =
     if i >= len then Ok (List.rev (Eof :: acc))
     else
       match s.[i] with
-      | '[' -> lex (i + 1) acc
-      | ']' -> lex (i + 1) acc
+      | '[' -> lex (i + 1) (Lbrack :: acc)
+      | ']' -> lex (i + 1) (Rbrack :: acc)
       | '@' when i+1 < len && s.[i+1] = '@' -> lex (i + 2) (AtAt :: acc)
       | '\'' -> lex (i + 1) (Quote :: acc)
       | '(' -> lex (i + 1) (Lparen :: acc)
@@ -120,7 +122,18 @@ let parse_exn s =
         (match List.nth tokens j with
          | Rparen -> (t, j + 1)
          | _ -> fail "expected ')' after parenthesized type")
-    | Rparen | Comma | Star | Plus | AtAt | Eof ->
+    | Lbrack ->
+        (* parse bare modality constant: [n1, n2, ...] *)
+        let rec parse_levels k acc =
+          match List.nth tokens k with
+          | Int_lit n -> parse_levels (k+1) (n::acc)
+          | Comma -> parse_levels (k+1) acc
+          | Rbrack -> (List.rev acc, k+1)
+          | _ -> fail "expected ']' after modality literal"
+        in
+        let (levels, j) = parse_levels (i + 1) [] in
+        (Type_syntax.Mod_const (Array.of_list levels), j)
+    | Rparen | Rbrack | Comma | Star | Plus | AtAt | Eof ->
         fail "expected type"
   and parse_after_ident name i =
     match List.nth tokens i with
@@ -176,15 +189,18 @@ let parse_exn s =
         parse_bin_tail (Sum (lhs, rhs)) j
     | AtAt ->
         (* parse lattice element as vector literal: [n1, n2, ... ] *)
-        let k0 = i + 1 in
-        let rec parse_levels k acc =
-          match List.nth tokens k with
-          | Int_lit n -> parse_levels (k+1) (n::acc)
-          | Comma -> parse_levels (k+1) acc
-          | _ -> (List.rev acc, k)
-        in
-        let (levels, k) = parse_levels k0 [] in
-        parse_bin_tail (Type_syntax.Mod_annot (lhs, Array.of_list levels)) k
+        (match List.nth tokens (i + 1) with
+         | Lbrack ->
+             let rec parse_levels k acc =
+               match List.nth tokens k with
+               | Int_lit n -> parse_levels (k+1) (n::acc)
+               | Comma -> parse_levels (k+1) acc
+               | Rbrack -> (List.rev acc, k+1)
+               | _ -> fail "expected ']' after modality literal"
+             in
+             let (levels, k) = parse_levels (i + 2) [] in
+             parse_bin_tail (Type_syntax.Mod_annot (lhs, Array.of_list levels)) k
+         | _ -> fail "expected '[' after @@")
     | _ -> (lhs, i)
   in
   let (t, i) = parse_type 0 in

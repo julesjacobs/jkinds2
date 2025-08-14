@@ -7,6 +7,7 @@ type t =
   | C of string * t list
   | Var of var
   | Mod_annot of t * int array
+  | Mod_const of int array
 
 let rec pp (t : t) : string =
   match t with
@@ -21,5 +22,8 @@ let rec pp (t : t) : string =
         Printf.sprintf "%s(%s)" name args_s
   | Mod_annot (t, levels) ->
       Printf.sprintf "%s @@ [%s]" (pp t)
+        (levels |> Array.to_list |> List.map string_of_int |> String.concat ",")
+  | Mod_const levels ->
+      Printf.sprintf "[%s]"
         (levels |> Array.to_list |> List.map string_of_int |> String.concat ",")
 

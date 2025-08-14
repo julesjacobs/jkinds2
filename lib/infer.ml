@@ -3,7 +3,7 @@ let kindof (t : Type_syntax.t) : Kind.t =
   let rec go (t : Type_syntax.t) : Kind.t =
     match t with
     | Var a ->
-        Kind.set Kind.empty a Modality.id
+        Kind.set (Kind.set Kind.empty a Modality.id) Kind.Var.a0 Modality.zero
     | Unit ->
         Kind.set Kind.empty Kind.Var.a0 Modality.zero
     | Pair (a, b) | Sum (a, b) ->
@@ -12,6 +12,10 @@ let kindof (t : Type_syntax.t) : Kind.t =
         let k = go t' in
         let m = Modality.of_levels levels in
         Kind.apply m k
+    | Mod_const levels ->
+        let m = Modality.of_levels levels in
+        (* As a type, a bare modality constant contributes that meet to the sole var 1 *)
+        Kind.set Kind.empty 0 m
     | C (name, args) ->
         let base =
           Kind.set Kind.empty Kind.Var.a0 (Modality.of_atom { Modality.ctor = name; index = 0 })
@@ -37,9 +41,8 @@ let substitute_kinds ~lhs ~rhs : Kind.t Decl_parser.NameMap.t =
     match Decl_parser.NameMap.find_opt a.ctor rhs with
     | None -> None
     | Some k_rhs ->
-        (match Kind.find_opt k_rhs a.index with
-         | Some m -> Some m
-         | None -> raise (Kind.Substitution_error (Printf.sprintf "constructor %s index %d out of bounds" a.ctor a.index)))
+        (* Default missing indices to ⊥ to allow zero-arity ctors to substitute admin index safely *)
+        Some (Kind.get k_rhs a.index)
   in
   Decl_parser.NameMap.map (fun k -> Kind.substitute_using lookup_atom k) lhs
 
@@ -49,10 +52,7 @@ let substitute_kinds_bindings ~(lhs : (string * Kind.t) list) ~(rhs : (string * 
     let lookup_atom (a : Modality.atom) : Modality.t option =
       match Decl_parser.NameMap.find_opt a.ctor rhs_map with
       | None -> None
-      | Some k_rhs ->
-          (match Kind.find_opt k_rhs a.index with
-           | Some m -> Some m
-           | None -> raise (Kind.Substitution_error (Printf.sprintf "constructor %s index %d out of bounds" a.ctor a.index)))
+      | Some k_rhs -> Some (Kind.get k_rhs a.index)
     in
     (n, Kind.substitute_using lookup_atom k)
   in
@@ -67,7 +67,7 @@ let zero_constructor_entries_bindings (bs : (string * Kind.t) list) : (string * 
 let least_fixpoint ?(max_iters = 10) (km : Kind.t Decl_parser.NameMap.t) : Kind.t Decl_parser.NameMap.t =
   let pp_map_lines (m : Kind.t Decl_parser.NameMap.t) : string =
     Decl_parser.NameMap.bindings m
-    |> List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp_with_ctor n k))
+    |> List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k))
     |> String.concat "\n"
   in
   let rec loop i current =
@@ -89,7 +89,7 @@ let least_fixpoint_bindings ?(max_iters = 10) (bs : (string * Kind.t) list) : (s
     if i > max_iters then
       failwith "least_fixpoint: did not converge within bound"
     else (
-      let lines = List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp_with_ctor n k)) current |> String.concat "\n" in
+      let lines = List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current |> String.concat "\n" in
       Printf.printf "[lfp] iter %d:\n%s\n" i lines;
       let next = substitute_kinds_bindings ~lhs:bs ~rhs:current in
       let lists_equal l1 l2 =

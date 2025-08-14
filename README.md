@@ -33,3 +33,13 @@ kindof : Type -> Kind
         where "a0" is a global special type variable for administrative purposes
     a => {a -> id}
 
+
+
+----------
+
+## Notes.
+
+join = ⊔ = max
+meet = ⊓ = min
+
+

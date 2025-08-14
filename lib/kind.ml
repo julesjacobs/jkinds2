@@ -1,7 +1,7 @@
 module Var = struct
   type t = int
   let a0 = 0
-  let pp v = Printf.sprintf "'a%d" v
+  let pp v = string_of_int v
 end
 
 module VarOrd = struct
@@ -41,18 +41,13 @@ let pp (k : t) : string =
   else
     k
     |> VarMap.bindings
-    |> List.map (fun (v, m) -> Printf.sprintf "%s -> %s" (Var.pp v) (Modality.pp m))
+    |> List.map (fun (v, m) -> Printf.sprintf "%s ↦ %s" (Var.pp v) (Modality.pp m))
     |> String.concat ", "
     |> fun s -> Printf.sprintf "{%s}" s
 
-let pp_with_ctor (ctor : string) (k : t) : string =
-  if VarMap.is_empty k then "{}"
-  else
-    k
-    |> VarMap.bindings
-    |> List.map (fun (v, m) -> Printf.sprintf "%s.%d -> %s" ctor v (Modality.pp m))
-    |> String.concat ", "
-    |> fun s -> Printf.sprintf "{%s}" s
+let pp_with_ctor (_ctor : string) (k : t) : string =
+  (* Deprecated: print without outer name, just numeric indices *)
+  pp k
 
 exception Substitution_error of string
 

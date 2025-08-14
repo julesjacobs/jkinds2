@@ -28,3 +28,7 @@ type list2_inner('a1) = list2('a1 @@ [1,0])
 type list2_outer('a1) = list2('a1) @@ [1,0]
 
 
+(* New: bare modality constants as types (modals) *)
+type modal_plus('a1) = [1,0] + 'a1
+type modal_pair('a1) = [1,0] * 'a1
+
