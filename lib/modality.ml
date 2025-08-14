@@ -16,6 +16,9 @@ let substitute (f : atom -> t option) (m : t) : t =
   let f' (a:M.atom) = f { ctor = a.ctor; index = a.index } in
   M.substitute f' m
 let equal (a : t) (b : t) : bool = M.equal a b
+let leq (a:t) (b:t) : bool = M.leq a b
+let ceil (m:t) : t = M.ceil m
+let floor (m:t) : t = M.floor m
 let pp (m : t) : string =
   (* Pretty-print coefficients using the concrete product lattice. *)
   if M.equal m M.zero then "⊥"

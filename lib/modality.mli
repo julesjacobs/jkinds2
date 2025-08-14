@@ -13,3 +13,7 @@ val pp : t -> string
 val substitute : (atom -> t option) -> t -> t
 
 val equal : t -> t -> bool
+val leq : t -> t -> bool
+
+val ceil : t -> t
+val floor : t -> t

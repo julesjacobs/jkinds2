@@ -34,9 +34,15 @@ module Make (C : COEFF) = struct
     if P.VarMap.is_empty subs then m else P.subst ~subs m
 
   let equal = P.equal
+  let leq = P.leq
 
   let terms (m:t) : (atom list * coeff) list =
     P.to_list m |> List.map (fun (s,c) -> (P.VarSet.elements s, c))
+
+  let ceil_coeff (m:t) : coeff = P.ceil m
+  let floor_coeff (m:t) : coeff = P.floor m
+  let ceil (m:t) : t = P.const (P.ceil m)
+  let floor (m:t) : t = P.const (P.floor m)
 
   let pp (m : t) : string =
     (* Keep generic; concrete decode/pretty-print handled by caller/wrapper. *)

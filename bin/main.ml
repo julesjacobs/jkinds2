@@ -33,4 +33,27 @@ let () =
   print_endline "\nLeast fixpoint kinds:";
   let kinds_lfp = Infer.least_fixpoint_bindings_with_self_init ~max_iters ~abstracts kinds in
   List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds_lfp;
+  print_endline "\nCeil/Floor kinds:";
+  List.iter (fun (n,k) ->
+    let kc = Kind.ceil k in
+    let kf = Kind.floor k in
+    Printf.printf "%s: ceil=%s, floor=%s\n" n (Kind.pp kc) (Kind.pp kf)
+  ) kinds_lfp;
+  print_endline "\nLEQ relationships:";
+  let names = List.map fst kinds_lfp in
+  let lookup = kinds_lfp in
+  List.iter (fun (n,k) ->
+    let supersets =
+      names
+      |> List.filter (fun m ->
+           if m = n then false
+           else
+             let km = List.assoc m lookup in
+             Kind.leq k km)
+    in
+    if supersets <> [] then
+      Printf.printf "%s <= %s\n" n (String.concat ", " supersets)
+    else
+      Printf.printf "%s <= (none)\n" n
+  ) kinds_lfp;
   ()

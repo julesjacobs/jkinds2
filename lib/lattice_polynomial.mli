@@ -30,6 +30,8 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   val subst1    : v:V.t -> by:t -> t -> t
 
   val eval      : (V.t -> C.t) -> t -> C.t
+  val ceil      : t -> C.t
+  val floor     : t -> C.t
 
   val pp        : ?pp_var:(V.t -> string) -> ?pp_coeff:(coeff -> string) -> t -> string
 end

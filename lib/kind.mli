@@ -15,6 +15,10 @@ val apply : Modality.t -> t -> t
 val pp : t -> string
 val pp_with_ctor : string -> t -> string
 val equal : t -> t -> bool
+val leq : t -> t -> bool
+
+val ceil : t -> t
+val floor : t -> t
 
 exception Substitution_error of string
 

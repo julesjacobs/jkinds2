@@ -216,6 +216,10 @@ module Make (C : LATTICE) (V : ORDERED) = struct
          C.join acc (C.meet c var_val))
       p C.bot
 
+  (* Evaluate with all variables set to ⊤ (ceil) or ⊥ (floor). *)
+  let ceil (p:t) : C.t = eval (fun _ -> C.top) p
+  let floor (p:t) : C.t = eval (fun _ -> C.bot) p
+
   (* Pretty printer (ASCII); you can pass printers for variables and coeffs. *)
   let pp ?(pp_var=(fun _ -> "_")) ?(pp_coeff=(fun _ -> "<c>")) (p:t) : string =
     if SetMap.is_empty p then "⊥"

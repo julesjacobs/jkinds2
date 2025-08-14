@@ -15,7 +15,12 @@ module Make (C : COEFF) : sig
   val compose : t -> t -> t
   val substitute : (atom -> t option) -> t -> t
   val equal : t -> t -> bool
+  val leq : t -> t -> bool
   val terms : t -> (atom list * coeff) list
+  val ceil_coeff : t -> coeff
+  val floor_coeff : t -> coeff
+  val ceil : t -> t
+  val floor : t -> t
   val pp : t -> string
 end
 

@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-14 18:42:41 UTC
+Generated: 2025-08-14 18:56:04 UTC
 
 ## abstracts.types
 
@@ -42,6 +42,20 @@ baz: {0 ↦ baz.0}
 foo: {0 ↦ ⊥}
 one: {0 ↦ ([0,1] ⊓ one.0)}
 two: {0 ↦ ([0,1] ⊓ one.0)}
+
+Ceil/Floor kinds:
+bar: ceil={0 ↦ [0,1]}, floor={0 ↦ ⊥}
+baz: ceil={0 ↦ ⊤}, floor={0 ↦ ⊥}
+foo: ceil={0 ↦ ⊥}, floor={0 ↦ ⊥}
+one: ceil={0 ↦ [0,1]}, floor={0 ↦ ⊥}
+two: ceil={0 ↦ [0,1]}, floor={0 ↦ ⊥}
+
+LEQ relationships:
+bar <= (none)
+baz <= (none)
+foo <= bar, baz, one, two
+one <= two
+two <= one
 ```
 
 ## benjamin.types
@@ -78,6 +92,16 @@ Least fixpoint kinds:
 bar: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ ⊤}
 foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
+
+Ceil/Floor kinds:
+bar: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+foo1: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+foo2: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+
+LEQ relationships:
+bar <= (none)
+foo1 <= bar, foo2
+foo2 <= bar, foo1
 ```
 
 ## btree.types
@@ -99,6 +123,12 @@ Least fixpoint kinds:
 [lfp] iter 0:
 
 btree: {0 ↦ (leaf.0 ⊔ node.0), 1 ↦ leaf.1}
+
+Ceil/Floor kinds:
+btree: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+
+LEQ relationships:
+btree <= (none)
 ```
 
 ## list_sum_pair.types
@@ -120,6 +150,12 @@ Least fixpoint kinds:
 [lfp] iter 0:
 
 list: {0 ↦ ⊥, 1 ↦ ⊤}
+
+Ceil/Floor kinds:
+list: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+
+LEQ relationships:
+list <= (none)
 ```
 
 ## modalities.types
@@ -275,6 +311,52 @@ outer_vs_inner: {0 ↦ ⊥, 1 ↦ [1,0]}
 pair_annot: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
 tree: {0 ↦ ([0,1] ⊓ Node.0), 1 ↦ ([0,1] ⊓ Node.1)}
 two_axes: {0 ↦ ([0,1] ⊓ G.0), 1 ↦ ([0,1] ⊓ G.1)}
+
+Ceil/Floor kinds:
+both: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+deeply: ceil={0 ↦ [1,1], 1 ↦ [1,1]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+id_annot: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+id_bot: ceil={0 ↦ ⊥, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+inner_vs_outer: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0]}
+list: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+list2: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+list2_inner: ceil={0 ↦ ⊤, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+list2_outer: ceil={0 ↦ [1,0], 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+list_ann: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0]}
+list_inner: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0]}
+list_outer: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0]}
+mix_pair: ceil={0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [0,1]}, floor={0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [0,1]}
+mix_sum: ceil={0 ↦ ⊥, 1 ↦ [1,1]}, floor={0 ↦ ⊥, 1 ↦ [1,1]}
+modal_pair: ceil={0 ↦ [1,0], 1 ↦ ⊤}, floor={0 ↦ [1,0], 1 ↦ ⊤}
+modal_plus: ceil={0 ↦ [1,0], 1 ↦ ⊤}, floor={0 ↦ [1,0], 1 ↦ ⊤}
+nested: ceil={0 ↦ ⊥, 1 ↦ [1,1]}, floor={0 ↦ ⊥, 1 ↦ [1,1]}
+outer_vs_inner: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0]}
+pair_annot: ceil={0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
+tree: ceil={0 ↦ [0,1], 1 ↦ [0,1]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+two_axes: ceil={0 ↦ [0,1], 1 ↦ [0,1]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+
+LEQ relationships:
+both <= id_annot, list, modal_pair, modal_plus
+deeply <= (none)
+id_annot <= both, list, modal_pair, modal_plus
+id_bot <= both, deeply, id_annot, inner_vs_outer, list, list2, list2_inner, list2_outer, list_ann, list_inner, list_outer, mix_sum, modal_pair, modal_plus, nested, outer_vs_inner, tree, two_axes
+inner_vs_outer <= both, id_annot, list, list_ann, list_inner, list_outer, mix_sum, modal_pair, modal_plus, nested, outer_vs_inner
+list <= both, id_annot, modal_pair, modal_plus
+list2 <= (none)
+list2_inner <= list2
+list2_outer <= list2, list2_inner, modal_pair, modal_plus
+list_ann <= both, id_annot, inner_vs_outer, list, list_inner, list_outer, mix_sum, modal_pair, modal_plus, nested, outer_vs_inner
+list_inner <= both, id_annot, inner_vs_outer, list, list_ann, list_outer, mix_sum, modal_pair, modal_plus, nested, outer_vs_inner
+list_outer <= both, id_annot, inner_vs_outer, list, list_ann, list_inner, mix_sum, modal_pair, modal_plus, nested, outer_vs_inner
+mix_pair <= (none)
+mix_sum <= both, id_annot, list, modal_pair, modal_plus, nested
+modal_pair <= modal_plus
+modal_plus <= modal_pair
+nested <= both, id_annot, list, mix_sum, modal_pair, modal_plus
+outer_vs_inner <= both, id_annot, inner_vs_outer, list, list_ann, list_inner, list_outer, mix_sum, modal_pair, modal_plus, nested
+pair_annot <= (none)
+tree <= (none)
+two_axes <= deeply
 ```
 
 ## modals.types
@@ -304,6 +386,14 @@ Least fixpoint kinds:
 
 bar: {0 ↦ [1,0]}
 foo: {0 ↦ [1,1]}
+
+Ceil/Floor kinds:
+bar: ceil={0 ↦ [1,0]}, floor={0 ↦ [1,0]}
+foo: ceil={0 ↦ [1,1]}, floor={0 ↦ [1,1]}
+
+LEQ relationships:
+bar <= foo
+foo <= (none)
 ```
 
 ## mutual.types
@@ -330,6 +420,14 @@ Least fixpoint kinds:
 
 evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
+
+Ceil/Floor kinds:
+evenlist: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+oddlist: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+
+LEQ relationships:
+evenlist <= oddlist
+oddlist <= evenlist
 ```
 
 ## portable.types
@@ -371,6 +469,18 @@ lily: {0 ↦ portable.0, 1 ↦ portable.1}
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 orchid: {0 ↦ portable.0, 1 ↦ portable.1}
 tulip: {0 ↦ portable.0, 1 ↦ ⊤}
+
+Ceil/Floor kinds:
+lily: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+list: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+orchid: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+tulip: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+
+LEQ relationships:
+lily <= orchid, tulip
+list <= tulip
+orchid <= lily, tulip
+tulip <= (none)
 ```
 
 ## ref.types
@@ -392,6 +502,12 @@ Least fixpoint kinds:
 [lfp] iter 0:
 
 foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
+
+Ceil/Floor kinds:
+foo: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+
+LEQ relationships:
+foo <= (none)
 ```
 
 ## rose_sum_pair.types
@@ -427,6 +543,16 @@ Least fixpoint kinds:
 lily: {0 ↦ ⊥, 1 ↦ ⊤}
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 rose: {0 ↦ ⊥, 1 ↦ ⊥}
+
+Ceil/Floor kinds:
+lily: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+list: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+rose: ceil={0 ↦ ⊥, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+
+LEQ relationships:
+lily <= list
+list <= lily
+rose <= lily, list
 ```
 
 ## zipper.types
@@ -462,4 +588,14 @@ Least fixpoint kinds:
 ctx: {0 ↦ down.0, 1 ↦ down.1}
 list: {0 ↦ cons.0, 1 ↦ cons.1}
 zipper: {0 ↦ (cons.0 ⊔ down.0), 1 ↦ (cons.1 ⊔ down.1)}
+
+Ceil/Floor kinds:
+ctx: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+list: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+zipper: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+
+LEQ relationships:
+ctx <= zipper
+list <= zipper
+zipper <= (none)
 ```
