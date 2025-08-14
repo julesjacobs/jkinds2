@@ -8,4 +8,23 @@ type tree('a1) = Node('a1, tree('a1)) @@ [0,1]
 
 type both('a1) = ('a1 @@ [2,0]) + ('a1 @@ [1,1])
 
+type id_bot('a1) = 'a1 @@ [0,0]
+type mix_sum('a1) = ('a1 @@ [1,0]) + ('a1 @@ [0,1])
+type mix_pair('a1,'a2) = ('a1 @@ [1,0]) * ('a2 @@ [0,1])
+type outer_vs_inner('a1) = ('a1 * 'a1) @@ [1,0]
+type inner_vs_outer('a1) = ('a1 @@ [1,0]) * ('a1 @@ [1,0])
+type list_ann('a1) = (unit + 'a1 * list_ann('a1)) @@ [1,0]
+type two_axes('a1) = F('a1) @@ [1,0] + G('a1) @@ [0,1]
+type deeply('a1) = ((F('a1) @@ [1,0]) + (G('a1) @@ [0,1])) @@ [1,1]
+
+(* Compare inner vs outer annotation for lists *)
+type list('a1) = unit + 'a1 * list('a1)
+type list_inner('a1) = list('a1 @@ [1,0])
+type list_outer('a1) = list('a1) @@ [1,0]
+
+(* Alternative list using explicit nil/cons constructors *)
+type list2('a1) = nil() + cons('a1, list2('a1))
+type list2_inner('a1) = list2('a1 @@ [1,0])
+type list2_outer('a1) = list2('a1) @@ [1,0]
+
 

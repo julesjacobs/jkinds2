@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-14 02:06:07 UTC
+Generated: 2025-08-14 02:24:07 UTC
 
 ## benjamin.types
 
@@ -57,6 +57,110 @@ Least fixpoint kinds:
   list: {list.0 -> ⊥, list.1 -> ⊥}
 [lfp] iter 1:
   list: {list.0 -> ⊥, list.1 -> ⊤}
+```
+
+## modalities.types
+
+```
+type id_annot('a1) = 'a1 @@ [2,1]
+
+type pair_annot('a1,'a2) = ('a1 * 'a2) @@ [1,0]
+
+type nested('a1) = (('a1 @@ [2,1]) + unit) @@ [1,1]
+
+type tree('a1) = Node('a1, tree('a1)) @@ [0,1]
+
+type both('a1) = ('a1 @@ [2,0]) + ('a1 @@ [1,1])
+
+type id_bot('a1) = 'a1 @@ [0,0]
+type mix_sum('a1) = ('a1 @@ [1,0]) + ('a1 @@ [0,1])
+type mix_pair('a1,'a2) = ('a1 @@ [1,0]) * ('a2 @@ [0,1])
+type outer_vs_inner('a1) = ('a1 * 'a1) @@ [1,0]
+type inner_vs_outer('a1) = ('a1 @@ [1,0]) * ('a1 @@ [1,0])
+type list_ann('a1) = (unit + 'a1 * list_ann('a1)) @@ [1,0]
+type two_axes('a1) = F('a1) @@ [1,0] + G('a1) @@ [0,1]
+type deeply('a1) = ((F('a1) @@ [1,0]) + (G('a1) @@ [0,1])) @@ [1,1]
+
+(* Compare inner vs outer annotation for lists *)
+type list('a1) = unit + 'a1 * list('a1)
+type list_inner('a1) = list('a1 @@ [1,0])
+type list_outer('a1) = list('a1) @@ [1,0]
+
+
+```
+
+Program output:
+```
+Kinds:
+both: {both.1 -> ⊤}
+deeply: {deeply.0 -> {{[1,0] ⊓ {F.0}} ⊔ {[0,1] ⊓ {G.0}}}, deeply.1 -> {{[1,0] ⊓ {F.1}} ⊔ {[0,1] ⊓ {G.1}}}}
+id_annot: {id_annot.1 -> ⊤}
+id_bot: {id_bot.1 -> ⊥}
+inner_vs_outer: {inner_vs_outer.1 -> {{[1,0]}}}
+list: {list.0 -> {{list.0}}, list.1 -> ⊤}
+list_ann: {list_ann.0 -> {{[1,0] ⊓ {list_ann.0}}}, list_ann.1 -> {{[1,0]}}}
+list_inner: {list_inner.0 -> {{list.0}}, list_inner.1 -> {{[1,0] ⊓ {list.1}}}}
+list_outer: {list_outer.0 -> {{[1,0] ⊓ {list.0}}}, list_outer.1 -> {{[1,0] ⊓ {list.1}}}}
+mix_pair: {mix_pair.1 -> {{[1,0]}}, mix_pair.2 -> {{[0,1]}}}
+mix_sum: {mix_sum.1 -> {{[1,1]}}}
+nested: {nested.0 -> ⊥, nested.1 -> {{[1,1]}}}
+outer_vs_inner: {outer_vs_inner.1 -> {{[1,0]}}}
+pair_annot: {pair_annot.1 -> {{[1,0]}}, pair_annot.2 -> {{[1,0]}}}
+tree: {tree.0 -> {{[0,1] ⊓ {Node.0}} ⊔ {[0,1] ⊓ {Node.2 ⊓ tree.0}}}, tree.1 -> {{[0,1] ⊓ {Node.1}} ⊔ {[0,1] ⊓ {Node.2 ⊓ tree.1}}}}
+two_axes: {two_axes.0 -> {{[0,1] ⊓ {G.0}}}, two_axes.1 -> {{[0,1] ⊓ {G.1}}}}
+
+Least fixpoint kinds:
+[lfp] iter 0:
+  both: {both.1 -> ⊥}
+  deeply: {deeply.0 -> ⊥, deeply.1 -> ⊥}
+  id_annot: {id_annot.1 -> ⊥}
+  id_bot: {id_bot.1 -> ⊥}
+  inner_vs_outer: {inner_vs_outer.1 -> ⊥}
+  list: {list.0 -> ⊥, list.1 -> ⊥}
+  list_ann: {list_ann.0 -> ⊥, list_ann.1 -> ⊥}
+  list_inner: {list_inner.0 -> ⊥, list_inner.1 -> ⊥}
+  list_outer: {list_outer.0 -> ⊥, list_outer.1 -> ⊥}
+  mix_pair: {mix_pair.1 -> ⊥, mix_pair.2 -> ⊥}
+  mix_sum: {mix_sum.1 -> ⊥}
+  nested: {nested.0 -> ⊥, nested.1 -> ⊥}
+  outer_vs_inner: {outer_vs_inner.1 -> ⊥}
+  pair_annot: {pair_annot.1 -> ⊥, pair_annot.2 -> ⊥}
+  tree: {tree.0 -> ⊥, tree.1 -> ⊥}
+  two_axes: {two_axes.0 -> ⊥, two_axes.1 -> ⊥}
+[lfp] iter 1:
+  both: {both.1 -> ⊤}
+  deeply: {deeply.0 -> {{[1,0] ⊓ {F.0}} ⊔ {[0,1] ⊓ {G.0}}}, deeply.1 -> {{[1,0] ⊓ {F.1}} ⊔ {[0,1] ⊓ {G.1}}}}
+  id_annot: {id_annot.1 -> ⊤}
+  id_bot: {id_bot.1 -> ⊥}
+  inner_vs_outer: {inner_vs_outer.1 -> {{[1,0]}}}
+  list: {list.0 -> ⊥, list.1 -> ⊤}
+  list_ann: {list_ann.0 -> ⊥, list_ann.1 -> {{[1,0]}}}
+  list_inner: {list_inner.0 -> ⊥, list_inner.1 -> ⊥}
+  list_outer: {list_outer.0 -> ⊥, list_outer.1 -> ⊥}
+  mix_pair: {mix_pair.1 -> {{[1,0]}}, mix_pair.2 -> {{[0,1]}}}
+  mix_sum: {mix_sum.1 -> {{[1,1]}}}
+  nested: {nested.0 -> ⊥, nested.1 -> {{[1,1]}}}
+  outer_vs_inner: {outer_vs_inner.1 -> {{[1,0]}}}
+  pair_annot: {pair_annot.1 -> {{[1,0]}}, pair_annot.2 -> {{[1,0]}}}
+  tree: {tree.0 -> {{[0,1] ⊓ {Node.0}}}, tree.1 -> {{[0,1] ⊓ {Node.1}}}}
+  two_axes: {two_axes.0 -> {{[0,1] ⊓ {G.0}}}, two_axes.1 -> {{[0,1] ⊓ {G.1}}}}
+[lfp] iter 2:
+  both: {both.1 -> ⊤}
+  deeply: {deeply.0 -> {{[1,0] ⊓ {F.0}} ⊔ {[0,1] ⊓ {G.0}}}, deeply.1 -> {{[1,0] ⊓ {F.1}} ⊔ {[0,1] ⊓ {G.1}}}}
+  id_annot: {id_annot.1 -> ⊤}
+  id_bot: {id_bot.1 -> ⊥}
+  inner_vs_outer: {inner_vs_outer.1 -> {{[1,0]}}}
+  list: {list.0 -> ⊥, list.1 -> ⊤}
+  list_ann: {list_ann.0 -> ⊥, list_ann.1 -> {{[1,0]}}}
+  list_inner: {list_inner.0 -> ⊥, list_inner.1 -> {{[1,0]}}}
+  list_outer: {list_outer.0 -> ⊥, list_outer.1 -> {{[1,0]}}}
+  mix_pair: {mix_pair.1 -> {{[1,0]}}, mix_pair.2 -> {{[0,1]}}}
+  mix_sum: {mix_sum.1 -> {{[1,1]}}}
+  nested: {nested.0 -> ⊥, nested.1 -> {{[1,1]}}}
+  outer_vs_inner: {outer_vs_inner.1 -> {{[1,0]}}}
+  pair_annot: {pair_annot.1 -> {{[1,0]}}, pair_annot.2 -> {{[1,0]}}}
+  tree: {tree.0 -> {{[0,1] ⊓ {Node.0}}}, tree.1 -> {{[0,1] ⊓ {Node.1}}}}
+  two_axes: {two_axes.0 -> {{[0,1] ⊓ {G.0}}}, two_axes.1 -> {{[0,1] ⊓ {G.1}}}}
 ```
 
 ## mutual.types

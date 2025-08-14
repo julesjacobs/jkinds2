@@ -8,7 +8,10 @@ let parse_exn (s : string) : Type_syntax.t NameMap.t =
   let lines =
     s
     |> String.split_on_char '\n'
-    |> List.filter (fun l -> String.trim l <> "")
+    |> List.filter (fun l ->
+         let t = String.trim l in
+         String.length t >= 5 && String.sub t 0 5 = "type "
+       )
   in
   let parse_line (line : string) : string * Type_syntax.t =
     (* Expect: type C('a1,'a2,...) = <type_expr> *)
