@@ -58,11 +58,12 @@ let () =
   assert (L.decode L.top = top_levels);
   print_endline "✓ top/bot ok";
 
-  (* co-Heyting subtraction: axiswise  if a<=b then ⊥ else a *)
+  (* co-Heyting subtraction: axiswise if a<=b then ⊥ else a *)
   let a = L.encode ~levels:[| 1; 2; 0; 1 |] in
   let b = L.encode ~levels:[| 0; 2; 0; 0 |] in
   let c = L.co_sub a b in
-  (* axis 0: 1>0 keep 1; axis1: 2<=2 -> 0; axis2: 0<=0 -> 0; axis3: 1>0 keep 1 *)
+  (* axis 0: 1>0 keep 1; axis1: 2<=2 -> 0; axis2: 0<=0 -> 0; axis3: 1>0 keep
+     1 *)
   assert (L.decode c = [| 1; 0; 0; 1 |]);
   let d = L.co_sub b a in
   (* axis0: 0<=1 ->0; axis1: 2<=2 ->0; axis3: 0<=1 ->0 *)
@@ -75,7 +76,9 @@ let () =
   assert (L.co_sub L.bot a = L.bot);
   let top_b = L.co_sub L.top b in
   let expected_top_b =
-    Array.mapi (fun i n -> if L.get_axis b ~axis:i = n - 1 then 0 else n - 1) L.axis_sizes
+    Array.mapi
+      (fun i n -> if L.get_axis b ~axis:i = n - 1 then 0 else n - 1)
+      L.axis_sizes
   in
   assert (L.decode top_b = expected_top_b);
   (* admissibility: a <= b \/ (a \ b) *)
@@ -87,51 +90,64 @@ let () =
   assert (L.leq (L.co_sub a b') (L.co_sub a b));
 
   (* Exhaustive property check on a small shape [|2;3;2|] *)
-  let module Sx = struct let axis_sizes = [|2;3;2|] end in
-  let module X = Product_lattice.Make(Sx) in
-  let domain = Array.to_list (Array.init (2*3*2) (fun idx ->
-    let a0 = idx mod 2 in
-    let a1 = (idx/2) mod 3 in
-    let a2 = (idx/6) mod 2 in
-    X.encode ~levels:[|a0;a1;a2|]
-  )) in
-  List.iter (fun va ->
-    List.iter (fun vb ->
-      let vc = X.co_sub va vb in
-      let la = X.decode va in
-      let lb = X.decode vb in
-      let lc = X.decode vc in
-      for i=0 to Array.length la - 1 do
-        let expected = if la.(i) <= lb.(i) then 0 else la.(i) in
-        assert (lc.(i) = expected)
-      done;
-      (* Check a <= b \/ (a \ b) *)
-      assert (X.leq va (X.join vb vc))
-    ) domain
-  ) domain;
+  let module Sx = struct
+    let axis_sizes = [| 2; 3; 2 |]
+  end in
+  let module X = Product_lattice.Make (Sx) in
+  let domain =
+    Array.to_list
+      (Array.init
+         (2 * 3 * 2)
+         (fun idx ->
+           let a0 = idx mod 2 in
+           let a1 = idx / 2 mod 3 in
+           let a2 = idx / 6 mod 2 in
+           X.encode ~levels:[| a0; a1; a2 |]))
+  in
+  List.iter
+    (fun va ->
+      List.iter
+        (fun vb ->
+          let vc = X.co_sub va vb in
+          let la = X.decode va in
+          let lb = X.decode vb in
+          let lc = X.decode vc in
+          for i = 0 to Array.length la - 1 do
+            let expected = if la.(i) <= lb.(i) then 0 else la.(i) in
+            assert (lc.(i) = expected)
+          done;
+          (* Check a <= b \/ (a \ b) *)
+          assert (X.leq va (X.join vb vc)))
+        domain)
+    domain;
   (* Residuation equivalence and distribution properties *)
-  List.iter (fun va ->
-    List.iter (fun vb ->
-      let co = X.co_sub va vb in
-      List.iter (fun vx ->
-        let lhs = X.leq co vx in
-        let rhs = X.leq va (X.join vb vx) in
-        assert (lhs = rhs)
-      ) domain;
-      (* Distributions: (a \/ b) \\ c = (a \\ c) \/ (b \\ c) *)
-      List.iter (fun vb2 ->
-        let left = X.co_sub (X.join va vb2) vb in
-        let right = X.join (X.co_sub va vb) (X.co_sub vb2 vb) in
-        assert (left = right)
-      ) domain;
-      (* a \\ (b \/ c) = (a \\ b) /\ (a \\ c) *)
-      List.iter (fun vc2 ->
-        let left = X.co_sub va (X.join vb vc2) in
-        let right = X.meet (X.co_sub va vb) (X.co_sub va vc2) in
-        assert (left = right)
-      ) domain
-    ) domain
-  ) domain;
+  List.iter
+    (fun va ->
+      List.iter
+        (fun vb ->
+          let co = X.co_sub va vb in
+          List.iter
+            (fun vx ->
+              let lhs = X.leq co vx in
+              let rhs = X.leq va (X.join vb vx) in
+              assert (lhs = rhs))
+            domain;
+          (* Distributions: (a \/ b) \\ c = (a \\ c) \/ (b \\ c) *)
+          List.iter
+            (fun vb2 ->
+              let left = X.co_sub (X.join va vb2) vb in
+              let right = X.join (X.co_sub va vb) (X.co_sub vb2 vb) in
+              assert (left = right))
+            domain;
+          (* a \\ (b \/ c) = (a \\ b) /\ (a \\ c) *)
+          List.iter
+            (fun vc2 ->
+              let left = X.co_sub va (X.join vb vc2) in
+              let right = X.meet (X.co_sub va vb) (X.co_sub va vc2) in
+              assert (left = right))
+            domain)
+        domain)
+    domain;
   print_endline "✓ exhaustive co_sub properties ok";
 
   (* pretty print exact check *)
@@ -139,6 +155,4 @@ let () =
   assert_eq "pp" pp_str "{A=1, B=2, C=0, D=1}";
   print_endline "✓ pp ok";
 
-  print_endline "All product_lattice tests passed";
-
-
+  print_endline "All product_lattice tests passed"

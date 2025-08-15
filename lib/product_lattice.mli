@@ -20,9 +20,11 @@ module Make (_ : SHAPE) : sig
   (* Lattice ops *)
   val join : t -> t -> t
   val meet : t -> t -> t
-  val leq  : t -> t -> bool
+  val leq : t -> t -> bool
   val equal : t -> t -> bool
-  val co_sub : t -> t -> t  (* co-Heyting subtraction: least x s.t. a <= b \/ x *)
+
+  val co_sub :
+    t -> t -> t (* co-Heyting subtraction: least x s.t. a <= b \/ x *)
 
   (* Axis accessors *)
   val get_axis : t -> axis:int -> int
@@ -35,5 +37,3 @@ module Make (_ : SHAPE) : sig
   (* Pretty-print; optionally name axes *)
   val pp : ?axis_names:string array -> t -> string
 end
-
-

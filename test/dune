@@ -6,8 +6,10 @@
   test_decl_parser
   ; test_substitute (removed: relied on non-exported infer helpers)
   test_product_lattice)
-  (libraries jkinds_lib)
-  (modules (:standard \ poly_expect_tests modality_expect_tests)))
+ (libraries jkinds_lib)
+ (modules
+  (:standard \ poly_expect_tests modality_expect_tests)))
+
 (test
  (name test_kind_apply)
  (libraries jkinds_lib)
@@ -22,14 +24,17 @@
  (name test_modality_pp)
  (libraries jkinds_lib)
  (modules test_modality_pp))
+
 (test
  (name test_list_demo)
  (libraries jkinds_lib)
  (modules test_list_demo))
+
 (test
  (name test_properties)
  (libraries jkinds_lib)
  (modules test_properties))
+
 (test
  (name test_parser_props)
  (libraries jkinds_lib)
@@ -53,6 +58,7 @@
 (library
  (name expect_lib)
  (libraries jkinds_lib)
- (preprocess (pps ppx_expect))
+ (preprocess
+  (pps ppx_expect))
  (inline_tests)
  (modules poly_expect_tests modality_expect_tests))

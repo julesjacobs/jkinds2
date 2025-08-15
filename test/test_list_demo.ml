@@ -7,4 +7,3 @@ let () =
   let list_kind_lfp = List.assoc "list" solved in
   Printf.printf "list kind after LFP: %s\n" (Kind.pp list_kind_lfp);
   print_endline "✓ list demo completed"
-

@@ -15,10 +15,10 @@ let () =
       match Random.int 6 with
       | 0 -> Unit
       | 1 -> Var (Random.int 3)
-      | 2 -> C ("C", [ gen_type (depth-1) ])
-      | 3 -> C ("D", [ gen_type (depth-1); gen_type (depth-1) ])
-      | 4 -> Pair (gen_type (depth-1), gen_type (depth-1))
-      | _ -> Sum (gen_type (depth-1), gen_type (depth-1))
+      | 2 -> C ("C", [ gen_type (depth - 1) ])
+      | 3 -> C ("D", [ gen_type (depth - 1); gen_type (depth - 1) ])
+      | 4 -> Pair (gen_type (depth - 1), gen_type (depth - 1))
+      | _ -> Sum (gen_type (depth - 1), gen_type (depth - 1))
   in
   Random.init 1337;
   for _ = 1 to 500 do
@@ -29,5 +29,3 @@ let () =
     | Ok t' -> assert_true "pp/parse roundtrip" (t = t')
   done;
   print_endline "parser roundtrip property passed"
-
-

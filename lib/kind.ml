@@ -1,11 +1,13 @@
 module Var = struct
   type t = int
+
   let a0 = 0
   let pp v = string_of_int v
 end
 
 module VarOrd = struct
   type t = Var.t
+
   let compare = Int.compare
 end
 
@@ -16,10 +18,7 @@ type t = Modality.t VarMap.t
 let empty : t = VarMap.empty
 
 let get (k : t) (v : Var.t) : Modality.t =
-  match VarMap.find_opt v k with
-  | Some m -> m
-  | None -> Modality.zero
-
+  match VarMap.find_opt v k with Some m -> m | None -> Modality.zero
 
 let set (k : t) (v : Var.t) (m : Modality.t) : t = VarMap.add v m k
 
@@ -35,7 +34,7 @@ let max (k1 : t) (k2 : t) : t =
 let apply (m : Modality.t) (k : t) : t =
   VarMap.map (fun m' -> Modality.compose m m') k
 
-let normalize (k:t) : t =
+let normalize (k : t) : t =
   let m0 = get k Var.a0 in
   VarMap.mapi (fun v m -> if v = Var.a0 then m else Modality.co_sub m m0) k
 
@@ -45,42 +44,39 @@ let pp (k : t) : string =
     let k' = normalize k in
     k'
     |> VarMap.bindings
-    |> List.map (fun (v, m) -> Printf.sprintf "%s ↦ %s" (Var.pp v) (Modality.pp m))
+    |> List.map (fun (v, m) ->
+           Printf.sprintf "%s ↦ %s" (Var.pp v) (Modality.pp m))
     |> String.concat ", "
     |> fun s -> Printf.sprintf "{%s}" s
-
 
 let substitute_using (f : Modality.atom -> Modality.t option) (k : t) : t =
   VarMap.map (fun m -> Modality.substitute f m) k
 
-let zero_entries (k : t) : t =
-  VarMap.map (fun _ -> Modality.zero) k
+let zero_entries (k : t) : t = VarMap.map (fun _ -> Modality.zero) k
 
 let equal (a : t) (b : t) : bool =
   let bindings m = VarMap.bindings m in
   let rec eq_lists l1 l2 =
     match (l1, l2) with
     | [], [] -> true
-    | (v1, m1) :: tl1, (v2, m2) :: tl2 -> v1 = v2 && Modality.equal m1 m2 && eq_lists tl1 tl2
+    | (v1, m1) :: tl1, (v2, m2) :: tl2 ->
+      v1 = v2 && Modality.equal m1 m2 && eq_lists tl1 tl2
     | _ -> false
   in
   eq_lists (bindings a) (bindings b)
 
-let leq (a:t) (b:t) : bool =
+let leq (a : t) (b : t) : bool =
   (* Must have identical domains, and each component modality must be ≤ *)
   let bindings_a = VarMap.bindings a in
   let bindings_b = VarMap.bindings b in
   let rec go xs ys =
-    match xs, ys with
+    match (xs, ys) with
     | [], [] -> true
-    | (va, ma) :: xs', (vb, mb) :: ys' -> va = vb && Modality.leq ma mb && go xs' ys'
+    | (va, ma) :: xs', (vb, mb) :: ys' ->
+      va = vb && Modality.leq ma mb && go xs' ys'
     | _ -> false
   in
   go bindings_a bindings_b
 
-let ceil (k:t) : t =
-  VarMap.map (fun m -> Modality.ceil m) k
-
-let floor (k:t) : t =
-  VarMap.map (fun m -> Modality.floor m) k
-
+let ceil (k : t) : t = VarMap.map (fun m -> Modality.ceil m) k
+let floor (k : t) : t = VarMap.map (fun m -> Modality.floor m) k
