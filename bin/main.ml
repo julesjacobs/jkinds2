@@ -23,15 +23,8 @@ let () =
     find_flag 2
   in
   let content = read_file file in
-  let decls = Decl_parser.parse_exn content in
-  let decl_items = Decl_parser.parse_items_exn content in
-  let abstracts = Decl_parser.abstract_ctors decl_items in
-  let decls_bindings = Decl_parser.NameMap.bindings decls in
-  let kinds = Infer.kinds_of_decls_bindings decls_bindings in
-  print_endline "Kinds:";
-  List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds;
-  print_endline "\nLeast fixpoint kinds:";
-  let kinds_lfp = Infer.least_fixpoint_bindings_with_self_init ~max_iters ~abstracts kinds in
+  let prog = Jkinds_lib.Decl_parser.parse_program_exn content in
+  let kinds_lfp = Jkinds_lib.Infer.solve_program prog ~max_iters in
   print_endline "\nNormalized kinds:";
   List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds_lfp;
   print_endline "\nCeil/Floor kinds:";

@@ -176,3 +176,12 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
       | None -> (n, List.assoc n abs_sol)
     ) bs
 
+let solve_program (prog:Decl_parser.program) ~(max_iters:int) : (string * Kind.t) list =
+  let bindings = List.map (fun (it:Decl_parser.decl_item) -> (it.name, it.rhs)) prog in
+  let abstracts = Decl_parser.abstract_ctors prog in
+  let kinds = kinds_of_decls_bindings bindings in
+  print_endline "Kinds:";
+  List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds;
+  print_endline "\nLeast fixpoint kinds:";
+  least_fixpoint_bindings_with_self_init ~max_iters ~abstracts kinds
+

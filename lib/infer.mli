@@ -31,3 +31,8 @@ val least_fixpoint_bindings_with_self_init :
   abstracts:(string * int) list ->
   (string * Kind.t) list ->
   (string * Kind.t) list
+
+val solve_program :
+  Decl_parser.program ->
+  max_iters:int ->
+  (string * Kind.t) list

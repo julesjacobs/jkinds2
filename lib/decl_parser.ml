@@ -6,6 +6,8 @@ exception Parse_error of string
 
 type decl_item = { name : string; arity : int; rhs : Type_syntax.t; abstract : bool }
 
+type program = decl_item list
+
 let parse_items_exn (s : string) : decl_item list =
   let lines =
     s
@@ -104,4 +106,7 @@ let parse_exn (s : string) : Type_syntax.t NameMap.t =
   |> List.fold_left (fun acc it -> if NameMap.mem it.name acc then raise (Parse_error ("duplicate declaration: " ^ it.name)) else NameMap.add it.name it.rhs acc) NameMap.empty
 
 let parse s = try Ok (parse_exn s) with Parse_error msg -> Error msg
+
+let parse_program_exn (s:string) : program =
+  parse_items_exn s
 
