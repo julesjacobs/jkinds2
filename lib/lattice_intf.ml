@@ -8,6 +8,3 @@ module type LATTICE = sig
   val co_sub: t -> t -> t
   val equal : t -> t -> bool
 end
-
-
-
