@@ -36,7 +36,9 @@ let apply (m : Modality.t) (k : t) : t =
 
 let normalize (k : t) : t =
   let m0 = get k Var.a0 in
-  VarMap.mapi (fun v m -> if v = Var.a0 then m else Modality.co_sub m m0) k
+  VarMap.mapi
+    (fun v m -> if v = Var.a0 then m else Modality.co_sub_approx m m0)
+    k
 
 let pp (k : t) : string =
   if VarMap.is_empty k then "{}"

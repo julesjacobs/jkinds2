@@ -26,7 +26,7 @@ let of_atom (a : atom) : t = P.var a
 let of_levels (levels : int array) : t = P.const (Coeff.encode ~levels)
 let max (m1 : t) (m2 : t) : t = P.join m1 m2
 let compose (m1 : t) (m2 : t) : t = P.meet m1 m2
-let co_sub (m1 : t) (m2 : t) : t = P.co_sub m1 m2
+let co_sub_approx (m1 : t) (m2 : t) : t = P.co_sub_approx m1 m2
 
 let substitute (f : atom -> t option) (m : t) : t =
   let vars = P.support m in

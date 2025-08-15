@@ -27,6 +27,7 @@ module Make (C : LATTICE) (V : ORDERED) : sig
 
   include LATTICE with type t := t
 
+  val co_sub_approx : t -> t -> t
   val support : t -> VarSet.t
   val subst : subs:t VarMap.t -> t -> t
   val subst1 : v:V.t -> by:t -> t -> t

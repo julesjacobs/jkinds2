@@ -195,9 +195,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       (fun t ct acc -> if VarSet.subset t s then C.join acc ct else acc)
       q C.bot
 
-  (* Polynomial co-Heyting subtraction: r = least x such that p ≤ q ∨ x. Result
-     is canonical. *)
-  let co_sub (p : t) (q : t) : t =
+  (* Approximate co-Heyting subtraction: r ≈ least x such that p ≤ q ∨ x. Result
+     is canonical, but may be an over-approximation. *)
+  let co_sub_approx (p : t) (q : t) : t =
     if SetMap.is_empty p then SetMap.empty
     else if SetMap.is_empty q then p (* p \ ⊥ = p *)
     else
@@ -240,4 +240,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         |> String.concat " ⊔ "
       in
       "{" ^ terms_str ^ "}"
+
+  (* Backward-compat alias to emphasize approximation semantics. *)
+  let co_sub = co_sub_approx
 end
