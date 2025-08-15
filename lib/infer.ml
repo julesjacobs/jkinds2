@@ -50,7 +50,7 @@ let substitute_kinds_bindings ~(lhs : (string * Kind.t) list) ~(rhs : (string * 
 let zero_constructor_entries_bindings (bs : (string * Kind.t) list) : (string * Kind.t) list =
   List.map (fun (n, k) -> (n, Kind.zero_entries k)) bs
 
-let least_fixpoint_bindings ?(max_iters = 10) (bs : (string * Kind.t) list) : (string * Kind.t) list =
+let[@warning "-32"] least_fixpoint_bindings ?(max_iters = 10) (bs : (string * Kind.t) list) : (string * Kind.t) list =
   let rec loop i current =
     if i > max_iters then (
       prerr_endline "[warn] least_fixpoint_bindings: did not converge within bound; returning last iterate";

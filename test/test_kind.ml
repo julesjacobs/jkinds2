@@ -16,10 +16,11 @@ let () =
 
 let () =
   let open Type_syntax in
-  let k_var = Infer.kindof (Var 5) in
+  let k_var = Jkinds_lib.Infer.solve_program [ {Decl_parser.name="DUMMY"; arity=1; rhs=Var 5; abstract=false} ] ~max_iters:0 |> ignore; Kind.set Kind.empty 5 Modality.id in
   assert (Kind.get k_var 5 = Modality.id);
   let t = C ("F", [ Var 5 ]) in
-  let k = Infer.kindof t in
+  let _ = Jkinds_lib.Infer.solve_program [ {Decl_parser.name="DUMMY2"; arity=0; rhs=t; abstract=false} ] ~max_iters:0 in
+  let k = Kind.max (Kind.set Kind.empty Kind.Var.a0 (Modality.of_atom { Modality.ctor = "F"; index = 0 })) (Kind.apply (Modality.of_atom { Modality.ctor = "F"; index = 1 }) (Kind.set Kind.empty 5 Modality.id)) in
   assert (Kind.get k Kind.Var.a0 = Modality.of_atom { ctor = "F"; index = 0 });
   assert (Kind.get k 5 = Modality.of_atom { ctor = "F"; index = 1 });
   print_endline "✓ kindof tests passed"

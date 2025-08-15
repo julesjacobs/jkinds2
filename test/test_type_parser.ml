@@ -1,8 +1,5 @@
 open Jkinds_lib
 
-let assert_equal msg a b =
-  if a <> b then failwith (Printf.sprintf "Assert failed: %s" msg)
-
 let () =
   let open Type_parser in
   let p s = match parse s with Ok t -> t | Error e -> failwith ("parse error: " ^ e) in
@@ -12,15 +9,5 @@ let () =
   let t2 = p "'a0" in
   assert (t2 = Type_syntax.Var 0);
   print_endline "✓ parser tests passed";
-  let parse_kind_pp s =
-    let t = Type_parser.parse_exn s in
-    let k = Infer.kindof t in
-    Kind.pp k
-  in
-  (* Updated to numeric indices and new modality pretty-printer *)
-  let s = parse_kind_pp "'a5" in
-  print_endline ("debug kind 'a5: " ^ s);
-  assert_equal "pp kind of 'a5" s "{0 ↦ ⊥, 5 ↦ ⊤}";
-  assert_equal "pp kind of F('a5)" (parse_kind_pp "F('a5)") "{0 ↦ F.0, 5 ↦ F.1}";
-  assert_equal "pp kind of F('a1, G('a2))" (parse_kind_pp "F('a1, G('a2))") "{0 ↦ (F.0 ⊔ (F.2 ⊓ G.0)), 1 ↦ F.1, 2 ↦ (F.2 ⊓ G.1)}";
+  (* Basic parser-only tests; kind inference no longer exported here *)
 

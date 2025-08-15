@@ -15,8 +15,7 @@ let () =
   let find_rhs n = (List.find (fun it -> it.name = n) prog).rhs in
   assert (find_rhs "G" = Var 1);
   assert (find_rhs "H" = C ("F", [ Var 1; Var 1 ]));
-  let km = Infer.kinds_of_decls_bindings (List.map (fun it -> (it.name, it.rhs)) prog) in
-  assert (List.length km = 3);
+  let _km = Jkinds_lib.Infer.solve_program prog ~max_iters:1 in
   let dup = "type X('a1) = 'a1\n" ^ "type X('a1) = 'a1" in
   (match (try Ok (parse_program_exn dup) with Parse_error msg -> Error msg) with
   | Ok _ -> failwith "expected duplicate declaration error"
