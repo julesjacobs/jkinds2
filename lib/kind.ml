@@ -20,7 +20,6 @@ let get (k : t) (v : Var.t) : Modality.t =
   | Some m -> m
   | None -> Modality.zero
 
-let find_opt (k : t) (v : Var.t) : Modality.t option = VarMap.find_opt v k
 
 let set (k : t) (v : Var.t) (m : Modality.t) : t = VarMap.add v m k
 
@@ -50,7 +49,6 @@ let pp (k : t) : string =
     |> String.concat ", "
     |> fun s -> Printf.sprintf "{%s}" s
 
-exception Substitution_error of string
 
 let substitute_using (f : Modality.atom -> Modality.t option) (k : t) : t =
   VarMap.map (fun m -> Modality.substitute f m) k
