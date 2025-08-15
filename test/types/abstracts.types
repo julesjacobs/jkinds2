@@ -15,3 +15,6 @@ type treeA('a1) : leaf() + node('a1, treeA('a1))
 # Mutually recursive abstracts
 type H('a1) : F('a1) + 'a1
 type F('a1) : H('a1) @@ [0,1]
+
+# Test concrete
+type G('a1) = [2,1] * 'a1

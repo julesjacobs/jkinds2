@@ -13,6 +13,7 @@ module Make (C : COEFF) : sig
   val of_atom : atom -> t
   val max : t -> t -> t
   val compose : t -> t -> t
+  val co_sub : t -> t -> t
   val substitute : (atom -> t option) -> t -> t
   val equal : t -> t -> bool
   val leq : t -> t -> bool

@@ -35,6 +35,7 @@ module Make (C : COEFF) = struct
 
   let equal = P.equal
   let leq = P.leq
+  let co_sub (p:t) (q:t) : t = P.co_sub p q
 
   let terms (m:t) : (atom list * coeff) list =
     P.to_list m |> List.map (fun (s,c) -> (P.VarSet.elements s, c))

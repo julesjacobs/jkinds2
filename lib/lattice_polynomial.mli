@@ -23,6 +23,7 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   val to_list   : t -> (vars * coeff) list
 
   include LATTICE with type t := t
+  val co_sub    : t -> t -> t
 
   val support   : t -> VarSet.t
 

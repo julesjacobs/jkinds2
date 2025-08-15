@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-14 19:06:51 UTC
+Generated: 2025-08-15 02:32:40 UTC
 
 ## abstracts.types
 
@@ -22,12 +22,16 @@ type treeA('a1) : leaf() + node('a1, treeA('a1))
 # Mutually recursive abstracts
 type H('a1) : F('a1) + 'a1
 type F('a1) : H('a1) @@ [0,1]
+
+# Test concrete
+type G('a1) = [2,1] * 'a1
 ```
 
 Program output:
 ```
 Kinds:
 F: {0 ↦ ([0,1] ⊓ H.0), 1 ↦ ([0,1] ⊓ H.1)}
+G: {0 ↦ ⊤, 1 ↦ ⊥}
 H: {0 ↦ F.0, 1 ↦ ⊤}
 bar: {0 ↦ [0,1]}
 baz: {0 ↦ ⊤}
@@ -38,12 +42,14 @@ pairish: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
 treeA: {0 ↦ (leaf.0 ⊔ node.0 ⊔ (node.2 ⊓ treeA.0)), 1 ↦ (node.1 ⊔ (node.2 ⊓ treeA.1))}
 two: {0 ↦ one.0}
 wrap: {0 ↦ ⊥, 1 ↦ [1,0]}
-wrap2: {0 ↦ ⊤, 1 ↦ [1,0]}
+wrap2: {0 ↦ ⊤, 1 ↦ ⊥}
 
 Least fixpoint kinds:
 [lfp] iter 0:
+  G: {0 ↦ ⊥, 1 ↦ ⊥}
   two: {0 ↦ ⊥}
 [lfp] iter 1:
+  G: {0 ↦ ⊤, 1 ↦ ⊥}
   two: {0 ↦ one.0}
 [lfp] iter 0:
   F: {0 ↦ F.0, 1 ↦ F.1}
@@ -84,6 +90,7 @@ Least fixpoint kinds:
 
 Normalized kinds:
 F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1)}
+G: {0 ↦ ⊤, 1 ↦ ⊥}
 H: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ H.1}
 bar: {0 ↦ ([0,1] ⊓ bar.0)}
 baz: {0 ↦ baz.0}
@@ -97,32 +104,34 @@ wrap: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ wrap.1)}
 wrap2: {0 ↦ wrap2.0, 1 ↦ ([1,0] ⊓ wrap2.1)}
 
 Ceil/Floor kinds:
-F: ceil={0 ↦ [0,1], 1 ↦ [0,1]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
-H: ceil={0 ↦ [0,1], 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+F: ceil={0 ↦ [0,1], 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+G: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊤, 1 ↦ ⊥}
+H: ceil={0 ↦ [0,1], 1 ↦ [2,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 bar: ceil={0 ↦ [0,1]}, floor={0 ↦ ⊥}
 baz: ceil={0 ↦ ⊤}, floor={0 ↦ ⊥}
 foo: ceil={0 ↦ ⊥}, floor={0 ↦ ⊥}
-maybe: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+maybe: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 one: ceil={0 ↦ [0,1]}, floor={0 ↦ ⊥}
 pairish: ceil={0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥, 2 ↦ ⊥}
-treeA: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+treeA: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 two: ceil={0 ↦ [0,1]}, floor={0 ↦ ⊥}
 wrap: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
-wrap2: ceil={0 ↦ ⊤, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+wrap2: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 
 LEQ relationships:
-F <= H
-H <= (none)
+F <= G, H
+G <= (none)
+H <= G
 bar <= (none)
 baz <= (none)
 foo <= bar, baz, one, two
-maybe <= (none)
+maybe <= G
 one <= two
 pairish <= (none)
-treeA <= (none)
+treeA <= G
 two <= one
-wrap <= (none)
-wrap2 <= (none)
+wrap <= G
+wrap2 <= G
 ```
 
 ## benjamin.types
@@ -163,9 +172,9 @@ foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 
 Ceil/Floor kinds:
-bar: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
-foo1: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
-foo2: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+bar: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+foo1: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+foo2: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 
 LEQ relationships:
 bar <= (none)
@@ -196,7 +205,7 @@ Normalized kinds:
 btree: {0 ↦ (leaf.0 ⊔ node.0), 1 ↦ leaf.1}
 
 Ceil/Floor kinds:
-btree: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+btree: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 
 LEQ relationships:
 btree <= (none)
@@ -389,14 +398,14 @@ two_axes: {0 ↦ ([0,1] ⊓ G.0), 1 ↦ ([0,1] ⊓ G.1)}
 
 Ceil/Floor kinds:
 both: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
-deeply: ceil={0 ↦ [1,1], 1 ↦ [1,1]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+deeply: ceil={0 ↦ [1,1], 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 id_annot: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
 id_bot: ceil={0 ↦ ⊥, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 inner_vs_outer: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0]}
 list: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
-list2: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
-list2_inner: ceil={0 ↦ ⊤, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
-list2_outer: ceil={0 ↦ [1,0], 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+list2: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+list2_inner: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+list2_outer: ceil={0 ↦ [1,0], 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 list_ann: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0]}
 list_inner: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0]}
 list_outer: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0]}
@@ -407,8 +416,8 @@ modal_plus: ceil={0 ↦ [1,0], 1 ↦ ⊤}, floor={0 ↦ [1,0], 1 ↦ ⊤}
 nested: ceil={0 ↦ ⊥, 1 ↦ [1,1]}, floor={0 ↦ ⊥, 1 ↦ [1,1]}
 outer_vs_inner: ceil={0 ↦ ⊥, 1 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0]}
 pair_annot: ceil={0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}, floor={0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
-tree: ceil={0 ↦ [0,1], 1 ↦ [0,1]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
-two_axes: ceil={0 ↦ [0,1], 1 ↦ [0,1]}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+tree: ceil={0 ↦ [0,1], 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+two_axes: ceil={0 ↦ [0,1], 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 
 LEQ relationships:
 both <= id_annot, list, modal_pair, modal_plus
@@ -501,8 +510,8 @@ evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 
 Ceil/Floor kinds:
-evenlist: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
-oddlist: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+evenlist: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+oddlist: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 
 LEQ relationships:
 evenlist <= oddlist
@@ -552,10 +561,10 @@ orchid: {0 ↦ portable.0, 1 ↦ portable.1}
 tulip: {0 ↦ portable.0, 1 ↦ ⊤}
 
 Ceil/Floor kinds:
-lily: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+lily: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 list: ceil={0 ↦ ⊥, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
-orchid: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
-tulip: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊤}
+orchid: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+tulip: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊤}
 
 LEQ relationships:
 lily <= orchid, tulip
@@ -587,7 +596,7 @@ Normalized kinds:
 foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
 
 Ceil/Floor kinds:
-foo: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+foo: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 
 LEQ relationships:
 foo <= (none)
@@ -677,9 +686,9 @@ list: {0 ↦ cons.0, 1 ↦ cons.1}
 zipper: {0 ↦ (cons.0 ⊔ down.0), 1 ↦ (cons.1 ⊔ down.1)}
 
 Ceil/Floor kinds:
-ctx: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
-list: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
-zipper: ceil={0 ↦ ⊤, 1 ↦ ⊤}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+ctx: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+list: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+zipper: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 
 LEQ relationships:
 ctx <= zipper
