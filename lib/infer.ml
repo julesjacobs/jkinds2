@@ -50,24 +50,6 @@ let substitute_kinds_bindings ~(lhs : (string * Kind.t) list) ~(rhs : (string * 
 let zero_constructor_entries_bindings (bs : (string * Kind.t) list) : (string * Kind.t) list =
   List.map (fun (n, k) -> (n, Kind.zero_entries k)) bs
 
-let[@warning "-32"] least_fixpoint_bindings ?(max_iters = 10) (bs : (string * Kind.t) list) : (string * Kind.t) list =
-  let rec loop i current =
-    if i > max_iters then (
-      prerr_endline "[warn] least_fixpoint_bindings: did not converge within bound; returning last iterate";
-      current)
-    else (
-      let lines = List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current |> String.concat "\n" in
-      Printf.printf "[lfp] iter %d:\n%s\n" i lines;
-      let next = substitute_kinds_bindings ~lhs:bs ~rhs:current in
-      let lists_equal l1 l2 =
-        let sort = List.sort (fun (a, _) (b, _) -> String.compare a b) in
-        let l1 = sort l1 and l2 = sort l2 in
-        List.length l1 = List.length l2 && List.for_all2 (fun (n1, k1) (n2, k2) -> n1 = n2 && Kind.equal k1 k2) l1 l2
-      in
-      if lists_equal next current then current else loop (i + 1) next)
-  in
-  let start = zero_constructor_entries_bindings bs in
-  loop 0 start
 let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
     ~(abstracts : (string * int) list)
     (bs : (string * Kind.t) list)
