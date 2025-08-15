@@ -34,16 +34,20 @@ let max (k1 : t) (k2 : t) : t =
 let apply (m : Modality.t) (k : t) : t =
   VarMap.map (fun m' -> Modality.compose m m') k
 
-let normalize (k : t) : t =
+let normalize_down (k : t) : t =
   let m0 = get k Var.a0 in
   VarMap.mapi
     (fun v m -> if v = Var.a0 then m else Modality.co_sub_approx m m0)
     k
 
+let normalize_up (k : t) : t =
+  let m0 = get k Var.a0 in
+  VarMap.mapi (fun v m -> if v = Var.a0 then m else Modality.max m m0) k
+
 let pp (k : t) : string =
   if VarMap.is_empty k then "{}"
   else
-    let k' = normalize k in
+    let k' = normalize_down k in
     k'
     |> VarMap.bindings
     |> List.map (fun (v, m) ->
