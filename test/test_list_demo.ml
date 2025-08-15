@@ -2,8 +2,8 @@ open Jkinds_lib
 
 let () =
   let decls = "type list('a1) = either(nil(), cons('a1, list('a1)))" in
-  let m = Jkinds_lib.Decl_parser.parse_exn decls in
-  let m_bindings = Jkinds_lib.Decl_parser.NameMap.bindings m in
+  let prog = Jkinds_lib.Decl_parser.parse_program_exn decls in
+  let m_bindings = List.map (fun (it:Jkinds_lib.Decl_parser.decl_item) -> (it.name, it.rhs)) prog in
   let km_bindings = Jkinds_lib.Infer.kinds_of_decls_bindings m_bindings in
   let list_kind = List.assoc "list" km_bindings in
   Printf.printf "list kind (from RHS): %s\n" (Kind.pp list_kind);

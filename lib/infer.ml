@@ -30,27 +30,16 @@ let kindof (t : Type_syntax.t) : Kind.t =
   in
   go t
 
-let kinds_of_decls (decls : Type_syntax.t Decl_parser.NameMap.t) : Kind.t Decl_parser.NameMap.t =
-  Decl_parser.NameMap.map kindof decls
+module StrMap = Map.Make(String)
 
 let kinds_of_decls_bindings (bs : (string * Type_syntax.t) list) : (string * Kind.t) list =
   List.map (fun (k, v) -> (k, kindof v)) bs
 
-let substitute_kinds ~lhs ~rhs : Kind.t Decl_parser.NameMap.t =
-  let lookup_atom (a : Modality.atom) : Modality.t option =
-    match Decl_parser.NameMap.find_opt a.ctor rhs with
-    | None -> None
-    | Some k_rhs ->
-        (* Default missing indices to ⊥ to allow zero-arity ctors to substitute admin index safely *)
-        Some (Kind.get k_rhs a.index)
-  in
-  Decl_parser.NameMap.map (fun k -> Kind.substitute_using lookup_atom k) lhs
-
 let substitute_kinds_bindings ~(lhs : (string * Kind.t) list) ~(rhs : (string * Kind.t) list) : (string * Kind.t) list =
-  let rhs_map = List.fold_left (fun acc (n, k) -> Decl_parser.NameMap.add n k acc) Decl_parser.NameMap.empty rhs in
+  let rhs_map = List.fold_left (fun acc (n, k) -> StrMap.add n k acc) StrMap.empty rhs in
   let subst_one (n, k) =
     let lookup_atom (a : Modality.atom) : Modality.t option =
-      match Decl_parser.NameMap.find_opt a.ctor rhs_map with
+      match StrMap.find_opt a.ctor rhs_map with
       | None -> None
       | Some k_rhs -> Some (Kind.get k_rhs a.index)
     in
@@ -58,32 +47,8 @@ let substitute_kinds_bindings ~(lhs : (string * Kind.t) list) ~(rhs : (string * 
   in
   List.map subst_one lhs
 
-let zero_constructor_entries (km : Kind.t Decl_parser.NameMap.t) : Kind.t Decl_parser.NameMap.t =
-  Decl_parser.NameMap.map Kind.zero_entries km
-
 let zero_constructor_entries_bindings (bs : (string * Kind.t) list) : (string * Kind.t) list =
   List.map (fun (n, k) -> (n, Kind.zero_entries k)) bs
-
-let least_fixpoint ?(max_iters = 10) (km : Kind.t Decl_parser.NameMap.t) : Kind.t Decl_parser.NameMap.t =
-  let pp_map_lines (m : Kind.t Decl_parser.NameMap.t) : string =
-    Decl_parser.NameMap.bindings m
-    |> List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k))
-    |> String.concat "\n"
-  in
-  let rec loop i current =
-    if i > max_iters then (
-      prerr_endline "[warn] least_fixpoint: did not converge within bound; returning last iterate";
-      current)
-    else (
-      Printf.printf "[lfp] iter %d:\n%s\n" i (pp_map_lines current);
-      let next = substitute_kinds ~lhs:km ~rhs:current in
-      let kinds_equal a b =
-        Decl_parser.NameMap.equal (fun k1 k2 -> Kind.equal k1 k2) a b
-      in
-      if kinds_equal current next then current else loop (i + 1) next)
-  in
-  let start = zero_constructor_entries km in
-  loop 0 start
 
 let least_fixpoint_bindings ?(max_iters = 10) (bs : (string * Kind.t) list) : (string * Kind.t) list =
   let rec loop i current =
@@ -107,7 +72,7 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
     ~(abstracts : (string * int) list)
     (bs : (string * Kind.t) list)
   : (string * Kind.t) list =
-  let arity_by_name = List.fold_left (fun acc (n,a) -> Decl_parser.NameMap.add n a acc) Decl_parser.NameMap.empty abstracts in
+  let arity_by_name = List.fold_left (fun acc (n,a) -> StrMap.add n a acc) StrMap.empty abstracts in
   let self_kind name arity : Kind.t =
     let rec loop i acc =
       if i > arity then acc
@@ -120,7 +85,7 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
     let l1 = sort l1 and l2 = sort l2 in
     List.length l1 = List.length l2 && List.for_all2 (fun (n1, k1) (n2, k2) -> n1 = n2 && Kind.equal k1 k2) l1 l2
   in
-  let is_abstract name = Decl_parser.NameMap.mem name arity_by_name in
+  let is_abstract name = StrMap.mem name arity_by_name in
   let conc_bs, abs_bs = List.partition (fun (n, _) -> not (is_abstract n)) bs in
   (* Phase 1: iterate concretes only from ⊥ until convergence *)
   let rec loop_conc i current =
@@ -147,7 +112,7 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
       let next0 = substitute_kinds_bindings ~lhs:abs_bs ~rhs in
       let next =
         List.map (fun (n,k) ->
-          match Decl_parser.NameMap.find_opt n arity_by_name with
+          match StrMap.find_opt n arity_by_name with
           | Some arity ->
               let rec meet_self i acc =
                 if i > arity then acc
@@ -163,7 +128,7 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
       if lists_equal next current then current else loop_abs (i + 1) next)
   in
   let start_abs = List.map (fun (n, _) ->
-      let arity = Decl_parser.NameMap.find n arity_by_name in
+      let arity = StrMap.find n arity_by_name in
       (n, self_kind n arity)) abs_bs
   in
   let abs_sol = loop_abs 0 start_abs in
@@ -178,7 +143,7 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
 
 let solve_program (prog:Decl_parser.program) ~(max_iters:int) : (string * Kind.t) list =
   let bindings = List.map (fun (it:Decl_parser.decl_item) -> (it.name, it.rhs)) prog in
-  let abstracts = Decl_parser.abstract_ctors prog in
+  let abstracts = List.filter_map (fun (it:Decl_parser.decl_item) -> if it.abstract then Some (it.name, it.arity) else None) prog in
   let kinds = kinds_of_decls_bindings bindings in
   print_endline "Kinds:";
   List.iter (fun (n,k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds;
