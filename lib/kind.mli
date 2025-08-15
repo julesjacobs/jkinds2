@@ -13,7 +13,6 @@ val set : t -> Var.t -> Modality.t -> t
 val max : t -> t -> t
 val apply : Modality.t -> t -> t
 val pp : t -> string
-val pp_with_ctor : string -> t -> string
 val normalize : t -> t
 val equal : t -> t -> bool
 val leq : t -> t -> bool

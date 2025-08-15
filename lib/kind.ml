@@ -50,10 +50,6 @@ let pp (k : t) : string =
     |> String.concat ", "
     |> fun s -> Printf.sprintf "{%s}" s
 
-let pp_with_ctor (_ctor : string) (k : t) : string =
-  (* Deprecated: print without outer name, just numeric indices *)
-  pp k
-
 exception Substitution_error of string
 
 let substitute_using (f : Modality.atom -> Modality.t option) (k : t) : t =
