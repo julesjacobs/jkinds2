@@ -63,6 +63,31 @@ let zero_constructor_entries_bindings (bs : (string * Kind.t) list) :
     (string * Kind.t) list =
   List.map (fun (n, k) -> (n, Kind.zero_entries k)) bs
 
+(* Pseudocode for the main algorithm ---------------------------------------
+
+   Declarations: N = {A_1, …, A_n}, with arity ar(A).
+
+   Kind space: For each constructor A ∈ N, a kind is a vector K(A) ∈ M^{ar(A)+1}
+   where M is the modality lattice, K(A)[0] is the constant entry, and K(A)[i]
+   for i ≥ 1 corresponds to the coefficient of the parameter i.
+
+   Operator T (one semantic step): given K, define T(K)(A) = kindof(rhs_A)[K]
+   i.e. build the kind of the RHS syntax, then substitute every atom B.i by
+   K(B)[i] (defaulting to ⊥ when missing); composition uses ⊓ and choice uses ⊔.
+
+   Split names into concretes C and abstracts A.
+
+   Phase 1 (concretes): K^0_C := ⊥ K^{t+1}_C := (T(K^t_C ⊔ ⊥_A))|_C Iterate
+   until convergence; denote fixpoint by K_C.
+
+   Define self-kind S_A for each abstract A by S_A[i] = atom A.i for i=0..ar(A).
+
+   Phase 2 (abstracts): K^0_A := S_A repeat K' := (T(K_C ⊔ K^t_A))|_A K^{t+1}_A
+   := K' ⊓ S_A (pointwise meet) until convergence; denote fixpoint by K_A.
+
+   Final: K'_C := (T(K_C ⊔ K_A))|_C Return K with entries from K'_C for
+   concretes and from K_A for abstracts in the input order. *)
+
 (* Two-phase least fixpoint: 1) iterate concretes from ⊥; 2) iterate abstracts
    with self-init and self-meet, substituting concrete solutions into RHS;
    finally, substitute abstract solutions back. *)
@@ -179,7 +204,10 @@ let solve_program (prog : Decl_parser.program) ~(max_iters : int) :
         if it.abstract then Some (it.name, it.arity) else None)
       prog
   in
-  let kinds = kinds_of_decls_bindings bindings in
+  let kinds =
+    kinds_of_decls_bindings bindings
+    |> List.map (fun (n, k) -> (n, Kind.normalize_up k))
+  in
   print_endline "Kinds:";
   List.iter (fun (n, k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds;
   print_endline "\nLeast fixpoint kinds:";

@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-15 16:40:28 UTC
+Generated: 2025-08-15 18:43:34 UTC
 
 ## abstracts.types
 
@@ -68,23 +68,23 @@ Least fixpoint kinds:
   bar: {0 ↦ ([0,1] ⊓ bar.0)}
   baz: {0 ↦ baz.0}
   one: {0 ↦ ([0,1] ⊓ one.0)}
-  maybe: {0 ↦ ((maybe.0 ⊓ none.0) ⊔ (maybe.0 ⊓ some.0)), 1 ↦ (maybe.1 ⊓ some.1)}
+  maybe: {0 ↦ ((maybe.0 ⊓ none.0) ⊔ (maybe.0 ⊓ some.0)), 1 ↦ ((maybe.1 ⊓ none.0) ⊔ (maybe.1 ⊓ some.0) ⊔ (maybe.1 ⊓ some.1))}
   wrap: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ wrap.1)}
-  wrap2: {0 ↦ wrap2.0, 1 ↦ ([1,0] ⊓ wrap2.1)}
+  wrap2: {0 ↦ wrap2.0, 1 ↦ wrap2.1}
   pairish: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ pairish.1), 2 ↦ ([1,0] ⊓ pairish.2)}
-  treeA: {0 ↦ ((leaf.0 ⊓ treeA.0) ⊔ (node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0)), 1 ↦ ((node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1))}
+  treeA: {0 ↦ ((leaf.0 ⊓ treeA.0) ⊔ (node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0)), 1 ↦ ((leaf.0 ⊓ treeA.1) ⊔ (node.0 ⊓ treeA.1) ⊔ (node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1))}
   H: {0 ↦ (F.0 ⊓ H.0), 1 ↦ H.1}
-  F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1)}
+  F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ (([0,1] ⊓ F.1 ⊓ H.0) ⊔ ([0,1] ⊓ F.1 ⊓ H.1))}
 [lfp] iter 2:
   foo: {0 ↦ ⊥}
   bar: {0 ↦ ([0,1] ⊓ bar.0)}
   baz: {0 ↦ baz.0}
   one: {0 ↦ ([0,1] ⊓ one.0)}
-  maybe: {0 ↦ ((maybe.0 ⊓ none.0) ⊔ (maybe.0 ⊓ some.0)), 1 ↦ (maybe.1 ⊓ some.1)}
+  maybe: {0 ↦ ((maybe.0 ⊓ none.0) ⊔ (maybe.0 ⊓ some.0)), 1 ↦ ((maybe.1 ⊓ none.0) ⊔ (maybe.1 ⊓ some.0) ⊔ (maybe.1 ⊓ some.1))}
   wrap: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ wrap.1)}
-  wrap2: {0 ↦ wrap2.0, 1 ↦ ([1,0] ⊓ wrap2.1)}
+  wrap2: {0 ↦ wrap2.0, 1 ↦ wrap2.1}
   pairish: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ pairish.1), 2 ↦ ([1,0] ⊓ pairish.2)}
-  treeA: {0 ↦ ((leaf.0 ⊓ treeA.0) ⊔ (node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0)), 1 ↦ ((node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1))}
+  treeA: {0 ↦ ((leaf.0 ⊓ treeA.0) ⊔ (node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0)), 1 ↦ ((leaf.0 ⊓ treeA.1) ⊔ (node.0 ⊓ treeA.1) ⊔ (node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1))}
   H: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ H.1}
   F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1)}
 
@@ -94,11 +94,11 @@ bar: {0 ↦ ([0,1] ⊓ bar.0)}
 baz: {0 ↦ baz.0}
 one: {0 ↦ ([0,1] ⊓ one.0)}
 two: {0 ↦ ([0,1] ⊓ one.0)}
-maybe: {0 ↦ ((maybe.0 ⊓ none.0) ⊔ (maybe.0 ⊓ some.0)), 1 ↦ (maybe.1 ⊓ some.1)}
+maybe: {0 ↦ ((maybe.0 ⊓ none.0) ⊔ (maybe.0 ⊓ some.0)), 1 ↦ ((maybe.1 ⊓ none.0) ⊔ (maybe.1 ⊓ some.0) ⊔ (maybe.1 ⊓ some.1))}
 wrap: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ wrap.1)}
-wrap2: {0 ↦ wrap2.0, 1 ↦ ([1,0] ⊓ wrap2.1)}
+wrap2: {0 ↦ wrap2.0, 1 ↦ wrap2.1}
 pairish: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ pairish.1), 2 ↦ ([1,0] ⊓ pairish.2)}
-treeA: {0 ↦ ((leaf.0 ⊓ treeA.0) ⊔ (node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0)), 1 ↦ ((node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1))}
+treeA: {0 ↦ ((leaf.0 ⊓ treeA.0) ⊔ (node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0)), 1 ↦ ((leaf.0 ⊓ treeA.1) ⊔ (node.0 ⊓ treeA.1) ⊔ (node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1))}
 H: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ H.1}
 F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1)}
 G: {0 ↦ ⊤, 1 ↦ ⊥}
@@ -130,7 +130,7 @@ wrap2 <= G
 pairish <= (none)
 treeA <= G
 H <= G
-F <= H, G
+F <= G
 G <= (none)
 ```
 
