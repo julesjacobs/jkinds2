@@ -1,3 +1,7 @@
+(* Inference core: compute a "kind" (modality environment) from type syntax. -
+   Index 0 (Kind.Var.a0) is the administrative entry for the constructor. -
+   Indices 1..arity are parameter positions. Composition uses meet; alternatives
+   use join. *)
 let kindof (t : Type_syntax.t) : Kind.t =
   let open Type_syntax in
   let rec go (t : Type_syntax.t) : Kind.t =
@@ -32,10 +36,13 @@ let kindof (t : Type_syntax.t) : Kind.t =
 
 module StrMap = Map.Make (String)
 
+(* One-pass initial kinds for name→RHS bindings. *)
 let kinds_of_decls_bindings (bs : (string * Type_syntax.t) list) :
     (string * Kind.t) list =
   List.map (fun (k, v) -> (k, kindof v)) bs
 
+(* Substitute constructor atoms in lhs using rhs solutions; missing indices
+   default to ⊥ through Kind.get. *)
 let substitute_kinds_bindings ~(lhs : (string * Kind.t) list)
     ~(rhs : (string * Kind.t) list) : (string * Kind.t) list =
   let rhs_map =
@@ -51,10 +58,14 @@ let substitute_kinds_bindings ~(lhs : (string * Kind.t) list)
   in
   List.map subst_one lhs
 
+(* Bottom element for fixpoint iteration: zero-out all entries. *)
 let zero_constructor_entries_bindings (bs : (string * Kind.t) list) :
     (string * Kind.t) list =
   List.map (fun (n, k) -> (n, Kind.zero_entries k)) bs
 
+(* Two-phase least fixpoint: 1) iterate concretes from ⊥; 2) iterate abstracts
+   with self-init and self-meet, substituting concrete solutions into RHS;
+   finally, substitute abstract solutions back. *)
 let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
     ~(abstracts : (string * int) list) (bs : (string * Kind.t) list) :
     (string * Kind.t) list =
@@ -82,7 +93,7 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
   in
   let is_abstract name = StrMap.mem name arity_by_name in
   let conc_bs, abs_bs = List.partition (fun (n, _) -> not (is_abstract n)) bs in
-  (* Phase 1: iterate concretes only from ⊥ until convergence *)
+  (* Phase 1: iterate concretes only from ⊥ until convergence. *)
   let rec loop_conc i current =
     if i > max_iters then (
       prerr_endline
@@ -101,7 +112,7 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
   let start_conc = zero_constructor_entries_bindings conc_bs in
   let conc_sol = loop_conc 0 start_conc in
   (* Phase 2: iterate abstracts, substituting concrete solutions in RHS, with
-     self init and meet with self each iteration *)
+     self init and meet with self each iteration. *)
   let rec loop_abs i current =
     if i > max_iters then (
       prerr_endline
@@ -144,7 +155,7 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
   in
   let abs_sol = loop_abs 0 start_abs in
   (* Phase 3: substitute abstract solutions back into concrete ones and return
-     combined *)
+     combined. *)
   let conc_final =
     substitute_kinds_bindings ~lhs:conc_bs ~rhs:(abs_sol @ conc_sol)
   in
@@ -156,6 +167,7 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
       | None -> (n, List.assoc n abs_sol))
     bs
 
+(* CLI driver: print initial kinds then run the fixpoint. *)
 let solve_program (prog : Decl_parser.program) ~(max_iters : int) :
     (string * Kind.t) list =
   let bindings =
