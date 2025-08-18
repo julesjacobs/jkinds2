@@ -36,7 +36,7 @@ module type S = sig
      and if so, the solver state was not modified *)
   val solve_lfp : var -> poly -> bool
 
-  (* Pure check: polynomial ≤ polynomial *)
+  (* Pure check: forall xs, poly1(xs) ≤ poly2(xs) *)
   (* Used for kind subsumption *)
   val leq : poly -> poly -> bool
 end
