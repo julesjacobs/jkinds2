@@ -1,8 +1,9 @@
 (* Solver for (in)equalities over multivariate lattice polynomials *)
 (* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *)
-(* This checks subsumption (leq p q == forall xs, p(xs) <= q(xs)) under two types of hypotheses:
-   1. Inequalities (assert_leq x q == forall xs, x <= q(x,xs))
+(* This checks subsumption (leq p q == decide p(xs) <= q(xs)) under two types of hypotheses:
+   1. Inequalities (assert_leq x q == assert hypothesis x <= q(x,xs))
    2. Least fixpoint equations (solve_lpf x p == substitute x := least solution of x = p(x,xs))
+   All variables are implicitly forall quantified at the top-level.
 *)
 
 module type S = sig
