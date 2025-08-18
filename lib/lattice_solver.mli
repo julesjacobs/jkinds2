@@ -28,7 +28,7 @@ module type S = sig
   (* Can be used on the same var any number of times, used for GADTs *)
   val assert_leq : var -> poly -> unit
 
-  (* Solve the least fixpoint for var = poly[var] *)
+  (* Solve the least fixpoint for var = poly[var, other vars] *)
   (* Used for concrete types *)
   (* This function can only be used on a var once;
      after that the var is solved, and no longer a var *)
