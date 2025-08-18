@@ -1,19 +1,32 @@
 module type S = sig
   type var
+  type lat
   type poly
 
   (* Create a fresh solver variable *)
   val new_var : unit -> var
 
-  (* Assert a constraint var ≤ poly *)
+  (* Variables and constants are leaves of polys *)
+  val var : var -> poly
+  val const : lat -> poly
+
+  (* Lattice structure on polys *)
+  val top : poly
+  val bot : poly
+  val join : poly -> poly -> poly
+  val meet : poly -> poly -> poly
+
+  (* Assert a constraint var ≤ poly; must have a variable on the left *)
+  (* Used for abstract types *)
   val assert_leq : var -> poly -> unit
 
-  (* Pure check: polynomial ≤ polynomial *)
-  val leq : poly -> poly -> bool
+  (* Solve the least fixpoint for var = poly[var] *)
+  (* Used for concrete types *)
+  val solve_lfp : var -> poly -> unit
 
-  (* Solve the least fixpoint for var = poly[var], returning the solution
-     polynomial *)
-  val solve_lfp : var -> poly -> poly
+  (* Pure check: polynomial ≤ polynomial *)
+  (* Used for kind subsumption *)
+  val leq : poly -> poly -> bool
 end
 
 module Make
