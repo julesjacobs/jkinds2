@@ -1,3 +1,10 @@
+(* Solver for (in)equalities over multivariate lattice polynomials *)
+(* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *)
+(* This checks subsumption (leq p q == forall xs, p(xs) <= q(xs)) under two types of hypotheses:
+   1. Inequalities (assert_leq p q == forall xs, p(xs) <= q(xs))
+   2. Least fixpoint equations (solve_lpf x p == least solution of x = p(x,_))
+*)
+
 module type S = sig
   type var
   type lat
@@ -25,7 +32,9 @@ module type S = sig
   (* Used for concrete types *)
   (* This function can only be used on a var once;
      after that the var is solved, and no longer a var *)
-  val solve_lfp : var -> poly -> unit
+  (* Returns whether the equation violated an existing inequality,
+     and if so, the solver state was not modified *)
+  val solve_lfp : var -> poly -> bool
 
   (* Pure check: polynomial ≤ polynomial *)
   (* Used for kind subsumption *)
