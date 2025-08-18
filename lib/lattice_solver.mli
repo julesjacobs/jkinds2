@@ -23,12 +23,12 @@ module type S = sig
   val join : poly -> poly -> poly
   val meet : poly -> poly -> poly
 
-  (* Assert a constraint var ≤ poly; must have a variable on the left *)
+  (* Assert a constraint var ≤ poly(var, other vars); must have a variable on the left *)
   (* Used for abstract types *)
   (* Can be used on the same var any number of times, used for GADTs *)
   val assert_leq : var -> poly -> unit
 
-  (* Solve the least fixpoint for var = poly[var, other vars] *)
+  (* Solve the least fixpoint for var = poly(var, other vars) *)
   (* Used for concrete types *)
   (* This function can only be used on a var once;
      after that the var is solved, and no longer a var *)
