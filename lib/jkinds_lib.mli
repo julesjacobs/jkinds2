@@ -9,6 +9,9 @@ module Lattice_polynomial : module type of Lattice_polynomial
 module Lattice_solver : module type of Lattice_solver
 module Axis_lattice : module type of Axis_lattice
 
+(* Expose minimal cyclic parse/desugar API from Type_parser *)
+(* We keep extended mu API internal for now; Infer2 will import from Type_parser directly *)
+
 module Infer2 : sig
   module VarLabel : sig
     type t = Atom of Modality.atom | TyVar of int

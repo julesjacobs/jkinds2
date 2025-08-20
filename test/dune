@@ -10,6 +10,7 @@
  (modules
   (:standard
    \
+   type_parser_expect_tests
    poly_expect_tests
    modality_expect_tests
    solver_expect_tests
@@ -72,4 +73,5 @@
   modality_expect_tests
   solver_expect_tests
   infer2_expect_tests
-  infer2_fh_expect_tests))
+  infer2_fh_expect_tests
+  type_parser_expect_tests))
