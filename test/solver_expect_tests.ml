@@ -14,28 +14,6 @@ end
 
 module S = Lattice_solver.Make (C) (V)
 
-let render_norm (p : S.poly) : string =
-  let terms = S.normalize p in
-  let pp_term (coeff, vars) =
-    match vars with
-    | [] ->
-      let levels = C.decode coeff |> Array.to_list in
-      let parts = levels |> List.map string_of_int |> String.concat "," in
-      Printf.sprintf "[%s]" parts
-    | _ ->
-      let vars_str = String.concat " ⊓ " vars in
-      let levels = C.decode coeff |> Array.to_list in
-      let parts = levels |> List.map string_of_int |> String.concat "," in
-      Printf.sprintf "([%s] ⊓ %s)" parts vars_str
-  in
-  match terms with
-  | [] -> ""
-  | [ t ] -> pp_term t
-  | ts ->
-    ts |> List.map pp_term |> String.concat " ⊔ " |> fun s -> "(" ^ s ^ ")"
-
-let pp_norm (p : S.poly) : unit = print_endline (render_norm p)
-
 let pp_coeff x =
   let levels = C.decode x |> Array.to_list in
   if List.for_all (( = ) 2) levels then "⊤"
