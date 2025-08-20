@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-20 20:01:55 UTC
+Generated: 2025-08-20 20:10:43 UTC
 
 ## abstracts.types
 
@@ -58,6 +58,46 @@ treeA: base=(node.0 ⊔ leaf.0 ⊔ (node.2 ⊓ treeA.0)), 'a1=(node.1 ⊔ (node.
 H: base=F.0, 'a1=⊤
 F: base=([0,1] ⊓ H.0), 'a1=([0,1] ⊓ H.1)
 G: base=⊤, 'a1=⊥
+
+Infer2: solving atoms:
+foo.0 ≤ ⊥
+bar.0 ≤ ([0,1] ⊓ bar.0)
+baz.0 ≤ baz.0
+one.0 ≤ ⊥
+two.0 = ⊥
+maybe.0 ≤ ((some.0 ⊓ maybe.0) ⊔ (none.0 ⊓ maybe.0))
+maybe.1 ≤ ((some.0 ⊓ some.1 ⊓ maybe.1) ⊔ (some.1 ⊓ none.0 ⊓ maybe.1))
+wrap.0 ≤ ⊥
+wrap.1 ≤ ⊥
+wrap2.0 ≤ wrap2.0
+wrap2.1 ≤ ⊥
+pairish.0 ≤ ⊥
+pairish.1 ≤ ⊥
+pairish.2 ≤ ⊥
+treeA.0 ≤ ((node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0) ⊔ (treeA.0 ⊓ leaf.0))
+treeA.1 ≤ ((node.0 ⊓ node.1 ⊓ treeA.1) ⊔ (node.0 ⊓ node.2 ⊓ treeA.1) ⊔ (node.1 ⊓ treeA.1 ⊓ leaf.0) ⊔ (node.2 ⊓ treeA.0 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1 ⊓ leaf.0))
+H.0 ≤ ([0,1] ⊓ F.0 ⊓ H.0)
+H.1 ≤ ([0,1] ⊓ F.0 ⊓ H.0 ⊓ H.1)
+F.0 ≤ ([0,1] ⊓ F.0 ⊓ H.0)
+F.1 ≤ ([0,1] ⊓ F.0 ⊓ F.1 ⊓ H.0 ⊓ H.1)
+G.0 = ⊤
+G.1 = ⊥
+
+Infer2: Normalized kinds:
+foo: {0 ↦ ⊥}
+bar: {0 ↦ ([0,1] ⊓ bar.0)}
+baz: {0 ↦ baz.0}
+one: {0 ↦ ⊥}
+two: {0 ↦ ⊥}
+maybe: {0 ↦ ((some.0 ⊓ maybe.0) ⊔ (none.0 ⊓ maybe.0)), 1 ↦ ((some.0 ⊓ some.1 ⊓ maybe.1) ⊔ (some.1 ⊓ none.0 ⊓ maybe.1))}
+wrap: {0 ↦ ⊥, 1 ↦ ⊥}
+wrap2: {0 ↦ wrap2.0, 1 ↦ ⊥}
+pairish: {0 ↦ ⊥, 1 ↦ ⊥, 2 ↦ ⊥}
+treeA: {0 ↦ ((node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0) ⊔ (treeA.0 ⊓ leaf.0)), 1 ↦ ((node.0 ⊓ node.1 ⊓ treeA.1) ⊔ (node.0 ⊓ node.2 ⊓ treeA.1) ⊔ (node.1 ⊓ treeA.1 ⊓ leaf.0) ⊔ (node.2 ⊓ treeA.0 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1 ⊓ leaf.0))}
+H: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.0 ⊓ H.0 ⊓ H.1)}
+F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.0 ⊓ F.1 ⊓ H.0 ⊓ H.1)}
+G: {0 ↦ ⊤, 1 ↦ ⊥}
+
 Normalized kinds:
 foo: {0 ↦ ⊥}
 bar: {0 ↦ ([0,1] ⊓ bar.0)}
@@ -124,6 +164,20 @@ Infer2: linear decomposition (base + coeffs):
 foo1: base=(t1.0 ⊔ t2.0), 'a1=(t1.1 ⊓ t2.1)
 foo2: base=(t1.0 ⊔ t2.0), 'a1=(t1.1 ⊓ t2.1)
 bar: base=(bar.0 ⊔ (t1.0 ⊓ bar.1) ⊔ (t2.0 ⊓ bar.1)), 'a1=⊤
+
+Infer2: solving atoms:
+foo1.0 = (t1.0 ⊔ t2.0)
+foo1.1 = (t1.1 ⊓ t2.1)
+foo2.0 = (t1.0 ⊔ t2.0)
+foo2.1 = (t1.1 ⊓ t2.1)
+bar.0 = (t1.0 ⊔ t2.0)
+bar.1 = ⊤
+
+Infer2: Normalized kinds:
+foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
+foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
+bar: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ ⊤}
+
 Normalized kinds:
 foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
@@ -153,6 +207,14 @@ btree: (node.0 ⊔ leaf.0 ⊔ (node.1 ⊓ btree.0) ⊔ (btree.0 ⊓ node.2) ⊔ 
 
 Infer2: linear decomposition (base + coeffs):
 btree: base=(node.0 ⊔ leaf.0 ⊔ (node.1 ⊓ btree.0) ⊔ (btree.0 ⊓ node.2)), 'a1=(leaf.1 ⊔ (node.1 ⊓ btree.1) ⊔ (btree.1 ⊓ node.2))
+
+Infer2: solving atoms:
+btree.0 = (node.0 ⊔ leaf.0)
+btree.1 = leaf.1
+
+Infer2: Normalized kinds:
+btree: {0 ↦ (node.0 ⊔ leaf.0), 1 ↦ leaf.1}
+
 Normalized kinds:
 btree: {0 ↦ (leaf.0 ⊔ node.0), 1 ↦ leaf.1}
 
@@ -176,6 +238,14 @@ list: (list.0 ⊔ 'a1)
 
 Infer2: linear decomposition (base + coeffs):
 list: base=list.0, 'a1=⊤
+
+Infer2: solving atoms:
+list.0 = ⊥
+list.1 = ⊤
+
+Infer2: Normalized kinds:
+list: {0 ↦ ⊥, 1 ↦ ⊤}
+
 Normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 
@@ -271,6 +341,76 @@ list2_inner: base=list2.0, 'a1=([1,0] ⊓ list2.1)
 list2_outer: base=([1,0] ⊓ list2.0), 'a1=([1,0] ⊓ list2.1)
 modal_plus: base=[1,0], 'a1=⊤
 modal_pair: base=[1,0], 'a1=⊤
+
+Infer2: solving atoms:
+id_annot.0 = ⊥
+id_annot.1 = ⊤
+pair_annot.0 = ⊥
+pair_annot.1 = [1,0]
+pair_annot.2 = [1,0]
+nested.0 = ⊥
+nested.1 = [1,1]
+tree.0 = ([0,1] ⊓ Node.0)
+tree.1 = ([0,1] ⊓ Node.1)
+both.0 = ⊥
+both.1 = ⊤
+id_bot.0 = ⊥
+id_bot.1 = ⊥
+mix_sum.0 = ⊥
+mix_sum.1 = [1,1]
+mix_pair.0 = ⊥
+mix_pair.1 = [1,0]
+mix_pair.2 = [0,1]
+outer_vs_inner.0 = ⊥
+outer_vs_inner.1 = [1,0]
+inner_vs_outer.0 = ⊥
+inner_vs_outer.1 = [1,0]
+list_ann.0 = ⊥
+list_ann.1 = [1,0]
+two_axes.0 = ([0,1] ⊓ G.0)
+two_axes.1 = ([0,1] ⊓ G.1)
+deeply.0 = (([0,1] ⊓ G.0) ⊔ ([1,0] ⊓ F.0))
+deeply.1 = (([0,1] ⊓ G.1) ⊔ ([1,0] ⊓ F.1))
+list.0 = ⊥
+list.1 = ⊤
+list_inner.0 = ⊥
+list_inner.1 = [1,0]
+list_outer.0 = ⊥
+list_outer.1 = [1,0]
+list2.0 = (cons.0 ⊔ nil.0)
+list2.1 = cons.1
+list2_inner.0 = (cons.0 ⊔ nil.0)
+list2_inner.1 = ([1,0] ⊓ cons.1)
+list2_outer.0 = (([1,0] ⊓ cons.0) ⊔ ([1,0] ⊓ nil.0))
+list2_outer.1 = ([1,0] ⊓ cons.1)
+modal_plus.0 = [1,0]
+modal_plus.1 = ⊤
+modal_pair.0 = [1,0]
+modal_pair.1 = ⊤
+
+Infer2: Normalized kinds:
+id_annot: {0 ↦ ⊥, 1 ↦ ⊤}
+pair_annot: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
+nested: {0 ↦ ⊥, 1 ↦ [1,1]}
+tree: {0 ↦ ([0,1] ⊓ Node.0), 1 ↦ ([0,1] ⊓ Node.1)}
+both: {0 ↦ ⊥, 1 ↦ ⊤}
+id_bot: {0 ↦ ⊥, 1 ↦ ⊥}
+mix_sum: {0 ↦ ⊥, 1 ↦ [1,1]}
+mix_pair: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [0,1]}
+outer_vs_inner: {0 ↦ ⊥, 1 ↦ [1,0]}
+inner_vs_outer: {0 ↦ ⊥, 1 ↦ [1,0]}
+list_ann: {0 ↦ ⊥, 1 ↦ [1,0]}
+two_axes: {0 ↦ ([0,1] ⊓ G.0), 1 ↦ ([0,1] ⊓ G.1)}
+deeply: {0 ↦ (([0,1] ⊓ G.0) ⊔ ([1,0] ⊓ F.0)), 1 ↦ (([0,1] ⊓ G.1) ⊔ ([1,0] ⊓ F.1))}
+list: {0 ↦ ⊥, 1 ↦ ⊤}
+list_inner: {0 ↦ ⊥, 1 ↦ [1,0]}
+list_outer: {0 ↦ ⊥, 1 ↦ [1,0]}
+list2: {0 ↦ (cons.0 ⊔ nil.0), 1 ↦ cons.1}
+list2_inner: {0 ↦ (cons.0 ⊔ nil.0), 1 ↦ ([1,0] ⊓ cons.1)}
+list2_outer: {0 ↦ (([1,0] ⊓ cons.0) ⊔ ([1,0] ⊓ nil.0)), 1 ↦ ([1,0] ⊓ cons.1)}
+modal_plus: {0 ↦ [1,0], 1 ↦ ⊤}
+modal_pair: {0 ↦ [1,0], 1 ↦ ⊤}
+
 Normalized kinds:
 id_annot: {0 ↦ ⊥, 1 ↦ ⊤}
 pair_annot: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
@@ -357,6 +497,15 @@ bar: ([1,0] ⊓ foo.0)
 Infer2: linear decomposition (base + coeffs):
 foo: base=[1,1]
 bar: base=([1,0] ⊓ foo.0)
+
+Infer2: solving atoms:
+foo.0 = [1,1]
+bar.0 = [1,0]
+
+Infer2: Normalized kinds:
+foo: {0 ↦ [1,1]}
+bar: {0 ↦ [1,0]}
+
 Normalized kinds:
 foo: {0 ↦ [1,1]}
 bar: {0 ↦ [1,0]}
@@ -386,6 +535,17 @@ evenlist: (cons.0 ⊔ (cons.1 ⊓ 'a1) ⊔ (cons.2 ⊓ oddlist.0) ⊔ ('a1 ⊓ c
 Infer2: linear decomposition (base + coeffs):
 oddlist: base=(cons.0 ⊔ (cons.2 ⊓ evenlist.0)), 'a1=(cons.1 ⊔ (cons.2 ⊓ evenlist.1))
 evenlist: base=(cons.0 ⊔ (cons.2 ⊓ oddlist.0)), 'a1=(cons.1 ⊔ (cons.2 ⊓ oddlist.1))
+
+Infer2: solving atoms:
+oddlist.0 = cons.0
+oddlist.1 = cons.1
+evenlist.0 = cons.0
+evenlist.1 = cons.1
+
+Infer2: Normalized kinds:
+oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
+evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
+
 Normalized kinds:
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
@@ -421,6 +581,23 @@ list: base=list.0, 'a1=⊤
 lily: base=(list.0 ⊔ (list.1 ⊓ lily.0) ⊔ (list.1 ⊓ portable.0)), 'a1=((list.1 ⊓ lily.1) ⊔ (list.1 ⊓ portable.1))
 tulip: base=(tulip.0 ⊔ (portable.0 ⊓ tulip.1)), 'a1=⊤
 orchid: base=(portable.0 ⊔ orchid.0), 'a1=(portable.1 ⊔ orchid.1)
+
+Infer2: solving atoms:
+list.0 = ⊥
+list.1 = ⊤
+lily.0 = portable.0
+lily.1 = portable.1
+tulip.0 = portable.0
+tulip.1 = ⊤
+orchid.0 = portable.0
+orchid.1 = portable.1
+
+Infer2: Normalized kinds:
+list: {0 ↦ ⊥, 1 ↦ ⊤}
+lily: {0 ↦ portable.0, 1 ↦ portable.1}
+tulip: {0 ↦ portable.0, 1 ↦ ⊤}
+orchid: {0 ↦ portable.0, 1 ↦ portable.1}
+
 Normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 lily: {0 ↦ portable.0, 1 ↦ portable.1}
@@ -453,6 +630,14 @@ foo: (portended.0 ⊔ (portended.1 ⊓ ref.0) ⊔ (portended.1 ⊓ ref.1 ⊓ 'a1
 
 Infer2: linear decomposition (base + coeffs):
 foo: base=(portended.0 ⊔ (portended.1 ⊓ ref.0)), 'a1=(portended.1 ⊓ ref.1)
+
+Infer2: solving atoms:
+foo.0 = (portended.0 ⊔ (portended.1 ⊓ ref.0))
+foo.1 = (portended.1 ⊓ ref.1)
+
+Infer2: Normalized kinds:
+foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
+
 Normalized kinds:
 foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
 
@@ -482,6 +667,20 @@ Infer2: linear decomposition (base + coeffs):
 list: base=list.0, 'a1=⊤
 rose: base=(list.0 ⊔ (list.1 ⊓ rose.0)), 'a1=(list.1 ⊓ rose.1)
 lily: base=(list.0 ⊔ (list.1 ⊓ lily.0)), 'a1=list.1
+
+Infer2: solving atoms:
+list.0 = ⊥
+list.1 = ⊤
+rose.0 = ⊥
+rose.1 = ⊥
+lily.0 = ⊥
+lily.1 = ⊤
+
+Infer2: Normalized kinds:
+list: {0 ↦ ⊥, 1 ↦ ⊤}
+rose: {0 ↦ ⊥, 1 ↦ ⊥}
+lily: {0 ↦ ⊥, 1 ↦ ⊤}
+
 Normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 rose: {0 ↦ ⊥, 1 ↦ ⊥}
@@ -517,6 +716,20 @@ Infer2: linear decomposition (base + coeffs):
 list: base=(cons.0 ⊔ (cons.2 ⊓ list.0)), 'a1=(cons.1 ⊔ (cons.2 ⊓ list.1))
 ctx: base=(down.0 ⊔ (down.2 ⊓ ctx.0)), 'a1=(down.1 ⊔ (down.2 ⊓ ctx.1))
 zipper: base=(list.0 ⊔ ctx.0), 'a1=(list.1 ⊔ ctx.1)
+
+Infer2: solving atoms:
+list.0 = cons.0
+list.1 = cons.1
+ctx.0 = down.0
+ctx.1 = down.1
+zipper.0 = (cons.0 ⊔ down.0)
+zipper.1 = (cons.1 ⊔ down.1)
+
+Infer2: Normalized kinds:
+list: {0 ↦ cons.0, 1 ↦ cons.1}
+ctx: {0 ↦ down.0, 1 ↦ down.1}
+zipper: {0 ↦ (cons.0 ⊔ down.0), 1 ↦ (cons.1 ⊔ down.1)}
+
 Normalized kinds:
 list: {0 ↦ cons.0, 1 ↦ cons.1}
 ctx: {0 ↦ down.0, 1 ↦ down.1}

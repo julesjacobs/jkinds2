@@ -23,4 +23,8 @@ module Infer2 : sig
 
   val decompose_by_tyvars :
     arity:int -> poly -> poly * poly array * (var_label list * poly) list
+
+  val solve_linear_for_program : Decl_parser.program -> unit
+  val atom_state_lines_for_program : Decl_parser.program -> string list
+  val normalized_kind_for_decl : Decl_parser.decl_item -> (int * poly) list
 end

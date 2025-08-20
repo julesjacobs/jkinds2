@@ -68,7 +68,23 @@ let () =
         coeffs;
       print_newline ())
     prog;
-  print_endline "Normalized kinds:";
+  (* Infer2: solve linear system over atoms and display solutions *)
+  print_endline "\nInfer2: solving atoms:";
+  Jkinds_lib.Infer2.solve_linear_for_program prog;
+  Jkinds_lib.Infer2.atom_state_lines_for_program prog |> List.iter print_endline;
+  print_endline "\nInfer2: Normalized kinds:";
+  List.iter
+    (fun (it : Jkinds_lib.Decl_parser.decl_item) ->
+      let entries = Jkinds_lib.Infer2.normalized_kind_for_decl it in
+      let body =
+        entries
+        |> List.map (fun (i, p) ->
+               Printf.sprintf "%d ↦ %s" i (Jkinds_lib.Infer2.pp_poly p))
+        |> String.concat ", "
+      in
+      Printf.printf "%s: {%s}\n" it.name body)
+    prog;
+  print_endline "\nNormalized kinds:";
   List.iter (fun (n, k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds_lfp;
   print_endline "\nCeil/Floor kinds:";
   List.iter

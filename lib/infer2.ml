@@ -102,3 +102,81 @@ let decompose_by_tyvars ~(arity : int) (p : S.poly) :
       groups
   in
   (!base, coeffs, List.rev !mixed)
+
+let pp_varlabel : VarLabel.t -> string = function
+  | VarLabel.Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index
+  | VarLabel.TyVar v -> Printf.sprintf "'a%d" v
+
+let pp_state_line (v : S.var) : string =
+  let pp_coeff x =
+    let levels = Axis_lattice.decode x |> Array.to_list in
+    let parts = levels |> List.map string_of_int |> String.concat "," in
+    Printf.sprintf "[%s]" parts
+  in
+  S.pp_state_line ~pp_var:pp_varlabel ~pp_coeff v
+
+let get_atom_var ~(ctor : string) ~(index : int) : S.var =
+  get_var (VarLabel.Atom { Modality.ctor; index })
+
+let solve_linear_for_decl (it : Decl_parser.decl_item) : unit =
+  let p = to_poly it.rhs in
+  let base, coeffs, mixed = decompose_by_tyvars ~arity:it.arity p in
+  (if mixed <> [] then
+     let parts =
+       mixed
+       |> List.map (fun (k, poly) ->
+              let key =
+                "{" ^ (k |> List.map pp_varlabel |> String.concat ", ") ^ "}"
+              in
+              Printf.sprintf "%s: %s" key (pp_poly poly))
+       |> String.concat "; "
+     in
+     let msg =
+       Printf.sprintf "infer2: non-linear terms for %s: %s" it.name parts
+     in
+     failwith msg);
+  if it.abstract then (
+    (* Assert: C.0 <= base; C.i <= base /\ coeff_i *)
+    let v0 = get_atom_var ~ctor:it.name ~index:0 in
+    S.assert_leq v0 base;
+    for i = 1 to it.arity do
+      let vi = get_atom_var ~ctor:it.name ~index:i in
+      let rhs = S.meet base coeffs.(i - 1) in
+      S.assert_leq vi rhs
+    done)
+  else
+    (* Concrete: solve_lfp C.0 = base; C.i = coeff_i *)
+    let v0 = get_atom_var ~ctor:it.name ~index:0 in
+    S.solve_lfp v0 base;
+    for i = 1 to it.arity do
+      let vi = get_atom_var ~ctor:it.name ~index:i in
+      S.solve_lfp vi coeffs.(i - 1)
+    done
+
+let solve_linear_for_program (prog : Decl_parser.program) : unit =
+  List.iter solve_linear_for_decl prog
+
+let atom_state_lines_for_program (prog : Decl_parser.program) : string list =
+  let lines = ref [] in
+  List.iter
+    (fun (it : Decl_parser.decl_item) ->
+      for i = 0 to it.arity do
+        let v = get_atom_var ~ctor:it.name ~index:i in
+        lines := pp_state_line v :: !lines
+      done)
+    prog;
+  List.rev !lines
+
+let atom_bound_poly ~(ctor : string) ~(index : int) : S.poly =
+  let v = get_atom_var ~ctor ~index in
+  S.bound v
+
+let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list
+    =
+  let rec loop i acc =
+    if i > it.arity then List.rev acc
+    else
+      let p = atom_bound_poly ~ctor:it.name ~index:i in
+      loop (i + 1) ((i, p) :: acc)
+  in
+  loop 0 []
