@@ -212,4 +212,65 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let rel = if v.eliminated then "=" else "≤" in
     let rhs = pp ?pp_var ?pp_coeff v.bound in
     Printf.sprintf "%s %s %s" lhs rel rhs
+
+  (* Group polynomial terms by the designated variables they mention. The key is
+     the list of designated variables (sorted by [universe] order). For the
+     grouped poly, we remove designated variables from each term while keeping
+     non-designated variables. *)
+  let decompose_by ~(universe : V.t list) (p : poly) : (V.t list * poly) list =
+    (* Index map for stable ordering of keys *)
+    let module VSet = Set.Make (V) in
+    let idx_tbl = Hashtbl.create 16 in
+    let () = List.iteri (fun i v -> Hashtbl.replace idx_tbl v i) universe in
+    let idx_of (v : V.t) : int =
+      match Hashtbl.find_opt idx_tbl v with Some i -> i | None -> max_int
+    in
+    let universe_set =
+      List.fold_left (fun acc v -> VSet.add v acc) VSet.empty universe
+    in
+    let add_term (acc : (V.t list * poly) list) (key : V.t list)
+        (term_poly : poly) : (V.t list * poly) list =
+      let keys_equal (a : V.t list) (b : V.t list) : bool =
+        List.length a = List.length b
+        &&
+        (* compare elementwise via V.compare = 0 *)
+        List.for_all2 (fun x y -> V.compare x y = 0) a b
+      in
+      let rec go xs =
+        match xs with
+        | [] -> [ (key, term_poly) ]
+        | (k, p0) :: rest ->
+          if keys_equal k key then (k, P.join p0 term_poly) :: rest
+          else (k, p0) :: go rest
+      in
+      go acc
+    in
+    let p_norm = normalize_poly p in
+    let terms = P.to_list p_norm in
+    let groups =
+      List.fold_left
+        (fun acc (vars_set, coeff) ->
+          (* Split vars into designated vs others by NAME *)
+          let vars_list = P.VarSet.elements vars_set in
+          let designated_names, other_vars =
+            List.fold_left
+              (fun (d, o) (v : Var.t) ->
+                if VSet.mem v.name universe_set then (v.name :: d, o)
+                else (d, v :: o))
+              ([], []) vars_list
+          in
+          let designated_sorted =
+            designated_names
+            |> List.sort (fun a b -> Int.compare (idx_of a) (idx_of b))
+          in
+          (* Build term poly: coefficient meet non-designated variables *)
+          let term_poly =
+            List.fold_left
+              (fun acc_poly (v : Var.t) -> P.meet acc_poly (P.var v))
+              (P.const coeff) other_vars
+          in
+          add_term acc designated_sorted term_poly)
+        [] terms
+    in
+    groups
 end

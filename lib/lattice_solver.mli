@@ -59,4 +59,12 @@ module Make (C : LATTICE) (V : ORDERED) : sig
      eliminated *)
   val pp_state_line :
     ?pp_var:(V.t -> string) -> ?pp_coeff:(lat -> string) -> var -> string
+
+  (* Decompose a polynomial by designated variables. For each term, split the
+     variables into designated (intersection with [universe]) and the rest. The
+     result groups terms by the set of designated variables (as a sorted list in
+     [universe] order). In each group's polynomial, the designated variables are
+     removed from terms, but non-designated variables are kept (together with
+     the term's coefficient). *)
+  val decompose_by : universe:V.t list -> poly -> (V.t list * poly) list
 end
