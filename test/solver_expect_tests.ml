@@ -271,33 +271,33 @@ let%expect_test "complex joins and propagation scenario" =
     |}];
   (* eliminate a safely with a constant; then eliminate c and b with meet-self
      patterns to avoid inequality violations *)
-  S.solve_lfp a (S.var a);
+  S.solve_lfp a (S.join (S.var a) (S.join (S.var b) (S.const (c 2 0))));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
-    a = ⊥
-    b ≤ (([0,1] ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
+    a = ([2,0] ⊔ ([0,1] ⊓ b))
+    b ≤ (([1,1] ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
     c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d ≤ ⊥
-    e ≤ ⊥
-    f ≤ ⊥
+    d ≤ (([1,1] ⊓ b ⊓ d) ⊔ ([1,0] ⊓ c ⊓ d) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d))
+    e ≤ (([1,1] ⊓ b ⊓ d ⊓ e) ⊔ ([1,0] ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e))
+    f ≤ (([1,1] ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f))
     |}];
   S.solve_lfp cv (S.meet (S.var b) (S.const (c 2 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
-    a = ⊥
-    b ≤ ([0,1] ⊓ b)
-    c = ⊥
-    d ≤ ⊥
-    e ≤ ⊥
-    f ≤ ⊥
+    a = ([2,0] ⊔ ([0,1] ⊓ b))
+    b ≤ ([1,1] ⊓ b)
+    c = ([1,0] ⊓ b)
+    d ≤ ([1,1] ⊓ b ⊓ d)
+    e ≤ ([1,1] ⊓ b ⊓ d ⊓ e)
+    f ≤ ([1,1] ⊓ b ⊓ d ⊓ e ⊓ f)
     |}];
   S.solve_lfp b (S.meet (S.var b) (S.const (c 1 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
-    a = ⊥
+    a = [2,0]
     b = ⊥
     c = ⊥
     d ≤ ⊥
