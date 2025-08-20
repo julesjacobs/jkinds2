@@ -13,4 +13,5 @@
   product_lattice
   lattice_polynomial
   lattice_solver
+  axis_lattice
   jkinds_lib))

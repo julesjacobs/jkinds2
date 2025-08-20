@@ -1,7 +1,5 @@
-(* Concrete coefficient lattice shape (initial default). *)
-module Coeff = Product_lattice.Make (struct
-  let axis_sizes = [| 3; 2 |]
-end)
+(* Concrete coefficient lattice moved to its own module. *)
+module Coeff = Axis_lattice
 
 (* Merge Modality_poly into this module by specializing lattice polynomials to
    Coeff. *)
