@@ -118,43 +118,59 @@ let pp_state_line (v : S.var) : string =
 let get_atom_var ~(ctor : string) ~(index : int) : S.var =
   get_var (VarLabel.Atom { Modality.ctor; index })
 
-let solve_linear_for_decl (it : Decl_parser.decl_item) : unit =
-  let p = to_poly it.rhs in
-  let base, coeffs, mixed = decompose_by_tyvars ~arity:it.arity p in
-  (if mixed <> [] then
-     let parts =
-       mixed
-       |> List.map (fun (k, poly) ->
-              let key =
-                "{" ^ (k |> List.map pp_varlabel |> String.concat ", ") ^ "}"
-              in
-              Printf.sprintf "%s: %s" key (pp_poly poly))
-       |> String.concat "; "
-     in
-     let msg =
-       Printf.sprintf "infer2: non-linear terms for %s: %s" it.name parts
-     in
-     failwith msg);
-  if it.abstract then (
-    (* Assert: C.0 <= base; C.i <= base /\ coeff_i *)
-    let v0 = get_atom_var ~ctor:it.name ~index:0 in
-    S.assert_leq v0 base;
-    for i = 1 to it.arity do
-      let vi = get_atom_var ~ctor:it.name ~index:i in
-      let rhs = S.meet base coeffs.(i - 1) in
-      S.assert_leq vi rhs
-    done)
-  else
-    (* Concrete: solve_lfp C.0 = base; C.i = coeff_i *)
-    let v0 = get_atom_var ~ctor:it.name ~index:0 in
-    S.solve_lfp v0 base;
-    for i = 1 to it.arity do
-      let vi = get_atom_var ~ctor:it.name ~index:i in
-      S.solve_lfp vi coeffs.(i - 1)
-    done
+type linear_decomp = {
+  it : Decl_parser.decl_item;
+  base : S.poly;
+  coeffs : S.poly array;
+}
+
+let compute_linear_decomps (prog : Decl_parser.program) : linear_decomp list =
+  let decomp_of_it (it : Decl_parser.decl_item) : linear_decomp =
+    let p = to_poly it.rhs in
+    let base, coeffs, mixed = decompose_by_tyvars ~arity:it.arity p in
+    (if mixed <> [] then
+       let parts =
+         mixed
+         |> List.map (fun (k, poly) ->
+                let key =
+                  "{" ^ (k |> List.map pp_varlabel |> String.concat ", ") ^ "}"
+                in
+                Printf.sprintf "%s: %s" key (pp_poly poly))
+         |> String.concat "; "
+       in
+       let msg =
+         Printf.sprintf "infer2: non-linear terms for %s: %s" it.name parts
+       in
+       failwith msg);
+    { it; base; coeffs }
+  in
+  List.map decomp_of_it prog
 
 let solve_linear_for_program (prog : Decl_parser.program) : unit =
-  List.iter solve_linear_for_decl prog
+  let decs = compute_linear_decomps prog in
+  (* Phase 1: solve concretes completely *)
+  List.iter
+    (fun { it; base; coeffs } ->
+      if not it.abstract then (
+        let v0 = get_atom_var ~ctor:it.name ~index:0 in
+        S.solve_lfp v0 base;
+        for i = 1 to it.arity do
+          let vi = get_atom_var ~ctor:it.name ~index:i in
+          S.solve_lfp vi coeffs.(i - 1)
+        done))
+    decs;
+  (* Phase 2: assert abstracts as ≤ constraints, using base ∨ coeff_i *)
+  List.iter
+    (fun { it; base; coeffs } ->
+      if it.abstract then (
+        let v0 = get_atom_var ~ctor:it.name ~index:0 in
+        S.assert_leq v0 base;
+        for i = 1 to it.arity do
+          let vi = get_atom_var ~ctor:it.name ~index:i in
+          let rhs = S.join base coeffs.(i - 1) in
+          S.assert_leq vi rhs
+        done))
+    decs
 
 let atom_state_lines_for_program (prog : Decl_parser.program) : string list =
   let lines = ref [] in

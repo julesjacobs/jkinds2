@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-20 20:10:43 UTC
+Generated: 2025-08-20 21:10:18 UTC
 
 ## abstracts.types
 
@@ -63,23 +63,23 @@ Infer2: solving atoms:
 foo.0 ≤ ⊥
 bar.0 ≤ ([0,1] ⊓ bar.0)
 baz.0 ≤ baz.0
-one.0 ≤ ⊥
-two.0 = ⊥
+one.0 ≤ ([0,1] ⊓ one.0)
+two.0 = ([0,1] ⊓ one.0)
 maybe.0 ≤ ((some.0 ⊓ maybe.0) ⊔ (none.0 ⊓ maybe.0))
-maybe.1 ≤ ((some.0 ⊓ some.1 ⊓ maybe.1) ⊔ (some.1 ⊓ none.0 ⊓ maybe.1))
+maybe.1 ≤ ((some.0 ⊓ maybe.1) ⊔ (some.1 ⊓ maybe.1) ⊔ (none.0 ⊓ maybe.1))
 wrap.0 ≤ ⊥
-wrap.1 ≤ ⊥
+wrap.1 ≤ ([1,0] ⊓ wrap.1)
 wrap2.0 ≤ wrap2.0
-wrap2.1 ≤ ⊥
+wrap2.1 ≤ wrap2.1
 pairish.0 ≤ ⊥
-pairish.1 ≤ ⊥
-pairish.2 ≤ ⊥
+pairish.1 ≤ ([1,0] ⊓ pairish.1)
+pairish.2 ≤ ([1,0] ⊓ pairish.2)
 treeA.0 ≤ ((node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0) ⊔ (treeA.0 ⊓ leaf.0))
-treeA.1 ≤ ((node.0 ⊓ node.1 ⊓ treeA.1) ⊔ (node.0 ⊓ node.2 ⊓ treeA.1) ⊔ (node.1 ⊓ treeA.1 ⊓ leaf.0) ⊔ (node.2 ⊓ treeA.0 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1 ⊓ leaf.0))
+treeA.1 ≤ ((node.0 ⊓ treeA.1) ⊔ (node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1) ⊔ (treeA.1 ⊓ leaf.0))
 H.0 ≤ ([0,1] ⊓ F.0 ⊓ H.0)
-H.1 ≤ ([0,1] ⊓ F.0 ⊓ H.0 ⊓ H.1)
+H.1 ≤ H.1
 F.0 ≤ ([0,1] ⊓ F.0 ⊓ H.0)
-F.1 ≤ ([0,1] ⊓ F.0 ⊓ F.1 ⊓ H.0 ⊓ H.1)
+F.1 ≤ (([0,1] ⊓ F.1 ⊓ H.1) ⊔ ([0,1] ⊓ F.0 ⊓ F.1 ⊓ H.0))
 G.0 = ⊤
 G.1 = ⊥
 
@@ -87,15 +87,15 @@ Infer2: Normalized kinds:
 foo: {0 ↦ ⊥}
 bar: {0 ↦ ([0,1] ⊓ bar.0)}
 baz: {0 ↦ baz.0}
-one: {0 ↦ ⊥}
-two: {0 ↦ ⊥}
-maybe: {0 ↦ ((some.0 ⊓ maybe.0) ⊔ (none.0 ⊓ maybe.0)), 1 ↦ ((some.0 ⊓ some.1 ⊓ maybe.1) ⊔ (some.1 ⊓ none.0 ⊓ maybe.1))}
-wrap: {0 ↦ ⊥, 1 ↦ ⊥}
-wrap2: {0 ↦ wrap2.0, 1 ↦ ⊥}
-pairish: {0 ↦ ⊥, 1 ↦ ⊥, 2 ↦ ⊥}
-treeA: {0 ↦ ((node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0) ⊔ (treeA.0 ⊓ leaf.0)), 1 ↦ ((node.0 ⊓ node.1 ⊓ treeA.1) ⊔ (node.0 ⊓ node.2 ⊓ treeA.1) ⊔ (node.1 ⊓ treeA.1 ⊓ leaf.0) ⊔ (node.2 ⊓ treeA.0 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1 ⊓ leaf.0))}
-H: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.0 ⊓ H.0 ⊓ H.1)}
-F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ ([0,1] ⊓ F.0 ⊓ F.1 ⊓ H.0 ⊓ H.1)}
+one: {0 ↦ ([0,1] ⊓ one.0)}
+two: {0 ↦ ([0,1] ⊓ one.0)}
+maybe: {0 ↦ ((some.0 ⊓ maybe.0) ⊔ (none.0 ⊓ maybe.0)), 1 ↦ ((some.0 ⊓ maybe.1) ⊔ (some.1 ⊓ maybe.1) ⊔ (none.0 ⊓ maybe.1))}
+wrap: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ wrap.1)}
+wrap2: {0 ↦ wrap2.0, 1 ↦ wrap2.1}
+pairish: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ pairish.1), 2 ↦ ([1,0] ⊓ pairish.2)}
+treeA: {0 ↦ ((node.0 ⊓ treeA.0) ⊔ (node.2 ⊓ treeA.0) ⊔ (treeA.0 ⊓ leaf.0)), 1 ↦ ((node.0 ⊓ treeA.1) ⊔ (node.1 ⊓ treeA.1) ⊔ (node.2 ⊓ treeA.1) ⊔ (treeA.1 ⊓ leaf.0))}
+H: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ H.1}
+F: {0 ↦ ([0,1] ⊓ F.0 ⊓ H.0), 1 ↦ (([0,1] ⊓ F.1 ⊓ H.1) ⊔ ([0,1] ⊓ F.0 ⊓ F.1 ⊓ H.0))}
 G: {0 ↦ ⊤, 1 ↦ ⊥}
 
 Normalized kinds:
