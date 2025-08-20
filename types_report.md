@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-20 17:54:44 UTC
+Generated: 2025-08-20 19:40:30 UTC
 
 ## abstracts.types
 
@@ -29,6 +29,20 @@ type G('a1) = [2,1] * 'a1
 
 Program output:
 ```
+Infer2: RHS as polys:
+foo: ⊥
+bar: [0,1]
+baz: ⊤
+one: ([0,1] ⊓ two.0)
+two: one.0
+maybe: (some.0 ⊔ none.0 ⊔ (some.1 ⊓ 'a1))
+wrap: ([1,0] ⊓ 'a1)
+wrap2: ⊤
+pairish: (([1,0] ⊓ 'a1) ⊔ ([1,0] ⊓ 'a2))
+treeA: (node.0 ⊔ leaf.0 ⊔ ('a1 ⊓ node.1) ⊔ (node.2 ⊓ treeA.0) ⊔ ('a1 ⊓ node.2 ⊓ treeA.1))
+H: ('a1 ⊔ F.0)
+F: (([0,1] ⊓ H.0) ⊔ ([0,1] ⊓ 'a1 ⊓ H.1))
+G: ⊤
 Normalized kinds:
 foo: {0 ↦ ⊥}
 bar: {0 ↦ ([0,1] ⊓ bar.0)}
@@ -86,6 +100,10 @@ type bar('a1) = bar(t1('a1)) + bar(t2('a1)) + 'a1
 
 Program output:
 ```
+Infer2: RHS as polys:
+foo1: (t1.0 ⊔ t2.0 ⊔ (t1.1 ⊓ t2.1 ⊓ 'a1))
+foo2: (t1.0 ⊔ t2.0 ⊔ (t1.1 ⊓ t2.1 ⊓ 'a1))
+bar: ('a1 ⊔ bar.0 ⊔ (t1.0 ⊓ bar.1) ⊔ (t2.0 ⊓ bar.1))
 Normalized kinds:
 foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
@@ -110,6 +128,8 @@ type btree('a1) = (leaf('a1) + node(btree('a1), btree('a1)))
 
 Program output:
 ```
+Infer2: RHS as polys:
+btree: (node.0 ⊔ leaf.0 ⊔ (node.1 ⊓ btree.0) ⊔ (btree.0 ⊓ node.2) ⊔ ('a1 ⊓ leaf.1) ⊔ (node.1 ⊓ btree.1 ⊓ 'a1) ⊔ (btree.1 ⊓ 'a1 ⊓ node.2))
 Normalized kinds:
 btree: {0 ↦ (leaf.0 ⊔ node.0), 1 ↦ leaf.1}
 
@@ -128,6 +148,8 @@ type list('a1) = unit + 'a1 * list('a1)
 
 Program output:
 ```
+Infer2: RHS as polys:
+list: (list.0 ⊔ 'a1)
 Normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 
@@ -178,6 +200,28 @@ type modal_pair('a1) = [1,0] * 'a1
 
 Program output:
 ```
+Infer2: RHS as polys:
+id_annot: 'a1
+pair_annot: (([1,0] ⊓ 'a1) ⊔ ([1,0] ⊓ 'a2))
+nested: ([1,1] ⊓ 'a1)
+tree: (([0,1] ⊓ Node.0) ⊔ ([0,1] ⊓ 'a1 ⊓ Node.1) ⊔ ([0,1] ⊓ Node.2 ⊓ tree.0) ⊔ ([0,1] ⊓ 'a1 ⊓ Node.2 ⊓ tree.1))
+both: 'a1
+id_bot: ⊥
+mix_sum: ([1,1] ⊓ 'a1)
+mix_pair: (([1,0] ⊓ 'a1) ⊔ ([0,1] ⊓ 'a2))
+outer_vs_inner: ([1,0] ⊓ 'a1)
+inner_vs_outer: ([1,0] ⊓ 'a1)
+list_ann: (([1,0] ⊓ 'a1) ⊔ ([1,0] ⊓ list_ann.0))
+two_axes: (([0,1] ⊓ G.0) ⊔ ([0,1] ⊓ 'a1 ⊓ G.1))
+deeply: (([0,1] ⊓ G.0) ⊔ ([1,0] ⊓ F.0) ⊔ ([0,1] ⊓ 'a1 ⊓ G.1) ⊔ ([1,0] ⊓ 'a1 ⊓ F.1))
+list: ('a1 ⊔ list.0)
+list_inner: (list.0 ⊔ ([1,0] ⊓ 'a1 ⊓ list.1))
+list_outer: (([1,0] ⊓ list.0) ⊔ ([1,0] ⊓ 'a1 ⊓ list.1))
+list2: (cons.0 ⊔ nil.0 ⊔ ('a1 ⊓ cons.1) ⊔ (cons.2 ⊓ list2.0) ⊔ ('a1 ⊓ cons.2 ⊓ list2.1))
+list2_inner: (list2.0 ⊔ ([1,0] ⊓ 'a1 ⊓ list2.1))
+list2_outer: (([1,0] ⊓ list2.0) ⊔ ([1,0] ⊓ 'a1 ⊓ list2.1))
+modal_plus: ([1,0] ⊔ 'a1)
+modal_pair: ([1,0] ⊔ 'a1)
 Normalized kinds:
 id_annot: {0 ↦ ⊥, 1 ↦ ⊤}
 pair_annot: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
@@ -257,6 +301,9 @@ type bar() = foo() @@ [1,0]
 
 Program output:
 ```
+Infer2: RHS as polys:
+foo: [1,1]
+bar: ([1,0] ⊓ foo.0)
 Normalized kinds:
 foo: {0 ↦ [1,1]}
 bar: {0 ↦ [1,0]}
@@ -279,6 +326,9 @@ type evenlist('a1) = unit + cons('a1, oddlist('a1))
 
 Program output:
 ```
+Infer2: RHS as polys:
+oddlist: (cons.0 ⊔ (cons.1 ⊓ 'a1) ⊔ (cons.2 ⊓ evenlist.0) ⊔ ('a1 ⊓ cons.2 ⊓ evenlist.1))
+evenlist: (cons.0 ⊔ (cons.1 ⊓ 'a1) ⊔ (cons.2 ⊓ oddlist.0) ⊔ ('a1 ⊓ cons.2 ⊓ oddlist.1))
 Normalized kinds:
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
@@ -303,6 +353,11 @@ type orchid('a1) = unit + portable('a1) * orchid('a1 * 'a1)
 
 Program output:
 ```
+Infer2: RHS as polys:
+list: (list.0 ⊔ 'a1)
+lily: (list.0 ⊔ (list.1 ⊓ lily.0) ⊔ (list.1 ⊓ portable.0) ⊔ (list.1 ⊓ 'a1 ⊓ lily.1) ⊔ (list.1 ⊓ 'a1 ⊓ portable.1))
+tulip: ('a1 ⊔ tulip.0 ⊔ (portable.0 ⊓ tulip.1))
+orchid: (portable.0 ⊔ orchid.0 ⊔ ('a1 ⊓ portable.1) ⊔ ('a1 ⊓ orchid.1))
 Normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 lily: {0 ↦ portable.0, 1 ↦ portable.1}
@@ -330,6 +385,8 @@ type foo('a1) = portended(ref('a1))
 
 Program output:
 ```
+Infer2: RHS as polys:
+foo: (portended.0 ⊔ (portended.1 ⊓ ref.0) ⊔ (portended.1 ⊓ ref.1 ⊓ 'a1))
 Normalized kinds:
 foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
 
@@ -350,6 +407,10 @@ type lily('a1) = list('a1 * lily(list('a1)))
 
 Program output:
 ```
+Infer2: RHS as polys:
+list: (list.0 ⊔ 'a1)
+rose: (list.0 ⊔ (list.1 ⊓ rose.0) ⊔ (list.1 ⊓ 'a1 ⊓ rose.1))
+lily: (list.0 ⊔ (list.1 ⊓ 'a1) ⊔ (list.1 ⊓ lily.0))
 Normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 rose: {0 ↦ ⊥, 1 ↦ ⊥}
@@ -376,6 +437,10 @@ type zipper('a1) = (ctx('a1) * list('a1))
 
 Program output:
 ```
+Infer2: RHS as polys:
+list: (cons.0 ⊔ (cons.1 ⊓ 'a1) ⊔ (cons.2 ⊓ list.0) ⊔ ('a1 ⊓ cons.2 ⊓ list.1))
+ctx: (down.0 ⊔ ('a1 ⊓ down.1) ⊔ (down.2 ⊓ ctx.0) ⊔ ('a1 ⊓ down.2 ⊓ ctx.1))
+zipper: (list.0 ⊔ ctx.0 ⊔ ('a1 ⊓ list.1) ⊔ ('a1 ⊓ ctx.1))
 Normalized kinds:
 list: {0 ↦ cons.0, 1 ↦ cons.1}
 ctx: {0 ↦ down.0, 1 ↦ down.1}

@@ -8,3 +8,16 @@ module Product_lattice : module type of Product_lattice
 module Lattice_polynomial : module type of Lattice_polynomial
 module Lattice_solver : module type of Lattice_solver
 module Axis_lattice : module type of Axis_lattice
+
+module Infer2 : sig
+  module VarLabel : sig
+    type t = Atom of Modality.atom | TyVar of int
+  end
+
+  type var_label = VarLabel.t
+  type poly
+  type var
+
+  val to_poly : Type_syntax.t -> poly
+  val pp_poly : poly -> string
+end

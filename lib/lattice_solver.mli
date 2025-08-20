@@ -36,9 +36,8 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   val assert_leq : var -> poly -> unit
 
   (* Solve the least fixpoint for var = poly(var, other vars); variable is
-     eliminated after this (can't assert_leq or solve_lfp again).
-     Throws an exception if the equation is inconsistent with existing
-     (in)equalities *)
+     eliminated after this (can't assert_leq or solve_lfp again). Throws an
+     exception if the equation is inconsistent with existing (in)equalities *)
   val solve_lfp : var -> poly -> unit
 
   (* Pure check: forall xs, poly1(xs) ≤ poly2(xs) *)

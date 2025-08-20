@@ -6,6 +6,7 @@
   type_syntax
   modality
   kind
+  infer2
   infer
   type_parser
   decl_parser
