@@ -193,6 +193,16 @@ let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list
     if i > it.arity then List.rev acc
     else
       let p = atom_bound_poly ~ctor:it.name ~index:i in
-      loop (i + 1) ((i, p) :: acc)
+      let p' =
+        if i = 0 then p
+        else
+          let u = [ VarLabel.Atom { Modality.ctor = it.name; index = 0 } ] in
+          let groups = S.decompose_by ~universe:u p in
+          (* Keep only terms not containing C.0 (key = []) *)
+          groups
+          |> List.filter (fun (k, _) -> k = [])
+          |> List.fold_left (fun acc (_, poly) -> S.join acc poly) S.bot
+      in
+      loop (i + 1) ((i, p') :: acc)
   in
   loop 0 []

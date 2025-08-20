@@ -13,7 +13,8 @@
    poly_expect_tests
    modality_expect_tests
    solver_expect_tests
-   infer2_expect_tests)))
+   infer2_expect_tests
+   infer2_fh_expect_tests)))
 
 (test
  (name test_kind_apply)
@@ -70,4 +71,5 @@
   poly_expect_tests
   modality_expect_tests
   solver_expect_tests
-  infer2_expect_tests))
+  infer2_expect_tests
+  infer2_fh_expect_tests))

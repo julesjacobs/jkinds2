@@ -1,0 +1,117 @@
+# Discrepancy hunt: stress cases for abstract/concrete, arities, and annotations
+
+# 1) Simple abstract chain with alternating axes
+type A('a1) : B('a1) @@ [1,0] + 'a1
+type B('a1) : C('a1) @@ [0,1]
+type C('a1) : A('a1)
+
+# 2) Mutual recursion with two parameters and cross-position usage
+type D('a1,'a2) : E('a2,'a1) + ('a1 @@ [1,0])
+type E('a1,'a2) : (D('a1,'a2) @@ [0,1]) + ('a2 @@ [0,1])
+
+# 3) Abstract self with duplicated parameter influence under different axes
+type R('a1) : R('a1) @@ [1,0] + ('a1 @@ [0,1])
+
+# 4) Concrete referencing abstract and mixing product/sum
+type K('a1,'a2) = A('a1) * (B('a2) + 'a1)
+
+# 5) Three-way mutual with arity mismatch and both axes
+type U1('a1,'a2) : U2('a2) @@ [1,0] + ('a1 @@ [0,1])
+type U2('a1) : U3('a1,'a1) @@ [0,1]
+type U3('a1,'a2) : U1('a1,'a2) @@ [1,1]
+
+# 6) Concrete two-step LFP chain with constants
+type M1('a1) = [1,0] + M2('a1)
+type M2('a1) = [0,1] * 'a1
+
+# 7) Abstract depending on two concretes via different axes
+type AC('a1) : M1('a1) @@ [0,1] + M2('a1) @@ [1,0]
+
+# 8) Phantom parameter (not used on RHS)
+type PH('a1,'a2) : 'a1
+
+# 9) Crossed concrete/abstract mutual with ordering sensitivity
+type X1('a1) = 'a1 + X2('a1)
+type X2('a1) : X1('a1) @@ [0,1]
+
+# 10) Abstract split through two auxiliaries with joins of axes
+type S('a1) : T('a1) @@ [1,0] + U('a1) @@ [0,1]
+type T('a1) : S('a1)
+type U('a1) : S('a1) @@ [0,1]
+
+# 11) Two-parameter abstract where both params feed same atom index
+type Z1('a1,'a2) : ('a1 @@ [1,0]) + ('a2 @@ [1,0]) + Z1('a1,'a2) @@ [0,1]
+
+# 12) Concrete that duplicates parameter through product, plus constant
+type DUP('a1) = ('a1 * 'a1) + [1,1]
+
+# 13) Abstract that funnels through concrete with swap
+type SW('a1,'a2) : DUP('a2) @@ [0,1] + DUP('a1) @@ [1,0]
+
+# 14) Nested applications of abstract constructors
+type ND1('a1) : C(D('a1)) + 'a1
+type ND2('a1) : (B(C('a1)) @@ [1,0]) + (A(D('a1)) @@ [0,1])
+type ND3('a1,'a2) : (U3(B('a1), D('a2)) @@ [1,1]) + (X2(C('a1)) @@ [0,1])
+
+# 15) Nested concretes composed with abstracts
+type CN1('a1) = DUP(C('a1)) * M1(D('a1))
+type CN2('a1,'a2) = K(A('a1),'a2) + M2(B('a2))
+
+# 16) Deep nesting through S/T/U chain
+type NestSTU('a1) : T(U(S('a1)))
+
+# 17) Annotated nesting at multiple levels
+type AnnNest('a1) : ((B(C('a1)) @@ [1,0]) @@ [0,1]) + ('a1 @@ [1,1])
+
+# 18) Cross-nested mutual recursion
+type RecNest1('a1) : RecNest2(C('a1)) + 'a1
+type RecNest2('a1) : RecNest1(D('a1)) @@ [0,1]
+
+# 19) Mixed two-parameter nesting with join against abstract
+type MixNest('a1,'a2) : U3(B('a1), D('a2)) + (Z1(C('a1),'a2) @@ [1,0])
+
+# 20) Zero-arity mutual recursion
+type A0() : B0() @@ [1,0]
+type B0() : A0()
+
+# 21) Three-arity with permutations and mixed axes
+type Z3('a1,'a2,'a3) : ('a2 @@ [1,0]) + ('a1 @@ [0,1]) + (Z3('a3,'a1,'a2) @@ [0,1])
+type C3('a1,'a2,'a3) = Z3('a2,'a3,'a1)
+
+# 22) Duplicate self references to test idempotence of joins
+type DupSelf('a1) : S('a1) + (S('a1) @@ [0,1])
+
+# 23) Polymorphic recursion within a single mutually recursive abstract group
+# Nested self/group applications across the SCC
+type PRF('a1) : ('a1 @@ [1,0]) + (PRD(PRF('a1)) @@ [0,1])
+type PRE('a1) : (PRF(PRE('a1)) @@ [0,1]) + 'a1
+type PRC('a1) : (PRD(PRC(PRE(PRC('a1)))) @@ [1,0]) + ('a1 @@ [0,1])
+type PRD('a1) : PRC('a1) @@ [0,1]
+
+# 24) Concrete polymorphic recursion across a mutual group
+type PCX('a1) = PCY(PCX('a1)) + ('a1 @@ [1,0])
+type PCY('a1) = 'a1 + (PCZ(PCX('a1)) @@ [0,1])
+type PCZ('a1) = 'a1
+
+# 25) Parameter-swapping polymorphic recursion (abstract)
+type PRG('a1,'a2) : (PRH(PRG('a2,'a1)) @@ [1,0]) + 'a1
+type PRH('a1,'a2) : (PRG(PRH('a1,'a2),'a1) @@ [0,1]) + 'a2
+
+# 26) Concrete–abstract mutual recursion (simple, 1-arity)
+type CA('a1) : CC('a1) @@ [0,1] + 'a1
+type CC('a1) = CA('a1) + ('a1 @@ [1,0])
+
+# 27) Concrete–abstract mutual recursion with param swap (2-arity)
+type CA2('a1,'a2) : CC2('a2,'a1) @@ [1,0] + ('a1 @@ [0,1])
+type CC2('a1,'a2) = CA2('a1,'a2) + ('a2 @@ [1,0])
+
+# 28) Zero-arity concrete–abstract mutual recursion
+type CA0() : CC0() @@ [0,1]
+type CC0() = CA0()
+
+# 29) Three-node cycle with one concrete and two abstracts
+type CAX('a1) : CBX('a1) + ('a1 @@ [0,1])
+type CBX('a1) = CCX(CAX('a1)) + 'a1
+type CCX('a1) : CAX('a1) @@ [1,0]
+
+

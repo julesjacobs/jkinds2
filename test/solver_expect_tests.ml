@@ -365,3 +365,69 @@ let%expect_test "dependencies2" =
     y = [1,0]
     z = [1,0]
     |}]
+
+let%expect_test
+    "order difference: solve_lfp then assert_leq vs assert_leq then solve_lfp" =
+  let x = S.new_var "x" in
+  (* Solve first, then try to assert on the eliminated variable *)
+  S.solve_lfp x (S.const (c 1 0));
+  print_state [ ("x", x) ];
+  (match
+     try
+       S.assert_leq x (S.meet (S.var x) (S.const (c 2 0)));
+       Ok ()
+     with Failure msg -> Error msg
+   with
+  | Ok () -> print_endline "no error"
+  | Error msg -> print_endline msg);
+  (* Now the opposite order on a fresh variable: assert first, then solve *)
+  let x2 = S.new_var "x2" in
+  S.assert_leq x2 (S.meet (S.var x2) (S.const (c 2 0)));
+  print_state [ ("x2", x2) ];
+  S.solve_lfp x2 (S.const (c 1 0));
+  print_state [ ("x2", x2) ];
+  [%expect
+    {|
+    x = [1,0]
+    assert_leq: variable already eliminated
+    x2 ≤ ([2,0] ⊓ x2)
+    x2 = [1,0]
+    |}]
+
+let%expect_test
+    "order difference (semantic): y LFP then assert x vs assert x then y LFP" =
+  let x = S.new_var "x" in
+  let y = S.new_var "y" in
+  let c10 = c 1 0 in
+  let c20 = c 2 0 in
+  (* Sequence A: solve y first, then assert on x *)
+  S.solve_lfp y (S.meet (S.const c20) (S.var x));
+  print_endline "-- after solve_lfp y --";
+  print_state [ ("x", x); ("y", y) ];
+  S.assert_leq x (S.meet (S.const c10) (S.var y));
+  print_endline "-- after assert_leq x <= [1,0] /\\ y --";
+  print_state [ ("x", x); ("y", y) ];
+  (* Sequence B: fresh vars, assert x first, then solve y *)
+  let x' = S.new_var "x'" in
+  let y' = S.new_var "y'" in
+  S.assert_leq x' (S.meet (S.const c10) (S.var y'));
+  print_endline "-- fresh: after assert_leq x' <= [1,0] /\\ y' --";
+  print_state [ ("x'", x'); ("y'", y') ];
+  S.solve_lfp y' (S.meet (S.const c20) (S.var x'));
+  print_endline "-- fresh: after solve_lfp y' --";
+  print_state [ ("x'", x'); ("y'", y') ];
+  [%expect
+    {|
+    -- after solve_lfp y --
+    x ≤ x
+    y = ([2,0] ⊓ x)
+    -- after assert_leq x <= [1,0] /\ y --
+    x ≤ ([1,0] ⊓ x)
+    y = ([1,0] ⊓ x)
+    -- fresh: after assert_leq x' <= [1,0] /\ y' --
+    x' ≤ ([1,0] ⊓ x' ⊓ y')
+    y' ≤ y'
+    -- fresh: after solve_lfp y' --
+    x' ≤ ⊥
+    y' = ⊥
+    |}]
