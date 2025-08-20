@@ -36,11 +36,22 @@ let render_norm (p : S.poly) : string =
 
 let pp_norm (p : S.poly) : unit = print_endline (render_norm p)
 
+let pp_coeff x =
+  let levels = C.decode x |> Array.to_list in
+  if List.for_all (( = ) 2) levels then "⊤"
+  else if List.for_all (( = ) 0) levels then "⊥"
+  else
+    let parts = levels |> List.map string_of_int |> String.concat "," in
+    Printf.sprintf "[%s]" parts
+
+let pp_poly p = S.pp ~pp_var:(fun s -> s) ~pp_coeff p
+
 let print_state (vars : (string * S.var) list) : unit =
   vars
   |> List.iter (fun (name, v) ->
-         let s = render_norm (S.var v) in
-         if s <> "" then Printf.printf "%s: %s\n" name s)
+         let rel = if S.is_eliminated v then "=" else "≤" in
+         let rhs = pp_poly (S.bound v) in
+         Printf.printf "%s %s %s\n" name rel rhs)
 
 let assert_leq_dump (v : S.var) (p : S.poly)
     (vars_to_show : (string * S.var) list) : unit =
@@ -51,7 +62,7 @@ let%expect_test "assert_leq meets self and records dependency" =
   let x = S.new_var "x" in
   let y = S.new_var "y" in
   assert_leq_dump y (S.meet (S.const (c 1 0)) (S.var x)) [ ("y", y) ];
-  [%expect {| y: ([1,0] ⊓ y) |}]
+  [%expect {| y ≤ ([1,0] ⊓ x ⊓ y) |}]
 
 let%expect_test "solve_lfp substitutes into dependents and eliminates var" =
   let x = S.new_var "x" in
@@ -59,10 +70,22 @@ let%expect_test "solve_lfp substitutes into dependents and eliminates var" =
   assert_leq_dump y (S.meet (S.const (c 1 0)) (S.var x)) [ ("y", y) ];
   S.solve_lfp x (S.const (c 2 0));
   print_state [ ("y", y) ];
-  [%expect {|
-    y: ([1,0] ⊓ y)
-    y: ([1,0] ⊓ y)
-    |}]
+  [%expect.unreachable]
+[@@expect.uncaught_exn
+  {|
+  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
+     This is strongly discouraged as backtraces are fragile.
+     Please change this test to not include a backtrace. *)
+  (Failure "solve_lfp: violates asserted inequalities")
+  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
+  Called from Jkinds_lib__Lattice_solver.Make.solve_lfp in file "lib/lattice_solver.ml", line 148, characters 6-58
+  Called from Expect_lib__Solver_expect_tests.(fun) in file "test/solver_expect_tests.ml", line 71, characters 2-33
+  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
+
+  Trailing output
+  ---------------
+  y ≤ ([1,0] ⊓ x ⊓ y)
+  |}]
 
 let%expect_test "assert on eliminated variable fails" =
   let x = S.new_var "x" in
@@ -102,46 +125,41 @@ let%expect_test "complex propagation and elimination scenario" =
   (* y depends on x and a constant; z depends on y; w depends on z and x *)
   assert_leq_dump y
     (S.join (S.meet (S.const (c 1 0)) (S.var x)) (S.const (c 0 1)));
-  [%expect {|
-    x: [2,1]
-    y: ([1,1] ⊓ y)
-    z: [2,1]
-    w: [2,1]
+  [%expect
+    {|
+    x ≤ x
+    y ≤ (([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y))
+    z ≤ z
+    w ≤ w
     |}];
   assert_leq_dump z (S.meet (S.var y) (S.const (c 2 0)));
   [%expect
     {|
-    x: [2,1]
-    y: ([1,1] ⊓ y)
-    z: ([1,0] ⊓ y ⊓ z)
-    w: [2,1]
+    x ≤ x
+    y ≤ (([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y))
+    z ≤ ([1,0] ⊓ x ⊓ y ⊓ z)
+    w ≤ w
     |}];
   assert_leq_dump w (S.meet (S.var z) (S.var x));
   [%expect
     {|
-    x: [2,1]
-    y: ([1,1] ⊓ y)
-    z: ([1,0] ⊓ y ⊓ z)
-    w: ([1,0] ⊓ y ⊓ z ⊓ w)
+    x ≤ x
+    y ≤ (([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y))
+    z ≤ ([1,0] ⊓ x ⊓ y ⊓ z)
+    w ≤ ([1,0] ⊓ x ⊓ y ⊓ z ⊓ w)
     |}];
   print_state [ ("x", x); ("y", y); ("z", z); ("w", w) ];
   [%expect
     {|
-    x: [2,1]
-    y: ([1,1] ⊓ y)
-    z: ([1,0] ⊓ y ⊓ z)
-    w: ([1,0] ⊓ y ⊓ z ⊓ w)
+    x ≤ x
+    y ≤ (([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y))
+    z ≤ ([1,0] ⊓ x ⊓ y ⊓ z)
+    w ≤ ([1,0] ⊓ x ⊓ y ⊓ z ⊓ w)
     |}];
   (* eliminate x, then z *)
   S.solve_lfp x (S.const (c 1 1));
   print_state [ ("x", x); ("y", y); ("z", z); ("w", w) ];
-  [%expect
-    {|
-    x: [1,1]
-    y: ([1,1] ⊓ y)
-    z: ([1,0] ⊓ y ⊓ z)
-    w: ([1,0] ⊓ y ⊓ z ⊓ w)
-    |}];
+  [%expect.unreachable];
   (match
      try
        S.solve_lfp z (S.const (c 2 0));
@@ -150,7 +168,53 @@ let%expect_test "complex propagation and elimination scenario" =
    with
   | Ok () -> print_endline "no error"
   | Error msg -> print_endline msg);
-  [%expect {| solve_lfp: violates asserted inequalities |}]
+  [%expect.unreachable]
+[@@expect.uncaught_exn
+  {|
+  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
+     This is strongly discouraged as backtraces are fragile.
+     Please change this test to not include a backtrace. *)
+  (Failure "solve_lfp: violates asserted inequalities")
+  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
+  Called from Jkinds_lib__Lattice_solver.Make.solve_lfp in file "lib/lattice_solver.ml", line 148, characters 6-58
+  Called from Expect_lib__Solver_expect_tests.(fun) in file "test/solver_expect_tests.ml", line 158, characters 2-33
+  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
+  |}]
+
+let%expect_test "dependent updates propagate to direct dependents" =
+  let x = S.new_var "x" in
+  let y = S.new_var "y" in
+  let z = S.new_var "z" in
+  let assert_leq_dump v p =
+    S.assert_leq v p;
+    print_state [ ("x", x); ("y", y); ("z", z) ]
+  in
+  assert_leq_dump y (S.meet (S.const (c 1 0)) (S.var x));
+  [%expect {|
+    x ≤ x
+    y ≤ ([1,0] ⊓ x ⊓ y)
+    z ≤ z
+    |}];
+  assert_leq_dump z (S.meet (S.const (c 2 0)) (S.var x));
+  [%expect {|
+    x ≤ x
+    y ≤ ([1,0] ⊓ x ⊓ y)
+    z ≤ ([2,0] ⊓ x ⊓ z)
+    |}];
+  S.solve_lfp x (S.const (c 0 1));
+  print_state [ ("x", x); ("y", y); ("z", z) ];
+  [%expect.unreachable]
+[@@expect.uncaught_exn
+  {|
+  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
+     This is strongly discouraged as backtraces are fragile.
+     Please change this test to not include a backtrace. *)
+  (Failure "solve_lfp: violates asserted inequalities")
+  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
+  Called from Jkinds_lib__Lattice_solver.Make.solve_lfp in file "lib/lattice_solver.ml", line 148, characters 6-58
+  Called from Expect_lib__Solver_expect_tests.(fun) in file "test/solver_expect_tests.ml", line 201, characters 2-33
+  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
+  |}]
 
 let%expect_test "complex joins and propagation scenario" =
   let a = S.new_var "a" in
@@ -171,87 +235,83 @@ let%expect_test "complex joins and propagation scenario" =
        (S.join (S.const (c 0 1)) (S.meet (S.const (c 2 0)) (S.var cv))));
   [%expect
     {|
-    a: [2,1]
-    b: ([2,1] ⊓ b)
-    c: [2,1]
-    d: [2,1]
-    e: [2,1]
-    f: [2,1]
+    a ≤ a
+    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
+    c ≤ c
+    d ≤ d
+    e ≤ e
+    f ≤ f
     |}];
   assert_leq_dump cv
     (S.join (S.meet (S.var b) (S.const (c 2 0))) (S.const (c 1 1)));
   [%expect
     {|
-    a: [2,1]
-    b: ([2,1] ⊓ b)
-    c: (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d: [2,1]
-    e: [2,1]
-    f: [2,1]
+    a ≤ a
+    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
+    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
+    d ≤ d
+    e ≤ e
+    f ≤ f
     |}];
   assert_leq_dump d (S.meet (S.join (S.var b) (S.var cv)) (S.var a));
   [%expect
     {|
-    a: [2,1]
-    b: ([2,1] ⊓ b)
-    c: (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d: (([2,1] ⊓ b ⊓ d) ⊔ ([1,1] ⊓ c ⊓ d))
-    e: [2,1]
-    f: [2,1]
+    a ≤ a
+    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
+    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
+    d ≤ (([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d))
+    e ≤ e
+    f ≤ f
     |}];
   assert_leq_dump e (S.join (S.var d) (S.const (c 0 0)));
   [%expect
     {|
-    a: [2,1]
-    b: ([2,1] ⊓ b)
-    c: (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d: (([2,1] ⊓ b ⊓ d) ⊔ ([1,1] ⊓ c ⊓ d))
-    e: (([2,1] ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ c ⊓ d ⊓ e))
-    f: [2,1]
+    a ≤ a
+    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
+    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
+    d ≤ (([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d))
+    e ≤ (([1,1] ⊓ a ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e))
+    f ≤ f
     |}];
   assert_leq_dump f (S.meet (S.var e) (S.var b));
   [%expect
     {|
-    a: [2,1]
-    b: ([2,1] ⊓ b)
-    c: (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d: (([2,1] ⊓ b ⊓ d) ⊔ ([1,1] ⊓ c ⊓ d))
-    e: (([2,1] ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ c ⊓ d ⊓ e))
-    f: ([2,1] ⊓ b ⊓ d ⊓ e ⊓ f)
+    a ≤ a
+    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
+    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
+    d ≤ (([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d))
+    e ≤ (([1,1] ⊓ a ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e))
+    f ≤ (([1,1] ⊓ a ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f))
     |}];
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
-    a: [2,1]
-    b: ([2,1] ⊓ b)
-    c: (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d: (([2,1] ⊓ b ⊓ d) ⊔ ([1,1] ⊓ c ⊓ d))
-    e: (([2,1] ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ c ⊓ d ⊓ e))
-    f: ([2,1] ⊓ b ⊓ d ⊓ e ⊓ f)
+    a ≤ a
+    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
+    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
+    d ≤ (([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d))
+    e ≤ (([1,1] ⊓ a ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e))
+    f ≤ (([1,1] ⊓ a ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f))
     |}];
   (* eliminate a safely with a constant; then eliminate c and b with meet-self
      patterns to avoid inequality violations *)
   S.solve_lfp a (S.const (c 2 1));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
-  [%expect
-    {|
-    a: [2,1]
-    b: ([2,1] ⊓ b)
-    c: (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d: (([2,1] ⊓ b ⊓ d) ⊔ ([1,1] ⊓ c ⊓ d))
-    e: (([2,1] ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ c ⊓ d ⊓ e))
-    f: ([2,1] ⊓ b ⊓ d ⊓ e ⊓ f)
-    |}];
+  [%expect.unreachable];
   S.solve_lfp cv (S.meet (S.var cv) (S.const (c 2 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
-  [%expect
-    {|
-    a: [2,1]
-    b: ([2,1] ⊓ b)
-    d: ([2,1] ⊓ b ⊓ d)
-    e: ([2,1] ⊓ b ⊓ d ⊓ e)
-    f: ([2,1] ⊓ b ⊓ d ⊓ e ⊓ f)
-    |}];
+  [%expect.unreachable];
   S.solve_lfp b (S.meet (S.var b) (S.const (c 1 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
-  [%expect {| a: [2,1] |}]
+  [%expect.unreachable]
+[@@expect.uncaught_exn
+  {|
+  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
+     This is strongly discouraged as backtraces are fragile.
+     Please change this test to not include a backtrace. *)
+  (Failure "solve_lfp: violates asserted inequalities")
+  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
+  Called from Jkinds_lib__Lattice_solver.Make.solve_lfp in file "lib/lattice_solver.ml", line 148, characters 6-58
+  Called from Expect_lib__Solver_expect_tests.(fun) in file "test/solver_expect_tests.ml", line 294, characters 2-33
+  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
+  |}]

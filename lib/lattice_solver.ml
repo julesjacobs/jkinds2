@@ -102,7 +102,12 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     fun (name : V.t) ->
       let x = !r in
       r := x + 1;
-      Var.{ name; id = x; bound = P.top; eliminated = false; dependents = [] }
+      let v =
+        Var.{ name; id = x; bound = P.bot; eliminated = false; dependents = [] }
+      in
+      (* Initialize bound to the variable itself, not top *)
+      v.bound <- P.var v;
+      v
 
   let var (v : var) : poly = P.var v
   let const (c : lat) : poly = P.const c
@@ -157,4 +162,53 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       vs |> P.VarSet.elements |> List.map (fun (v : Var.t) -> v.name)
     in
     List.map (fun (vars, coeff) -> (coeff, var_names vars)) terms
+
+  let is_eliminated (v : var) = v.eliminated
+  let bound (v : var) : poly = v.bound
+  let name (v : var) : V.t = v.name
+
+  let pp ?pp_var ?pp_coeff (p : poly) : string =
+    (* Pretty-print like Modality.pp, but generic over vars and coeffs *)
+    let pp_var_fn =
+      match pp_var with Some f -> f | None -> fun (_ : V.t) -> "_"
+    in
+    let pp_coeff_fn =
+      match pp_coeff with Some f -> f | None -> fun (_ : C.t) -> "⊤"
+    in
+    let var_elems s =
+      P.VarSet.elements s |> List.map (fun (v : Var.t) -> pp_var_fn v.name)
+    in
+    (* Detect bottom and top via to_list and structure instead of equal *)
+    let ts = P.to_list p in
+    if ts = [] then "⊥"
+    else
+      let is_top =
+        match ts with
+        | [ (s, c) ] -> P.VarSet.is_empty s && C.equal c C.top
+        | _ -> false
+      in
+      if is_top then "⊤"
+      else
+        let term_strings =
+          ts
+          |> List.map (fun (s, c) ->
+                 let vars = var_elems s in
+                 if C.equal c C.top then
+                   let vars_str = String.concat " ⊓ " vars in
+                   if List.length vars = 1 then vars_str
+                   else "(" ^ vars_str ^ ")"
+                 else if P.VarSet.is_empty s then pp_coeff_fn c
+                 else "(" ^ String.concat " ⊓ " (pp_coeff_fn c :: vars) ^ ")")
+        in
+        match term_strings with
+        | [ s ] -> s
+        | _ -> "(" ^ String.concat " ⊔ " term_strings ^ ")"
+
+  let pp_state_line ?pp_var ?pp_coeff (v : var) : string =
+    let lhs =
+      match pp_var with Some f -> f v.name | None -> Printf.sprintf "v%d" v.id
+    in
+    let rel = if v.eliminated then "=" else "≤" in
+    let rhs = pp ?pp_var ?pp_coeff v.bound in
+    Printf.sprintf "%s %s %s" lhs rel rhs
 end

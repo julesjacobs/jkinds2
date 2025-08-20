@@ -44,4 +44,18 @@ module Make (C : LATTICE) (V : ORDERED) : sig
 
   (* Get the normal form for a poly under the current hypotheses *)
   val normalize : poly -> (lat * V.t list) list
+
+  (* Debug/introspection helpers (useful for tests/printing) *)
+  val is_eliminated : var -> bool
+  val bound : var -> poly
+  val name : var -> V.t
+
+  (* Pretty-print a polynomial with customizable printers *)
+  val pp :
+    ?pp_var:(V.t -> string) -> ?pp_coeff:(lat -> string) -> poly -> string
+
+  (* Pretty-print one state line for a variable: "x ≤ p" or "x = p" if
+     eliminated *)
+  val pp_state_line :
+    ?pp_var:(V.t -> string) -> ?pp_coeff:(lat -> string) -> var -> string
 end
