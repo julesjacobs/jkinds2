@@ -20,4 +20,7 @@ module Infer2 : sig
 
   val to_poly : Type_syntax.t -> poly
   val pp_poly : poly -> string
+
+  val decompose_by_tyvars :
+    arity:int -> poly -> poly * poly array * (var_label list * poly) list
 end

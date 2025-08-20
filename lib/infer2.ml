@@ -75,3 +75,30 @@ let pp_poly (p : S.poly) : string =
     | VarLabel.TyVar v -> Printf.sprintf "'a%d" v
   in
   S.pp ~pp_var ~pp_coeff p
+
+(* Decompose a polynomial by type variables 'a1..'aarity. Returns base (key=[]),
+   coefficients array of length [arity] where index i corresponds to 'a{i+1},
+   and a list of mixed (non-linear) entries where key has length >= 2. *)
+let decompose_by_tyvars ~(arity : int) (p : S.poly) :
+    S.poly * S.poly array * (VarLabel.t list * S.poly) list =
+  let universe =
+    let rec loop i acc =
+      if i > arity then List.rev acc else loop (i + 1) (VarLabel.TyVar i :: acc)
+    in
+    loop 1 []
+  in
+  let groups = S.decompose_by ~universe p in
+  let base = ref S.bot in
+  let coeffs = Array.init arity (fun _ -> S.bot) in
+  let mixed = ref [] in
+  let () =
+    List.iter
+      (fun (key, poly) ->
+        match key with
+        | [] -> base := S.join !base poly
+        | [ VarLabel.TyVar i ] when i >= 1 && i <= arity ->
+          coeffs.(i - 1) <- S.join coeffs.(i - 1) poly
+        | _ -> mixed := (key, poly) :: !mixed)
+      groups
+  in
+  (!base, coeffs, List.rev !mixed)

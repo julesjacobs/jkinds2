@@ -33,6 +33,41 @@ let () =
       let p = Jkinds_lib.Infer2.to_poly it.rhs in
       Printf.printf "%s: %s\n" it.name (Jkinds_lib.Infer2.pp_poly p))
     prog;
+  (* Infer2: decompose by type variables and assert linearity *)
+  print_endline "\nInfer2: linear decomposition (base + coeffs):";
+  List.iter
+    (fun (it : Jkinds_lib.Decl_parser.decl_item) ->
+      let p = Jkinds_lib.Infer2.to_poly it.rhs in
+      let base, coeffs, mixed =
+        Jkinds_lib.Infer2.decompose_by_tyvars ~arity:it.arity p
+      in
+      (if mixed <> [] then
+         let key_str (lbls : Jkinds_lib.Infer2.var_label list) : string =
+           let pp = function
+             | Jkinds_lib.Infer2.VarLabel.TyVar i -> Printf.sprintf "'a%d" i
+             | Jkinds_lib.Infer2.VarLabel.Atom a ->
+               Printf.sprintf "%s.%d" a.Jkinds_lib.Modality.ctor a.index
+           in
+           "{" ^ (lbls |> List.map pp |> String.concat ", ") ^ "}"
+         in
+         let parts =
+           mixed
+           |> List.map (fun (k, poly) ->
+                  Printf.sprintf "%s: %s" (key_str k)
+                    (Jkinds_lib.Infer2.pp_poly poly))
+         in
+         let msg =
+           Printf.sprintf "non-linear terms for %s: %s" it.name
+             (String.concat "; " parts)
+         in
+         failwith msg);
+      Printf.printf "%s: base=%s" it.name (Jkinds_lib.Infer2.pp_poly base);
+      Array.iteri
+        (fun i ci ->
+          Printf.printf ", 'a%d=%s" (i + 1) (Jkinds_lib.Infer2.pp_poly ci))
+        coeffs;
+      print_newline ())
+    prog;
   print_endline "Normalized kinds:";
   List.iter (fun (n, k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds_lfp;
   print_endline "\nCeil/Floor kinds:";

@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-20 19:40:30 UTC
+Generated: 2025-08-20 20:01:55 UTC
 
 ## abstracts.types
 
@@ -43,6 +43,21 @@ treeA: (node.0 ⊔ leaf.0 ⊔ ('a1 ⊓ node.1) ⊔ (node.2 ⊓ treeA.0) ⊔ ('a1
 H: ('a1 ⊔ F.0)
 F: (([0,1] ⊓ H.0) ⊔ ([0,1] ⊓ 'a1 ⊓ H.1))
 G: ⊤
+
+Infer2: linear decomposition (base + coeffs):
+foo: base=⊥
+bar: base=[0,1]
+baz: base=⊤
+one: base=([0,1] ⊓ two.0)
+two: base=one.0
+maybe: base=(some.0 ⊔ none.0), 'a1=some.1
+wrap: base=⊥, 'a1=[1,0]
+wrap2: base=⊤, 'a1=⊥
+pairish: base=⊥, 'a1=[1,0], 'a2=[1,0]
+treeA: base=(node.0 ⊔ leaf.0 ⊔ (node.2 ⊓ treeA.0)), 'a1=(node.1 ⊔ (node.2 ⊓ treeA.1))
+H: base=F.0, 'a1=⊤
+F: base=([0,1] ⊓ H.0), 'a1=([0,1] ⊓ H.1)
+G: base=⊤, 'a1=⊥
 Normalized kinds:
 foo: {0 ↦ ⊥}
 bar: {0 ↦ ([0,1] ⊓ bar.0)}
@@ -104,6 +119,11 @@ Infer2: RHS as polys:
 foo1: (t1.0 ⊔ t2.0 ⊔ (t1.1 ⊓ t2.1 ⊓ 'a1))
 foo2: (t1.0 ⊔ t2.0 ⊔ (t1.1 ⊓ t2.1 ⊓ 'a1))
 bar: ('a1 ⊔ bar.0 ⊔ (t1.0 ⊓ bar.1) ⊔ (t2.0 ⊓ bar.1))
+
+Infer2: linear decomposition (base + coeffs):
+foo1: base=(t1.0 ⊔ t2.0), 'a1=(t1.1 ⊓ t2.1)
+foo2: base=(t1.0 ⊔ t2.0), 'a1=(t1.1 ⊓ t2.1)
+bar: base=(bar.0 ⊔ (t1.0 ⊓ bar.1) ⊔ (t2.0 ⊓ bar.1)), 'a1=⊤
 Normalized kinds:
 foo1: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
 foo2: {0 ↦ (t1.0 ⊔ t2.0), 1 ↦ (t1.1 ⊓ t2.1)}
@@ -130,6 +150,9 @@ Program output:
 ```
 Infer2: RHS as polys:
 btree: (node.0 ⊔ leaf.0 ⊔ (node.1 ⊓ btree.0) ⊔ (btree.0 ⊓ node.2) ⊔ ('a1 ⊓ leaf.1) ⊔ (node.1 ⊓ btree.1 ⊓ 'a1) ⊔ (btree.1 ⊓ 'a1 ⊓ node.2))
+
+Infer2: linear decomposition (base + coeffs):
+btree: base=(node.0 ⊔ leaf.0 ⊔ (node.1 ⊓ btree.0) ⊔ (btree.0 ⊓ node.2)), 'a1=(leaf.1 ⊔ (node.1 ⊓ btree.1) ⊔ (btree.1 ⊓ node.2))
 Normalized kinds:
 btree: {0 ↦ (leaf.0 ⊔ node.0), 1 ↦ leaf.1}
 
@@ -150,6 +173,9 @@ Program output:
 ```
 Infer2: RHS as polys:
 list: (list.0 ⊔ 'a1)
+
+Infer2: linear decomposition (base + coeffs):
+list: base=list.0, 'a1=⊤
 Normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 
@@ -222,6 +248,29 @@ list2_inner: (list2.0 ⊔ ([1,0] ⊓ 'a1 ⊓ list2.1))
 list2_outer: (([1,0] ⊓ list2.0) ⊔ ([1,0] ⊓ 'a1 ⊓ list2.1))
 modal_plus: ([1,0] ⊔ 'a1)
 modal_pair: ([1,0] ⊔ 'a1)
+
+Infer2: linear decomposition (base + coeffs):
+id_annot: base=⊥, 'a1=⊤
+pair_annot: base=⊥, 'a1=[1,0], 'a2=[1,0]
+nested: base=⊥, 'a1=[1,1]
+tree: base=(([0,1] ⊓ Node.0) ⊔ ([0,1] ⊓ Node.2 ⊓ tree.0)), 'a1=(([0,1] ⊓ Node.1) ⊔ ([0,1] ⊓ Node.2 ⊓ tree.1))
+both: base=⊥, 'a1=⊤
+id_bot: base=⊥, 'a1=⊥
+mix_sum: base=⊥, 'a1=[1,1]
+mix_pair: base=⊥, 'a1=[1,0], 'a2=[0,1]
+outer_vs_inner: base=⊥, 'a1=[1,0]
+inner_vs_outer: base=⊥, 'a1=[1,0]
+list_ann: base=([1,0] ⊓ list_ann.0), 'a1=[1,0]
+two_axes: base=([0,1] ⊓ G.0), 'a1=([0,1] ⊓ G.1)
+deeply: base=(([0,1] ⊓ G.0) ⊔ ([1,0] ⊓ F.0)), 'a1=(([0,1] ⊓ G.1) ⊔ ([1,0] ⊓ F.1))
+list: base=list.0, 'a1=⊤
+list_inner: base=list.0, 'a1=([1,0] ⊓ list.1)
+list_outer: base=([1,0] ⊓ list.0), 'a1=([1,0] ⊓ list.1)
+list2: base=(cons.0 ⊔ nil.0 ⊔ (cons.2 ⊓ list2.0)), 'a1=(cons.1 ⊔ (cons.2 ⊓ list2.1))
+list2_inner: base=list2.0, 'a1=([1,0] ⊓ list2.1)
+list2_outer: base=([1,0] ⊓ list2.0), 'a1=([1,0] ⊓ list2.1)
+modal_plus: base=[1,0], 'a1=⊤
+modal_pair: base=[1,0], 'a1=⊤
 Normalized kinds:
 id_annot: {0 ↦ ⊥, 1 ↦ ⊤}
 pair_annot: {0 ↦ ⊥, 1 ↦ [1,0], 2 ↦ [1,0]}
@@ -304,6 +353,10 @@ Program output:
 Infer2: RHS as polys:
 foo: [1,1]
 bar: ([1,0] ⊓ foo.0)
+
+Infer2: linear decomposition (base + coeffs):
+foo: base=[1,1]
+bar: base=([1,0] ⊓ foo.0)
 Normalized kinds:
 foo: {0 ↦ [1,1]}
 bar: {0 ↦ [1,0]}
@@ -329,6 +382,10 @@ Program output:
 Infer2: RHS as polys:
 oddlist: (cons.0 ⊔ (cons.1 ⊓ 'a1) ⊔ (cons.2 ⊓ evenlist.0) ⊔ ('a1 ⊓ cons.2 ⊓ evenlist.1))
 evenlist: (cons.0 ⊔ (cons.1 ⊓ 'a1) ⊔ (cons.2 ⊓ oddlist.0) ⊔ ('a1 ⊓ cons.2 ⊓ oddlist.1))
+
+Infer2: linear decomposition (base + coeffs):
+oddlist: base=(cons.0 ⊔ (cons.2 ⊓ evenlist.0)), 'a1=(cons.1 ⊔ (cons.2 ⊓ evenlist.1))
+evenlist: base=(cons.0 ⊔ (cons.2 ⊓ oddlist.0)), 'a1=(cons.1 ⊔ (cons.2 ⊓ oddlist.1))
 Normalized kinds:
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
@@ -358,6 +415,12 @@ list: (list.0 ⊔ 'a1)
 lily: (list.0 ⊔ (list.1 ⊓ lily.0) ⊔ (list.1 ⊓ portable.0) ⊔ (list.1 ⊓ 'a1 ⊓ lily.1) ⊔ (list.1 ⊓ 'a1 ⊓ portable.1))
 tulip: ('a1 ⊔ tulip.0 ⊔ (portable.0 ⊓ tulip.1))
 orchid: (portable.0 ⊔ orchid.0 ⊔ ('a1 ⊓ portable.1) ⊔ ('a1 ⊓ orchid.1))
+
+Infer2: linear decomposition (base + coeffs):
+list: base=list.0, 'a1=⊤
+lily: base=(list.0 ⊔ (list.1 ⊓ lily.0) ⊔ (list.1 ⊓ portable.0)), 'a1=((list.1 ⊓ lily.1) ⊔ (list.1 ⊓ portable.1))
+tulip: base=(tulip.0 ⊔ (portable.0 ⊓ tulip.1)), 'a1=⊤
+orchid: base=(portable.0 ⊔ orchid.0), 'a1=(portable.1 ⊔ orchid.1)
 Normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 lily: {0 ↦ portable.0, 1 ↦ portable.1}
@@ -387,6 +450,9 @@ Program output:
 ```
 Infer2: RHS as polys:
 foo: (portended.0 ⊔ (portended.1 ⊓ ref.0) ⊔ (portended.1 ⊓ ref.1 ⊓ 'a1))
+
+Infer2: linear decomposition (base + coeffs):
+foo: base=(portended.0 ⊔ (portended.1 ⊓ ref.0)), 'a1=(portended.1 ⊓ ref.1)
 Normalized kinds:
 foo: {0 ↦ (portended.0 ⊔ (portended.1 ⊓ ref.0)), 1 ↦ (portended.1 ⊓ ref.1)}
 
@@ -411,6 +477,11 @@ Infer2: RHS as polys:
 list: (list.0 ⊔ 'a1)
 rose: (list.0 ⊔ (list.1 ⊓ rose.0) ⊔ (list.1 ⊓ 'a1 ⊓ rose.1))
 lily: (list.0 ⊔ (list.1 ⊓ 'a1) ⊔ (list.1 ⊓ lily.0))
+
+Infer2: linear decomposition (base + coeffs):
+list: base=list.0, 'a1=⊤
+rose: base=(list.0 ⊔ (list.1 ⊓ rose.0)), 'a1=(list.1 ⊓ rose.1)
+lily: base=(list.0 ⊔ (list.1 ⊓ lily.0)), 'a1=list.1
 Normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 rose: {0 ↦ ⊥, 1 ↦ ⊥}
@@ -441,6 +512,11 @@ Infer2: RHS as polys:
 list: (cons.0 ⊔ (cons.1 ⊓ 'a1) ⊔ (cons.2 ⊓ list.0) ⊔ ('a1 ⊓ cons.2 ⊓ list.1))
 ctx: (down.0 ⊔ ('a1 ⊓ down.1) ⊔ (down.2 ⊓ ctx.0) ⊔ ('a1 ⊓ down.2 ⊓ ctx.1))
 zipper: (list.0 ⊔ ctx.0 ⊔ ('a1 ⊓ list.1) ⊔ ('a1 ⊓ ctx.1))
+
+Infer2: linear decomposition (base + coeffs):
+list: base=(cons.0 ⊔ (cons.2 ⊓ list.0)), 'a1=(cons.1 ⊔ (cons.2 ⊓ list.1))
+ctx: base=(down.0 ⊔ (down.2 ⊓ ctx.0)), 'a1=(down.1 ⊔ (down.2 ⊓ ctx.1))
+zipper: base=(list.0 ⊔ ctx.0), 'a1=(list.1 ⊔ ctx.1)
 Normalized kinds:
 list: {0 ↦ cons.0, 1 ↦ cons.1}
 ctx: {0 ↦ down.0, 1 ↦ down.1}
