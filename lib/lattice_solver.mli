@@ -35,9 +35,9 @@ module Make (C : LATTICE) (V : ORDERED) : sig
      the left *)
   val assert_leq : var -> poly -> unit
 
-  (* Solve the least fixpoint for var = poly(var, other vars) *)
+  (* Solve the least fixpoint for var = poly(var, other vars); variable is
+     eliminated after this (can't assert_leq or solve_lfp again) *)
   val solve_lfp : var -> poly -> unit
-  (* Currently, can only call one of these two functions per var. *)
 
   (* Pure check: forall xs, poly1(xs) ≤ poly2(xs) *)
   val leq : poly -> poly -> bool
