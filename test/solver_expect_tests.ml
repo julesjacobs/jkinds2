@@ -304,3 +304,89 @@ let%expect_test "complex joins and propagation scenario" =
     e ≤ ⊥
     f ≤ ⊥
     |}]
+
+let%expect_test "dependencies" =
+  let x = S.new_var "x" in
+  let y = S.new_var "y" in
+  let z = S.new_var "z" in
+  let assert_leq_dump v p =
+    S.assert_leq v p;
+    print_state [ ("x", x); ("y", y); ("z", z) ]
+  in
+  assert_leq_dump y (S.join (S.var x) (S.var z));
+  [%expect {|
+    x ≤ x
+    y ≤ ((x ⊓ y) ⊔ (y ⊓ z))
+    z ≤ z
+    |}];
+  assert_leq_dump x (S.meet (S.var z) (S.const (c 0 1)));
+  [%expect {|
+    x ≤ ([0,1] ⊓ x ⊓ z)
+    y ≤ (y ⊓ z)
+    z ≤ z
+    |}];
+  assert_leq_dump z (S.meet (S.var y) (S.const (c 2 0)));
+  [%expect {|
+    x ≤ ⊥
+    y ≤ ([2,0] ⊓ y ⊓ z)
+    z ≤ ([2,0] ⊓ y ⊓ z)
+    |}];
+  S.solve_lfp y (S.join (S.var z) (S.var y));
+  print_state [ ("x", x); ("y", y); ("z", z) ];
+  [%expect {|
+    x ≤ ⊥
+    y = ⊥
+    z ≤ ⊥
+    |}]
+
+let%expect_test "dependencies2" =
+  let x = S.new_var "x" in
+  let y = S.new_var "y" in
+  let z = S.new_var "z" in
+  let assert_leq_dump v p =
+    S.assert_leq v p;
+    print_state [ ("x", x); ("y", y); ("z", z) ]
+  in
+  assert_leq_dump y (S.join (S.var x) (S.var z));
+  [%expect {|
+    x ≤ x
+    y ≤ ((x ⊓ y) ⊔ (y ⊓ z))
+    z ≤ z
+    |}];
+  assert_leq_dump x (S.join (S.var z) (S.const (c 0 1)));
+  [%expect
+    {|
+    x ≤ (([0,1] ⊓ x) ⊔ ([2,0] ⊓ x ⊓ z))
+    y ≤ (([0,1] ⊓ x ⊓ y) ⊔ (y ⊓ z))
+    z ≤ z
+    |}];
+  assert_leq_dump z (S.join (S.var y) (S.const (c 2 0)));
+  [%expect
+    {|
+    x ≤ (([0,1] ⊓ x) ⊔ ([2,0] ⊓ x ⊓ z))
+    y ≤ (([0,1] ⊓ x ⊓ y) ⊔ (y ⊓ z))
+    z ≤ (([2,0] ⊓ z) ⊔ ([0,1] ⊓ y ⊓ z))
+    |}];
+  S.solve_lfp y (S.join (S.var z) (S.var y));
+  print_state [ ("x", x); ("y", y); ("z", z) ];
+  [%expect
+    {|
+    x ≤ (([0,1] ⊓ x) ⊔ ([2,0] ⊓ x ⊓ z))
+    y = ([2,0] ⊓ z)
+    z ≤ ([2,0] ⊓ z)
+    |}];
+  S.solve_lfp x (S.var z);
+  print_state [ ("x", x); ("y", y); ("z", z) ];
+  [%expect
+    {|
+    x = ([2,0] ⊓ z)
+    y = ([2,0] ⊓ z)
+    z ≤ ([2,0] ⊓ z)
+    |}];
+  S.solve_lfp z (S.join (S.var z) (S.const (c 1 0)));
+  print_state [ ("x", x); ("y", y); ("z", z) ];
+  [%expect {|
+    x = [1,0]
+    y = [1,0]
+    z = [1,0]
+    |}]
