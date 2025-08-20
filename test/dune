@@ -8,7 +8,7 @@
   test_product_lattice)
  (libraries jkinds_lib)
  (modules
-  (:standard \ poly_expect_tests modality_expect_tests)))
+  (:standard \ poly_expect_tests modality_expect_tests solver_expect_tests)))
 
 (test
  (name test_kind_apply)
@@ -61,4 +61,4 @@
  (preprocess
   (pps ppx_expect))
  (inline_tests)
- (modules poly_expect_tests modality_expect_tests))
+ (modules poly_expect_tests modality_expect_tests solver_expect_tests))

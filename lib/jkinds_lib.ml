@@ -7,3 +7,4 @@ module Decl_parser = Decl_parser
 module Product_lattice = Product_lattice
 module Lattice_polynomial = Lattice_polynomial
 module Lattice_solver = Lattice_solver
+module Axis_lattice = Axis_lattice
