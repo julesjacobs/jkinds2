@@ -130,7 +130,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     (* 1) substitute all bounds into p *)
     let p' = normalize_poly p in
     (* 2) new bound is (self ⊓ p') *)
-    let new_bound = P.meet (P.var v) p' in
+    let new_bound = P.meet v.bound p' in
     (* 3) set and propagate to dependents *)
     replace_bound v new_bound
 
