@@ -70,22 +70,10 @@ let%expect_test "solve_lfp substitutes into dependents and eliminates var" =
   assert_leq_dump y (S.meet (S.const (c 1 0)) (S.var x)) [ ("y", y) ];
   S.solve_lfp x (S.const (c 2 0));
   print_state [ ("y", y) ];
-  [%expect.unreachable]
-[@@expect.uncaught_exn
-  {|
-  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
-     This is strongly discouraged as backtraces are fragile.
-     Please change this test to not include a backtrace. *)
-  (Failure "solve_lfp: violates asserted inequalities")
-  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Jkinds_lib__Lattice_solver.Make.solve_lfp in file "lib/lattice_solver.ml", line 148, characters 6-58
-  Called from Expect_lib__Solver_expect_tests.(fun) in file "test/solver_expect_tests.ml", line 71, characters 2-33
-  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
-
-  Trailing output
-  ---------------
-  y ≤ ([1,0] ⊓ x ⊓ y)
-  |}]
+  [%expect {|
+    y ≤ ([1,0] ⊓ x ⊓ y)
+    y ≤ ([1,0] ⊓ y)
+    |}]
 
 let%expect_test "assert on eliminated variable fails" =
   let x = S.new_var "x" in
@@ -159,7 +147,13 @@ let%expect_test "complex propagation and elimination scenario" =
   (* eliminate x, then z *)
   S.solve_lfp x (S.const (c 1 1));
   print_state [ ("x", x); ("y", y); ("z", z); ("w", w) ];
-  [%expect.unreachable];
+  [%expect
+    {|
+    x = [1,1]
+    y ≤ ([1,1] ⊓ y)
+    z ≤ ([1,0] ⊓ y ⊓ z)
+    w ≤ ([1,0] ⊓ y ⊓ z ⊓ w)
+    |}];
   (match
      try
        S.solve_lfp z (S.const (c 2 0));
@@ -168,18 +162,7 @@ let%expect_test "complex propagation and elimination scenario" =
    with
   | Ok () -> print_endline "no error"
   | Error msg -> print_endline msg);
-  [%expect.unreachable]
-[@@expect.uncaught_exn
-  {|
-  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
-     This is strongly discouraged as backtraces are fragile.
-     Please change this test to not include a backtrace. *)
-  (Failure "solve_lfp: violates asserted inequalities")
-  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Jkinds_lib__Lattice_solver.Make.solve_lfp in file "lib/lattice_solver.ml", line 148, characters 6-58
-  Called from Expect_lib__Solver_expect_tests.(fun) in file "test/solver_expect_tests.ml", line 158, characters 2-33
-  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
-  |}]
+  [%expect {| solve_lfp: violates asserted inequalities |}]
 
 let%expect_test "dependent updates propagate to direct dependents" =
   let x = S.new_var "x" in
@@ -203,18 +186,11 @@ let%expect_test "dependent updates propagate to direct dependents" =
     |}];
   S.solve_lfp x (S.const (c 0 1));
   print_state [ ("x", x); ("y", y); ("z", z) ];
-  [%expect.unreachable]
-[@@expect.uncaught_exn
-  {|
-  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
-     This is strongly discouraged as backtraces are fragile.
-     Please change this test to not include a backtrace. *)
-  (Failure "solve_lfp: violates asserted inequalities")
-  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Jkinds_lib__Lattice_solver.Make.solve_lfp in file "lib/lattice_solver.ml", line 148, characters 6-58
-  Called from Expect_lib__Solver_expect_tests.(fun) in file "test/solver_expect_tests.ml", line 201, characters 2-33
-  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
-  |}]
+  [%expect {|
+    x = [0,1]
+    y ≤ ⊥
+    z ≤ ⊥
+    |}]
 
 let%expect_test "complex joins and propagation scenario" =
   let a = S.new_var "a" in
@@ -295,23 +271,36 @@ let%expect_test "complex joins and propagation scenario" =
     |}];
   (* eliminate a safely with a constant; then eliminate c and b with meet-self
      patterns to avoid inequality violations *)
-  S.solve_lfp a (S.const (c 2 1));
+  S.solve_lfp a (S.var a);
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
-  [%expect.unreachable];
-  S.solve_lfp cv (S.meet (S.var cv) (S.const (c 2 0)));
+  [%expect
+    {|
+    a = ⊥
+    b ≤ (([0,1] ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
+    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
+    d ≤ ⊥
+    e ≤ ⊥
+    f ≤ ⊥
+    |}];
+  S.solve_lfp cv (S.meet (S.var b) (S.const (c 2 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
-  [%expect.unreachable];
+  [%expect
+    {|
+    a = ⊥
+    b ≤ ([0,1] ⊓ b)
+    c = ⊥
+    d ≤ ⊥
+    e ≤ ⊥
+    f ≤ ⊥
+    |}];
   S.solve_lfp b (S.meet (S.var b) (S.const (c 1 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
-  [%expect.unreachable]
-[@@expect.uncaught_exn
-  {|
-  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
-     This is strongly discouraged as backtraces are fragile.
-     Please change this test to not include a backtrace. *)
-  (Failure "solve_lfp: violates asserted inequalities")
-  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Jkinds_lib__Lattice_solver.Make.solve_lfp in file "lib/lattice_solver.ml", line 148, characters 6-58
-  Called from Expect_lib__Solver_expect_tests.(fun) in file "test/solver_expect_tests.ml", line 294, characters 2-33
-  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
-  |}]
+  [%expect
+    {|
+    a = ⊥
+    b = ⊥
+    c = ⊥
+    d ≤ ⊥
+    e ≤ ⊥
+    f ≤ ⊥
+    |}]

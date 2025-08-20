@@ -141,9 +141,10 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     (* 2) substitute var -> bot in that poly; do not meet with var *)
     let subs_v_bot = P.VarMap.(empty |> add v P.bot) in
     let candidate = P.subst ~subs:subs_v_bot p_norm in
-    (* 3) check candidate ≤ current bound *)
+    (* 3) check candidate ≤ current bound[v := candidate]*)
     let cand_n = normalize_poly candidate in
-    let bound_n = normalize_poly v.bound in
+    let subs_v_cand = P.VarMap.(empty |> add v candidate) in
+    let bound_n = normalize_poly (P.subst ~subs:subs_v_cand v.bound) in
     if not (P.leq cand_n bound_n) then
       failwith "solve_lfp: violates asserted inequalities";
     (* 4) replace bound and eliminate; propagate to dependents *)
