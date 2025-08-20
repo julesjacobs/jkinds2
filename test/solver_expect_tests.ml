@@ -16,11 +16,8 @@ module S = Lattice_solver.Make (C) (V)
 
 let pp_coeff x =
   let levels = C.decode x |> Array.to_list in
-  if List.for_all (( = ) 2) levels then "⊤"
-  else if List.for_all (( = ) 0) levels then "⊥"
-  else
-    let parts = levels |> List.map string_of_int |> String.concat "," in
-    Printf.sprintf "[%s]" parts
+  let parts = levels |> List.map string_of_int |> String.concat "," in
+  Printf.sprintf "[%s]" parts
 
 let pp_poly p = S.pp ~pp_var:(fun s -> s) ~pp_coeff p
 
