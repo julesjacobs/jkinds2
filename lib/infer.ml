@@ -126,11 +126,6 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
          bound; returning last iterate";
       current)
     else
-      let lines =
-        List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current
-        |> String.concat "\n"
-      in
-      Printf.printf "[lfp] iter %d:\n%s\n" i lines;
       let next = substitute_kinds_bindings ~lhs:conc_bs ~rhs:current in
       if lists_equal next current then current else loop_conc (i + 1) next
   in
@@ -145,11 +140,6 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
          bound; returning last iterate";
       current)
     else
-      let lines =
-        List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current
-        |> String.concat "\n"
-      in
-      Printf.printf "[lfp] iter %d:\n%s\n" i lines;
       let rhs = conc_sol @ current in
       let next0 = substitute_kinds_bindings ~lhs:abs_bs ~rhs in
       let next =
@@ -208,7 +198,4 @@ let solve_program (prog : Decl_parser.program) ~(max_iters : int) :
     kinds_of_decls_bindings bindings
     |> List.map (fun (n, k) -> (n, Kind.normalize_up k))
   in
-  print_endline "Kinds:";
-  List.iter (fun (n, k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds;
-  print_endline "\nLeast fixpoint kinds:";
   least_fixpoint_bindings_with_self_init ~max_iters ~abstracts kinds

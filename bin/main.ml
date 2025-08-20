@@ -26,7 +26,7 @@ let () =
   let content = read_file file in
   let prog = Jkinds_lib.Decl_parser.parse_program_exn content in
   let kinds_lfp = Jkinds_lib.Infer.solve_program prog ~max_iters in
-  print_endline "\nNormalized kinds:";
+  print_endline "Normalized kinds:";
   List.iter (fun (n, k) -> Printf.printf "%s: %s\n" n (Kind.pp k)) kinds_lfp;
   print_endline "\nCeil/Floor kinds:";
   List.iter
