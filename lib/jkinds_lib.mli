@@ -14,7 +14,7 @@ module Axis_lattice : module type of Axis_lattice
 
 module Infer2 : sig
   module VarLabel : sig
-    type t = Atom of Modality.atom | TyVar of int
+    type t = Atom of Modality.atom | TyVar of int | TyRec of int
   end
 
   type var_label = VarLabel.t
@@ -22,6 +22,8 @@ module Infer2 : sig
   type var
 
   val to_poly : Type_syntax.t -> poly
+  val to_poly_mu_raw : Type_parser.mu_raw -> poly
+  val to_poly_decl_rhs : Decl_parser.decl_item -> poly
   val pp_poly : poly -> string
 
   val decompose_by_tyvars :

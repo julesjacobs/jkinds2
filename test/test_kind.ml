@@ -16,22 +16,10 @@ let () =
 
 let () =
   let open Type_syntax in
-  let k_var =
-    Jkinds_lib.Infer.solve_program
-      [
-        { Decl_parser.name = "DUMMY"; arity = 1; rhs = Var 5; abstract = false };
-      ]
-      ~max_iters:0
-    |> ignore;
-    Kind.set Kind.empty 5 Modality.id
-  in
+  let k_var = Kind.set Kind.empty 5 Modality.id in
   assert (Kind.get k_var 5 = Modality.id);
   let t = C ("F", [ Var 5 ]) in
-  let _ =
-    Jkinds_lib.Infer.solve_program
-      [ { Decl_parser.name = "DUMMY2"; arity = 0; rhs = t; abstract = false } ]
-      ~max_iters:0
-  in
+  let _ignore = t in
   let k =
     Kind.max
       (Kind.set Kind.empty Kind.Var.a0

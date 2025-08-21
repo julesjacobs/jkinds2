@@ -24,20 +24,53 @@ let () =
     find_flag 2
   in
   let content = read_file file in
+  (* Pre-scan lines to collect mu RHS definitions by name into
+     Decl_parser.mu_table *)
+  let () =
+    content
+    |> String.split_on_char '\n'
+    |> List.iter (fun line ->
+           let line = String.trim line in
+           if String.length line >= 5 && String.sub line 0 5 = "type " then
+             (* split lhs '=' or ':' *)
+             let rest = String.sub line 5 (String.length line - 5) in
+             let sep_idx =
+               match (String.index_opt rest '=', String.index_opt rest ':') with
+               | Some i, None -> i
+               | None, Some i -> i
+               | _ -> -1
+             in
+             if sep_idx >= 0 then
+               let lhs = String.trim (String.sub rest 0 sep_idx) in
+               let rhs =
+                 String.trim
+                   (String.sub rest (sep_idx + 1)
+                      (String.length rest - sep_idx - 1))
+               in
+               (* name is up to '(' or full lhs *)
+               let name =
+                 match String.index_opt lhs '(' with
+                 | None -> String.trim lhs
+                 | Some i -> String.sub lhs 0 i |> String.trim
+               in
+               match Type_parser.parse_mu rhs with
+               | Ok m -> Hashtbl.replace Decl_parser.mu_table name m
+               | Error _ -> ())
+  in
   let prog = Jkinds_lib.Decl_parser.parse_program_exn content in
   let kinds_lfp = Jkinds_lib.Infer.solve_program prog ~max_iters in
   (* Infer2: print polynomial translation of each RHS *)
   print_endline "Infer2: RHS as polys:";
   List.iter
     (fun (it : Jkinds_lib.Decl_parser.decl_item) ->
-      let p = Jkinds_lib.Infer2.to_poly it.rhs in
+      let p = Jkinds_lib.Infer2.to_poly_decl_rhs it in
       Printf.printf "%s: %s\n" it.name (Jkinds_lib.Infer2.pp_poly p))
     prog;
   (* Infer2: decompose by type variables and assert linearity *)
   print_endline "\nInfer2: linear decomposition (base + coeffs):";
   List.iter
     (fun (it : Jkinds_lib.Decl_parser.decl_item) ->
-      let p = Jkinds_lib.Infer2.to_poly it.rhs in
+      let p = Jkinds_lib.Infer2.to_poly_decl_rhs it in
       let base, coeffs, mixed =
         Jkinds_lib.Infer2.decompose_by_tyvars ~arity:it.arity p
       in
@@ -45,6 +78,7 @@ let () =
          let key_str (lbls : Jkinds_lib.Infer2.var_label list) : string =
            let pp = function
              | Jkinds_lib.Infer2.VarLabel.TyVar i -> Printf.sprintf "'a%d" i
+             | Jkinds_lib.Infer2.VarLabel.TyRec i -> Printf.sprintf "μb%d" i
              | Jkinds_lib.Infer2.VarLabel.Atom a ->
                Printf.sprintf "%s.%d" a.Jkinds_lib.Modality.ctor a.index
            in

@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-20 21:43:45 UTC
+Generated: 2025-08-21 01:05:50 UTC
 
 ## abstracts.types
 
@@ -223,6 +223,57 @@ btree: ceil={0 ↦ ⊤, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
 
 LEQ relationships:
 btree <= (none)
+```
+
+## cyclic.types
+
+```
+type L('a1) : mu 'b1. ('a1 + 'b1)
+
+type Nested('a1) : mu 'b1. ((mu 'b2. ('b1 + 'b2)) + 'a1)
+
+type Annot('a1) : mu 'b1. (('a1 @@ [1,0]) + ('b1 @@ [0,1]))
+```
+
+Program output:
+```
+Infer2: RHS as polys:
+L: 'a1
+Nested: 'a1
+Annot: ([1,0] ⊓ 'a1)
+
+Infer2: linear decomposition (base + coeffs):
+L: base=⊥, 'a1=⊤
+Nested: base=⊥, 'a1=⊤
+Annot: base=⊥, 'a1=[1,0]
+
+Infer2: solving atoms:
+L.0 ≤ ⊥
+L.1 ≤ L.1
+Nested.0 ≤ ⊥
+Nested.1 ≤ Nested.1
+Annot.0 ≤ ⊥
+Annot.1 ≤ ([1,0] ⊓ Annot.1)
+
+Infer2: Normalized kinds:
+L: {0 ↦ ⊥, 1 ↦ L.1}
+Nested: {0 ↦ ⊥, 1 ↦ Nested.1}
+Annot: {0 ↦ ⊥, 1 ↦ ([1,0] ⊓ Annot.1)}
+
+Normalized kinds:
+L: {0 ↦ ⊥, 1 ↦ ⊥}
+Nested: {0 ↦ ⊥, 1 ↦ ⊥}
+Annot: {0 ↦ ⊥, 1 ↦ ⊥}
+
+Ceil/Floor kinds:
+L: ceil={0 ↦ ⊥, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+Nested: ceil={0 ↦ ⊥, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+Annot: ceil={0 ↦ ⊥, 1 ↦ ⊥}, floor={0 ↦ ⊥, 1 ↦ ⊥}
+
+LEQ relationships:
+L <= Nested, Annot
+Nested <= L, Annot
+Annot <= L, Nested
 ```
 
 ## discrepancy_hunt.types

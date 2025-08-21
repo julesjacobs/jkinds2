@@ -14,8 +14,14 @@ module VL = struct
       | 0 -> Int.compare a1.index a2.index
       | c -> c)
     | Infer2.VarLabel.TyVar x, Infer2.VarLabel.TyVar y -> Int.compare x y
-    | Infer2.VarLabel.Atom _, Infer2.VarLabel.TyVar _ -> -1
+    | Infer2.VarLabel.TyRec x, Infer2.VarLabel.TyRec y -> Int.compare x y
+    | Infer2.VarLabel.Atom _, (Infer2.VarLabel.TyVar _ | Infer2.VarLabel.TyRec _)
+      ->
+      -1
     | Infer2.VarLabel.TyVar _, Infer2.VarLabel.Atom _ -> 1
+    | Infer2.VarLabel.TyRec _, Infer2.VarLabel.Atom _ -> 1
+    | Infer2.VarLabel.TyVar _, Infer2.VarLabel.TyRec _ -> -1
+    | Infer2.VarLabel.TyRec _, Infer2.VarLabel.TyVar _ -> 1
 end
 
 module S = Lattice_solver.Make (C) (VL)

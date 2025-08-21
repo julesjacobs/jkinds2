@@ -2,6 +2,13 @@ module NameMap = Map.Make (String)
 
 exception Parse_error of string
 
+(* Optional mu RHS repository (by name) for CLI to consult when translating with
+   Infer2 *)
+let mu_table : (string, Type_parser.mu_raw) Hashtbl.t = Hashtbl.create 32
+
+let rhs_mu_of_name (name : string) : Type_parser.mu_raw option =
+  Hashtbl.find_opt mu_table name
+
 type decl_item = {
   name : string;
   arity : int;
@@ -83,8 +90,14 @@ let parse_program_exn (s : string) : decl_item list =
     let rhs_t =
       match Type_parser.parse rhs with
       | Ok t -> t
-      | Error e -> raise (Parse_error ("type expression: " ^ e))
+      | Error _ -> (
+        match Type_parser.parse_mu rhs with
+        | Ok m ->
+          Hashtbl.replace mu_table name m;
+          Type_syntax.Unit
+        | Error e -> raise (Parse_error ("type expression: " ^ e)))
     in
+    (* Scope check for 'a vars in simple types *)
     let rec check_vars (t : Type_syntax.t) : unit =
       match t with
       | Type_syntax.Var n ->

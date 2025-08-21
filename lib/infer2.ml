@@ -4,7 +4,7 @@
    Coefficients live in the concrete product lattice (Axis_lattice). *)
 
 module VarLabel = struct
-  type t = Atom of Modality.atom | TyVar of int
+  type t = Atom of Modality.atom | TyVar of int | TyRec of int
 
   let compare (a : t) (b : t) : int =
     match (a, b) with
@@ -13,8 +13,12 @@ module VarLabel = struct
       | 0 -> Int.compare a1.index a2.index
       | c -> c)
     | TyVar x, TyVar y -> Int.compare x y
-    | Atom _, TyVar _ -> -1
+    | TyRec x, TyRec y -> Int.compare x y
+    | Atom _, (TyVar _ | TyRec _) -> -1
     | TyVar _, Atom _ -> 1
+    | TyRec _, Atom _ -> 1
+    | TyVar _, TyRec _ -> -1
+    | TyRec _, TyVar _ -> 1
 end
 
 module S = Lattice_solver.Make (Axis_lattice) (VarLabel)
@@ -28,12 +32,15 @@ end)
 let var_env : S.var VarMap.t ref = ref VarMap.empty
 
 let get_var (lbl : VarLabel.t) : S.var =
-  match VarMap.find_opt lbl !var_env with
-  | Some v -> v
-  | None ->
-    let v = S.new_var lbl in
-    var_env := VarMap.add lbl v !var_env;
-    v
+  match lbl with
+  | VarLabel.TyRec _ -> S.new_var lbl (* do not cache recursive-type vars *)
+  | _ -> (
+    match VarMap.find_opt lbl !var_env with
+    | Some v -> v
+    | None ->
+      let v = S.new_var lbl in
+      var_env := VarMap.add lbl v !var_env;
+      v)
 
 let const_levels (levels : int array) : S.poly =
   S.const (Axis_lattice.encode ~levels)
@@ -64,6 +71,53 @@ type var_label = VarLabel.t
 type poly = S.poly
 type var = S.var
 
+(* ---- Cyclic translation support ---- *)
+let to_poly_cyclic (root : Type_parser.cyclic) : S.poly =
+  let table : (Type_parser.cyclic, S.var) Hashtbl.t = Hashtbl.create 64 in
+
+  let rec translate (n : Type_parser.cyclic) : S.poly =
+    match Hashtbl.find_opt table n with
+    | Some v -> S.var v
+    | None ->
+      (* Allocate a fresh var for this cyclic node and record before
+         descending *)
+      let v = get_var (VarLabel.TyRec (Hashtbl.length table)) in
+      Hashtbl.add table n v;
+      let rhs = translate_desc !n in
+      S.solve_lfp v rhs;
+      (* Return the solved polynomial for the root of this node *)
+      S.bound v
+  and translate_desc (d : Type_parser.cyclic_desc) : S.poly =
+    match d with
+    | Type_parser.CUnit -> S.const Axis_lattice.bot
+    | Type_parser.CVar i -> S.var (get_var (VarLabel.TyVar i))
+    | Type_parser.CMod_const lv -> const_levels lv
+    | Type_parser.CMod_annot (t, lv) -> S.meet (const_levels lv) (translate t)
+    | Type_parser.CPair (a, b) | Type_parser.CSum (a, b) ->
+      S.join (translate a) (translate b)
+    | Type_parser.CCtor (name, args) ->
+      let base =
+        S.var (get_var (VarLabel.Atom { Modality.ctor = name; index = 0 }))
+      in
+      let step acc (i, t) =
+        let vi =
+          S.var (get_var (VarLabel.Atom { Modality.ctor = name; index = i }))
+        in
+        S.join acc (S.meet vi (translate t))
+      in
+      List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
+  in
+  translate root
+
+let to_poly_mu_raw (m : Type_parser.mu_raw) : S.poly =
+  let cyc = Type_parser.to_cyclic m in
+  to_poly_cyclic cyc
+
+let to_poly_decl_rhs (it : Decl_parser.decl_item) : S.poly =
+  match Decl_parser.rhs_mu_of_name it.name with
+  | Some m -> to_poly_mu_raw m
+  | None -> to_poly it.rhs
+
 let pp_poly (p : S.poly) : string =
   let pp_coeff x =
     let levels = Axis_lattice.decode x |> Array.to_list in
@@ -73,6 +127,7 @@ let pp_poly (p : S.poly) : string =
   let pp_var = function
     | VarLabel.Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index
     | VarLabel.TyVar v -> Printf.sprintf "'a%d" v
+    | VarLabel.TyRec i -> Printf.sprintf "μb%d" i
   in
   S.pp ~pp_var ~pp_coeff p
 
@@ -106,6 +161,7 @@ let decompose_by_tyvars ~(arity : int) (p : S.poly) :
 let pp_varlabel : VarLabel.t -> string = function
   | VarLabel.Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index
   | VarLabel.TyVar v -> Printf.sprintf "'a%d" v
+  | VarLabel.TyRec i -> Printf.sprintf "μb%d" i
 
 let pp_state_line (v : S.var) : string =
   let pp_coeff x =
@@ -126,7 +182,7 @@ type linear_decomp = {
 
 let compute_linear_decomps (prog : Decl_parser.program) : linear_decomp list =
   let decomp_of_it (it : Decl_parser.decl_item) : linear_decomp =
-    let p = to_poly it.rhs in
+    let p = to_poly_decl_rhs it in
     let base, coeffs, mixed = decompose_by_tyvars ~arity:it.arity p in
     (if mixed <> [] then
        let parts =
@@ -206,3 +262,45 @@ let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list
       loop (i + 1) ((i, p') :: acc)
   in
   loop 0 []
+
+(* ---- Cyclic translation support ---- *)
+let to_poly_cyclic (root : Type_parser.cyclic) : S.poly =
+  let table : (Type_parser.cyclic, S.var) Hashtbl.t = Hashtbl.create 64 in
+
+  let rec translate (n : Type_parser.cyclic) : S.poly =
+    match Hashtbl.find_opt table n with
+    | Some v -> S.var v
+    | None ->
+      (* Allocate a fresh var for this cyclic node and record before
+         descending *)
+      let v = get_var (VarLabel.TyRec (Hashtbl.length table)) in
+      Hashtbl.add table n v;
+      let rhs = translate_desc !n in
+      S.solve_lfp v rhs;
+      (* Return the solved polynomial for the root of this node *)
+      S.bound v
+  and translate_desc (d : Type_parser.cyclic_desc) : S.poly =
+    match d with
+    | Type_parser.CUnit -> S.const Axis_lattice.bot
+    | Type_parser.CVar i -> S.var (get_var (VarLabel.TyVar i))
+    | Type_parser.CMod_const lv -> const_levels lv
+    | Type_parser.CMod_annot (t, lv) -> S.meet (const_levels lv) (translate t)
+    | Type_parser.CPair (a, b) | Type_parser.CSum (a, b) ->
+      S.join (translate a) (translate b)
+    | Type_parser.CCtor (name, args) ->
+      let base =
+        S.var (get_var (VarLabel.Atom { Modality.ctor = name; index = 0 }))
+      in
+      let step acc (i, t) =
+        let vi =
+          S.var (get_var (VarLabel.Atom { Modality.ctor = name; index = i }))
+        in
+        S.join acc (S.meet vi (translate t))
+      in
+      List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
+  in
+  translate root
+
+let to_poly_mu_raw (m : Type_parser.mu_raw) : S.poly =
+  let cyc = Type_parser.to_cyclic m in
+  to_poly_cyclic cyc

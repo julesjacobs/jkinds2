@@ -1,0 +1,5 @@
+type L('a1) : mu 'b1. ('a1 + 'b1)
+
+type Nested('a1) : mu 'b1. ((mu 'b2. ('b1 + 'b2)) + 'a1)
+
+type Annot('a1) : mu 'b1. (('a1 @@ [1,0]) + ('b1 @@ [0,1]))
