@@ -94,6 +94,15 @@ let zero_constructor_entries_bindings (bs : (string * Kind.t) list) :
 let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
     ~(abstracts : (string * int) list) (bs : (string * Kind.t) list) :
     (string * Kind.t) list =
+  (* Gate verbose LFP iteration printing behind env var JKINDS_LFP. Any value
+     other than empty/0/false/no enables printing. *)
+  let lfp_verbose =
+    match Sys.getenv_opt "JKINDS_LFP" with
+    | Some s ->
+      let s = String.lowercase_ascii (String.trim s) in
+      not (s = "" || s = "0" || s = "false" || s = "no")
+    | None -> false
+  in
   let arity_by_name =
     List.fold_left (fun acc (n, a) -> StrMap.add n a acc) StrMap.empty abstracts
   in
@@ -126,11 +135,16 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
          bound; returning last iterate";
       current)
     else
-      let lines =
-        List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current
-        |> String.concat "\n"
+      let () =
+        if lfp_verbose then
+          let lines =
+            List.map
+              (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k))
+              current
+            |> String.concat "\n"
+          in
+          Printf.printf "[lfp] iter %d:\n%s\n" i lines
       in
-      Printf.printf "[lfp] iter %d:\n%s\n" i lines;
       let next = substitute_kinds_bindings ~lhs:conc_bs ~rhs:current in
       if lists_equal next current then current else loop_conc (i + 1) next
   in
@@ -145,11 +159,16 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
          bound; returning last iterate";
       current)
     else
-      let lines =
-        List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current
-        |> String.concat "\n"
+      let () =
+        if lfp_verbose then
+          let lines =
+            List.map
+              (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k))
+              current
+            |> String.concat "\n"
+          in
+          Printf.printf "[lfp] iter %d:\n%s\n" i lines
       in
-      Printf.printf "[lfp] iter %d:\n%s\n" i lines;
       let rhs = conc_sol @ current in
       let next0 = substitute_kinds_bindings ~lhs:abs_bs ~rhs in
       let next =

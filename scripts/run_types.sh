@@ -2,12 +2,11 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-CLI="$ROOT_DIR/_build/install/default/bin/jkinds"
 
-if [[ ! -x "$CLI" ]]; then
-  echo "Building jkinds CLI..." >&2
-  (cd "$ROOT_DIR" && dune build @install >/dev/null)
-fi
+# Always use the build artifact via dune exec so the script reflects latest code
+run_cli() {
+  (cd "$ROOT_DIR" && dune exec --display=quiet -- ./bin/main.exe "$@")
+}
 
 TYPES_DIR="$ROOT_DIR/test/types"
 MAX_ITERS_FLAG=${MAX_ITERS_FLAG:-}
@@ -44,9 +43,9 @@ for f in "${FILES[@]}"; do
   } >>"$TMP_OUT"
 
   if [[ -n "$MAX_ITERS_FLAG" ]]; then
-    "$CLI" "$f" --max-iters "$MAX_ITERS_FLAG" | sed -e :a -e '/^[[:space:]]*$/{$d;N;ba' -e '}' >>"$TMP_OUT"
+    run_cli "$f" --max-iters "$MAX_ITERS_FLAG" | sed -e :a -e '/^[[:space:]]*$/{$d;N;ba' -e '}' >>"$TMP_OUT"
   else
-    "$CLI" "$f" | sed -e :a -e '/^[[:space:]]*$/{$d;N;ba' -e '}' >>"$TMP_OUT"
+    run_cli "$f" | sed -e :a -e '/^[[:space:]]*$/{$d;N;ba' -e '}' >>"$TMP_OUT"
   fi
   # Ensure exactly one newline after program output
   if [ -n "$(tail -c1 "$TMP_OUT")" ]; then echo >>"$TMP_OUT"; fi
