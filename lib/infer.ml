@@ -126,6 +126,11 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
          bound; returning last iterate";
       current)
     else
+      let lines =
+        List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current
+        |> String.concat "\n"
+      in
+      Printf.printf "[lfp] iter %d:\n%s\n" i lines;
       let next = substitute_kinds_bindings ~lhs:conc_bs ~rhs:current in
       if lists_equal next current then current else loop_conc (i + 1) next
   in
@@ -140,6 +145,11 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
          bound; returning last iterate";
       current)
     else
+      let lines =
+        List.map (fun (n, k) -> Printf.sprintf "  %s: %s" n (Kind.pp k)) current
+        |> String.concat "\n"
+      in
+      Printf.printf "[lfp] iter %d:\n%s\n" i lines;
       let rhs = conc_sol @ current in
       let next0 = substitute_kinds_bindings ~lhs:abs_bs ~rhs in
       let next =
@@ -172,7 +182,7 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
   (* Phase 3: substitute abstract solutions back into concrete ones and return
      combined. *)
   let conc_final =
-    substitute_kinds_bindings ~lhs:conc_bs ~rhs:(abs_sol @ conc_sol)
+    substitute_kinds_bindings ~lhs:(abs_sol @ conc_sol) ~rhs:(abs_sol @ conc_sol)
   in
   (* Reassemble in original order *)
   List.map

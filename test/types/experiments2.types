@@ -1,0 +1,4 @@
+type list('a1) : [0,1] * 'a1
+
+type rose('a1) = list('a1 * rose(list('a1)))
+type lily('a1) = list(lily(list('a1)))
