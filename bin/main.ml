@@ -24,39 +24,7 @@ let () =
     find_flag 2
   in
   let content = read_file file in
-  (* Pre-scan lines to collect mu RHS definitions by name into
-     Decl_parser.mu_table *)
-  let () =
-    content
-    |> String.split_on_char '\n'
-    |> List.iter (fun line ->
-           let line = String.trim line in
-           if String.length line >= 5 && String.sub line 0 5 = "type " then
-             (* split lhs '=' or ':' *)
-             let rest = String.sub line 5 (String.length line - 5) in
-             let sep_idx =
-               match (String.index_opt rest '=', String.index_opt rest ':') with
-               | Some i, None -> i
-               | None, Some i -> i
-               | _ -> -1
-             in
-             if sep_idx >= 0 then
-               let lhs = String.trim (String.sub rest 0 sep_idx) in
-               let rhs =
-                 String.trim
-                   (String.sub rest (sep_idx + 1)
-                      (String.length rest - sep_idx - 1))
-               in
-               (* name is up to '(' or full lhs *)
-               let name =
-                 match String.index_opt lhs '(' with
-                 | None -> String.trim lhs
-                 | Some i -> String.sub lhs 0 i |> String.trim
-               in
-               match Type_parser.parse_mu rhs with
-               | Ok m -> Hashtbl.replace Decl_parser.mu_table name m
-               | Error _ -> ())
-  in
+  (* Decl_parser will populate mu_table when mu-typed RHS is detected. *)
   let prog = Jkinds_lib.Decl_parser.parse_program_exn content in
   let kinds_lfp = Jkinds_lib.Infer.solve_program prog ~max_iters in
   (* Infer2: print polynomial translation of each RHS *)

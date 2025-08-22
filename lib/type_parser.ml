@@ -172,14 +172,15 @@ let parse_exn s =
     | Rparen -> ([], i + 1)
     | _ ->
       let t1, j = parse_type i in
-      parse_more_args [ t1 ] j
-  and parse_more_args acc i =
-    match List.nth tokens i with
-    | Comma ->
-      let t, j = parse_type (i + 1) in
-      parse_more_args (acc @ [ t ]) j
-    | Rparen -> (acc, i + 1)
-    | _ -> fail "expected ',' or ')' in argument list"
+      let rec parse_more_args_rev acc_rev k =
+        match List.nth tokens k with
+        | Comma ->
+          let t, k' = parse_type (k + 1) in
+          parse_more_args_rev (t :: acc_rev) k'
+        | Rparen -> (List.rev acc_rev, k + 1)
+        | _ -> fail "expected ',' or ')' in argument list"
+      in
+      parse_more_args_rev [ t1 ] j
   and parse_bin_tail lhs i =
     match List.nth tokens i with
     | Star ->
@@ -330,14 +331,15 @@ let parse_mu_exn s =
     | Rparen -> ([], i + 1)
     | _ ->
       let t1, j = parse_type i in
-      parse_more_args [ t1 ] j
-  and parse_more_args acc i =
-    match List.nth tokens i with
-    | Comma ->
-      let t, j = parse_type (i + 1) in
-      parse_more_args (acc @ [ t ]) j
-    | Rparen -> (acc, i + 1)
-    | _ -> fail "expected ',' or ')' in argument list"
+      let rec parse_more_args_rev acc_rev k =
+        match List.nth tokens k with
+        | Comma ->
+          let t, k' = parse_type (k + 1) in
+          parse_more_args_rev (t :: acc_rev) k'
+        | Rparen -> (List.rev acc_rev, k + 1)
+        | _ -> fail "expected ',' or ')' in argument list"
+      in
+      parse_more_args_rev [ t1 ] j
   and parse_bin_tail lhs i =
     match List.nth tokens i with
     | Star ->

@@ -16,8 +16,8 @@ let kindof (t : Type_syntax.t) : Kind.t =
       Kind.apply m k
     | Mod_const levels ->
       let m = Modality.of_levels levels in
-      (* As a type, a bare modality constant contributes that meet to the sole
-         var 1 *)
+      (* As a type, a bare modality constant contributes to the constructor
+         entry (index 0 / a0). *)
       Kind.set Kind.empty 0 m
     | C (name, args) ->
       let base =
