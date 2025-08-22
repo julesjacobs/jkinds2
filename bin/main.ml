@@ -36,8 +36,7 @@ let () =
       prerr_endline msg;
       let prog' =
         List.filter
-          (fun (it : Jkinds_lib.Decl_parser.decl_item) ->
-            not (List.mem it.name names))
+          (fun (it : Jkinds_lib.Decl_parser.decl_item) -> it.rhs_mu = None)
           prog
       in
       Jkinds_lib.Infer.solve_program prog' ~max_iters

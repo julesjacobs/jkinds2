@@ -2,18 +2,12 @@ module NameMap = Map.Make (String)
 
 exception Parse_error of string
 
-(* Optional mu RHS repository (by name) for CLI to consult when translating with
-   Infer2 *)
-let mu_table : (string, Type_parser.mu_raw) Hashtbl.t = Hashtbl.create 32
-
-let rhs_mu_of_name (name : string) : Type_parser.mu_raw option =
-  Hashtbl.find_opt mu_table name
-
 type decl_item = {
   name : string;
   arity : int;
-  rhs : Type_syntax.t;
   abstract : bool;
+  rhs_simple : Type_syntax.t option;
+  rhs_mu : Type_parser.mu_raw option;
 }
 
 type program = decl_item list
@@ -87,32 +81,34 @@ let parse_program_exn (s : string) : decl_item list =
                   (String.concat ", " expected_args)));
         List.length args
     in
-    let rhs_t =
+    let rhs_simple, rhs_mu =
       match Type_parser.parse_mu rhs with
       | Ok m -> (
         match Type_parser.to_simple m with
-        | Ok t -> t
-        | Error _ ->
-          Hashtbl.replace mu_table name m;
-          Type_syntax.Unit)
+        | Ok t -> (Some t, None)
+        | Error _ -> (None, Some m))
       | Error e -> raise (Parse_error ("type expression: " ^ e))
     in
-    (* Scope check for 'a vars in simple types *)
-    let rec check_vars (t : Type_syntax.t) : unit =
-      match t with
-      | Type_syntax.Var n ->
-        if n < 1 || n > arity then
-          raise (Parse_error (Printf.sprintf "variable 'a%d is out of scope" n))
-      | Type_syntax.C (_, args) -> List.iter check_vars args
-      | Type_syntax.Unit -> ()
-      | Type_syntax.Mod_annot (t', _) -> check_vars t'
-      | Type_syntax.Mod_const _ -> ()
-      | Type_syntax.Pair (a, b) | Type_syntax.Sum (a, b) ->
-        check_vars a;
-        check_vars b
-    in
-    check_vars rhs_t;
-    { name; arity; rhs = rhs_t; abstract }
+    (* Scope check for 'a vars in simple types only *)
+    (match rhs_simple with
+    | Some t ->
+      let rec check_vars (t : Type_syntax.t) : unit =
+        match t with
+        | Type_syntax.Var n ->
+          if n < 1 || n > arity then
+            raise
+              (Parse_error (Printf.sprintf "variable 'a%d is out of scope" n))
+        | Type_syntax.C (_, args) -> List.iter check_vars args
+        | Type_syntax.Unit -> ()
+        | Type_syntax.Mod_annot (t', _) -> check_vars t'
+        | Type_syntax.Mod_const _ -> ()
+        | Type_syntax.Pair (a, b) | Type_syntax.Sum (a, b) ->
+          check_vars a;
+          check_vars b
+      in
+      check_vars t
+    | None -> ());
+    { name; arity; abstract; rhs_simple; rhs_mu }
   in
   let items = List.map parse_line lines in
   (* Check duplicates *)

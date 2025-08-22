@@ -13,7 +13,11 @@ let () =
   assert (List.exists (fun it -> it.name = "G") prog);
   assert (List.exists (fun it -> it.name = "H") prog);
   let open Type_syntax in
-  let find_rhs n = (List.find (fun it -> it.name = n) prog).rhs in
+  let find_rhs n =
+    match (List.find (fun it -> it.name = n) prog).rhs_simple with
+    | Some t -> t
+    | None -> failwith "expected simple rhs"
+  in
   assert (find_rhs "G" = Var 1);
   assert (find_rhs "H" = C ("F", [ Var 1; Var 1 ]));
   let _km = Jkinds_lib.Infer.solve_program prog ~max_iters:1 in

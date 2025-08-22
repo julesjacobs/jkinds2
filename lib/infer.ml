@@ -221,14 +221,15 @@ let solve_program (prog : Decl_parser.program) ~(max_iters : int) :
   let mu_names =
     List.filter_map
       (fun (it : Decl_parser.decl_item) ->
-        match Decl_parser.rhs_mu_of_name it.name with
-        | Some _ -> Some it.name
-        | None -> None)
+        if it.rhs_mu <> None then Some it.name else None)
       prog
   in
   (match mu_names with [] -> () | names -> raise (Unsupported_mu names));
   let bindings =
-    List.map (fun (it : Decl_parser.decl_item) -> (it.name, it.rhs)) prog
+    List.filter_map
+      (fun (it : Decl_parser.decl_item) ->
+        match it.rhs_simple with Some t -> Some (it.name, t) | None -> None)
+      prog
   in
   let abstracts =
     List.filter_map
