@@ -18,19 +18,28 @@ type env = JK.env
 type lat = Axis_lattice.t
 type atom = JK.atom
 
-let ckind_of_cyclic (c : Type_parser.cyclic) : JK.ckind =
- fun (ops : JK.ops) -> ops.kind_of c
+let kind_of (c : Type_parser.cyclic) : JK.ckind =
+ fun (ops : JK.ops) ->
+  let open Type_parser in
+  match c with
+  | CUnit -> ops.const Axis_lattice.bot
+  | CMod_const lv -> ops.const (Axis_lattice.encode ~levels:lv)
+  | CMod_annot (t, lv) ->
+    let k = ops.kind_of t in
+    ops.modality (Axis_lattice.encode ~levels:lv) k
+  | CPair (a, b) | CSum (a, b) -> ops.join [ ops.kind_of a; ops.kind_of b ]
+  | CCtor (name, args) ->
+    let arg_kinds = List.map (fun t -> ops.kind_of t) args in
+    ops.constr name arg_kinds
+  | MuLink r -> ops.kind_of !r
+  | CVar _ -> failwith "kind_of: should not reach variables"
 
 let env_of_program (prog : program) : env =
   let table =
     List.fold_left (fun acc (it : decl_item) -> (it.name, it) :: acc) [] prog
   in
-  let lookup_name (name : string) : decl_item option =
-    List.assoc_opt name table
-  in
-  let kind_of (c : Type_parser.cyclic) : JK.ckind = ckind_of_cyclic c in
   let lookup (name : string) : JK.constr_decl =
-    match lookup_name name with
+    match List.assoc_opt name table with
     | None -> failwith ("infer3: unknown constructor " ^ name)
     | Some it ->
       let args =
@@ -39,18 +48,18 @@ let env_of_program (prog : program) : env =
         in
         vars it.arity []
       in
-      let kind = ckind_of_cyclic it.rhs_cyclic in
+      let kind = kind_of it.rhs_cyclic in
       let decl : JK.constr_decl = { args; kind; abstract = it.abstract } in
       decl
   in
-  { JK.kind_of; lookup }
+  { lookup; kind_of }
 
 let normalize_decl (env : env) (it : decl_item) : (lat * atom list) list =
-  JK.normalize env (ckind_of_cyclic it.rhs_cyclic)
+  JK.normalize env (fun ops -> ops.kind_of it.rhs_cyclic)
 
 let leq_kinds (env : env) (lhs : Type_parser.cyclic) (rhs : Type_parser.cyclic)
     : bool =
-  JK.leq env (ckind_of_cyclic lhs) (ckind_of_cyclic rhs)
+  JK.leq env (fun ops -> ops.kind_of lhs) (fun ops -> ops.kind_of rhs)
 
 let round_up_kind (env : env) (c : Type_parser.cyclic) : lat =
-  JK.round_up env (ckind_of_cyclic c)
+  JK.round_up env (fun ops -> ops.kind_of c)
