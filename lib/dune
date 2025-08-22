@@ -9,6 +9,9 @@
   infer2
   infer
   type_parser
+  type_menhir
+  type_lexer
+  type_menhir_driver
   decl_parser
   lattice_intf
   product_lattice
@@ -16,3 +19,9 @@
   lattice_solver
   axis_lattice
   jkinds_lib))
+
+(ocamllex
+ (modules type_lexer))
+
+(menhir
+ (modules type_menhir))

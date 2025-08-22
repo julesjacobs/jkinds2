@@ -3,13 +3,20 @@ open Jkinds_lib
 let assert_true msg b = if not b then failwith ("assert: " ^ msg)
 
 let () =
-  let open Type_parser in
-  let p s = match parse s with Ok t -> t | Error e -> failwith e in
+  let p s =
+    match Type_menhir_driver.parse_mu s with
+    | Ok m -> (
+      match Type_parser.to_simple m with Ok t -> t | Error e -> failwith e)
+    | Error e -> failwith e
+  in
   let round s = Type_syntax.pp (p s) in
   (* Round-trip basic *)
   assert_true "pp roundtrip 1" (round "'a1 @@ [2,1]" = "'a1 @@ [2,1]");
   assert_true "pp roundtrip 2"
     (round "(unit + 'a1) @@ [1,0]" = "(unit + 'a1) @@ [1,0]");
   (* Ensure parser accepts mod annotations; inference not tested here *)
-  let _ = parse_exn "F('a1) @@ [1,0]" in
+  let _ =
+    let m = Type_menhir_driver.parse_mu_exn "F('a1) @@ [1,0]" in
+    Type_parser.to_simple_exn m
+  in
   print_endline "✓ mod_annot tests passed"

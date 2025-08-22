@@ -82,7 +82,7 @@ let parse_program_exn (s : string) : decl_item list =
         List.length args
     in
     let rhs_simple, rhs_mu =
-      match Type_parser.parse_mu rhs with
+      match Type_menhir_driver.parse_mu rhs with
       | Ok m -> (
         match Type_parser.to_simple m with
         | Ok t -> (Some t, None)

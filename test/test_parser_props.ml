@@ -24,8 +24,11 @@ let () =
   for _ = 1 to 500 do
     let t = gen_type 3 in
     let s = Type_syntax.pp t in
-    match Type_parser.parse s with
+    match Type_menhir_driver.parse_mu s with
     | Error e -> failwith ("parse error on pp string: " ^ e ^ " from: " ^ s)
-    | Ok t' -> assert_true "pp/parse roundtrip" (t = t')
+    | Ok m -> (
+      match Type_parser.to_simple m with
+      | Error e -> failwith e
+      | Ok t' -> assert_true "pp/parse roundtrip" (t = t'))
   done;
   print_endline "parser roundtrip property passed"

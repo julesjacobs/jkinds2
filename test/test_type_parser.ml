@@ -1,9 +1,11 @@
 open Jkinds_lib
 
 let () =
-  let open Type_parser in
   let p s =
-    match parse s with Ok t -> t | Error e -> failwith ("parse error: " ^ e)
+    match Type_menhir_driver.parse_mu s with
+    | Ok m -> (
+      match Type_parser.to_simple m with Ok t -> t | Error e -> failwith e)
+    | Error e -> failwith ("parse error: " ^ e)
   in
   let t = p "F( 'a1 , G('a2, H()), 'a3 )" in
   let expected =

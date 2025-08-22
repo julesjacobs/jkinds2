@@ -2,3 +2,8 @@
  (public_name jkinds)
  (name main)
  (libraries jkinds_lib))
+
+(executable
+ (name parse_test)
+ (modules parse_test)
+ (libraries jkinds_lib))

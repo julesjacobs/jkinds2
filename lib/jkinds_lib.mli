@@ -8,6 +8,7 @@ module Product_lattice : module type of Product_lattice
 module Lattice_polynomial : module type of Lattice_polynomial
 module Lattice_solver : module type of Lattice_solver
 module Axis_lattice : module type of Axis_lattice
+module Type_menhir_driver : module type of Type_menhir_driver
 
 (* Expose minimal cyclic parse/desugar API from Type_parser *)
 (* We keep extended mu API internal for now; Infer2 will import from Type_parser directly *)
