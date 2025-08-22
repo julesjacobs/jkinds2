@@ -26,7 +26,22 @@ let () =
   let content = read_file file in
   (* Decl_parser will populate mu_table when mu-typed RHS is detected. *)
   let prog = Jkinds_lib.Decl_parser.parse_program_exn content in
-  let kinds_lfp = Jkinds_lib.Infer.solve_program prog ~max_iters in
+  let kinds_lfp =
+    try Jkinds_lib.Infer.solve_program prog ~max_iters
+    with Jkinds_lib.Infer.Unsupported_mu names ->
+      let msg =
+        Printf.sprintf "[warn] ignoring mu-based decls for classic infer: %s"
+          (String.concat ", " names)
+      in
+      prerr_endline msg;
+      let prog' =
+        List.filter
+          (fun (it : Jkinds_lib.Decl_parser.decl_item) ->
+            not (List.mem it.name names))
+          prog
+      in
+      Jkinds_lib.Infer.solve_program prog' ~max_iters
+  in
   (* Infer2: print polynomial translation of each RHS *)
   print_endline "Infer2: RHS as polys:";
   List.iter

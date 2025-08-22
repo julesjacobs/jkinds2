@@ -95,121 +95,6 @@ let tokenize (s : string) : (token list, string) result =
 
 exception Parse_error of string
 
-let parse_exn s =
-  let fail msg = raise (Parse_error msg) in
-  let tokens =
-    match tokenize s with Ok t -> t | Error e -> fail ("lex: " ^ e)
-  in
-  let rec parse_type i =
-    let lhs, j = parse_primary i in
-    parse_bin_tail lhs j
-  and parse_primary i =
-    match List.nth tokens i with
-    | Quote -> parse_quote i
-    | Ident id -> (
-      (* Could be constructor or var if id starts with 'a' and rest int *)
-      let as_var =
-        let n = String.length id in
-        if n > 1 && id.[0] = 'a' then
-          try Some (int_of_string (String.sub id 1 (n - 1))) with _ -> None
-        else None
-      in
-      match as_var with
-      | Some v -> (make_var v, i + 1)
-      | None -> parse_after_ident id (i + 1))
-    | Int_lit v -> (make_var v, i + 1)
-    | Lparen -> (
-      let t, j = parse_type (i + 1) in
-      match List.nth tokens j with
-      | Rparen -> (t, j + 1)
-      | _ -> fail "expected ')' after parenthesized type")
-    | Lbrack ->
-      (* parse bare modality constant: [n1, n2, ...] *)
-      let rec parse_levels k acc =
-        match List.nth tokens k with
-        | Int_lit n -> parse_levels (k + 1) (n :: acc)
-        | Comma -> parse_levels (k + 1) acc
-        | Rbrack -> (List.rev acc, k + 1)
-        | _ -> fail "expected ']' after modality literal"
-      in
-      let levels, j = parse_levels (i + 1) [] in
-      (Type_syntax.Mod_const (Array.of_list levels), j)
-    | Rparen | Rbrack | Comma | Star | Plus | AtAt | Dot | Eof ->
-      fail "expected type"
-  and parse_after_ident name i =
-    match List.nth tokens i with
-    | Lparen ->
-      let args, j = parse_args (i + 1) in
-      if String.equal name "a" then
-        match args with
-        | [ Var v ] -> (make_var v, j)
-        | _ -> fail "expected a(<int>)"
-      else if String.equal name "unit" && args = [] then (Unit, j)
-      else (make_c name args, j)
-    | _ -> (
-      (* special base identifiers without parens *)
-      match name with
-      | "unit" -> (Unit, i)
-      | _ -> (make_c name [], i))
-  and parse_quote i =
-    (* parse 'a<int> with no space: 'a1; no bare 'a anymore *)
-    match List.nth tokens (i + 1) with
-    | Ident id ->
-      let n = String.length id in
-      if n >= 1 && id.[0] = 'a' then
-        if n = 1 then
-          match List.nth tokens (i + 2) with
-          | Int_lit v -> (make_var v, i + 3)
-          | _ -> fail "expected number after 'a"
-        else
-          (* 'aN form *)
-          try (make_var (int_of_string (String.sub id 1 (n - 1))), i + 2)
-          with _ -> fail "invalid 'a<number> form"
-      else fail "expected a after '\''"
-    | _ -> fail "expected a after '\''"
-  and parse_args i =
-    match List.nth tokens i with
-    | Rparen -> ([], i + 1)
-    | _ ->
-      let t1, j = parse_type i in
-      let rec parse_more_args_rev acc_rev k =
-        match List.nth tokens k with
-        | Comma ->
-          let t, k' = parse_type (k + 1) in
-          parse_more_args_rev (t :: acc_rev) k'
-        | Rparen -> (List.rev acc_rev, k + 1)
-        | _ -> fail "expected ',' or ')' in argument list"
-      in
-      parse_more_args_rev [ t1 ] j
-  and parse_bin_tail lhs i =
-    match List.nth tokens i with
-    | Star ->
-      let rhs, j = parse_primary (i + 1) in
-      parse_bin_tail (Pair (lhs, rhs)) j
-    | Plus ->
-      let rhs, j = parse_primary (i + 1) in
-      parse_bin_tail (Sum (lhs, rhs)) j
-    | AtAt -> (
-      (* parse lattice element as vector literal: [n1, n2, ... ] *)
-      match List.nth tokens (i + 1) with
-      | Lbrack ->
-        let rec parse_levels k acc =
-          match List.nth tokens k with
-          | Int_lit n -> parse_levels (k + 1) (n :: acc)
-          | Comma -> parse_levels (k + 1) acc
-          | Rbrack -> (List.rev acc, k + 1)
-          | _ -> fail "expected ']' after modality literal"
-        in
-        let levels, k = parse_levels (i + 2) [] in
-        parse_bin_tail (Type_syntax.Mod_annot (lhs, Array.of_list levels)) k
-      | _ -> fail "expected '[' after @@")
-    | _ -> (lhs, i)
-  in
-  let t, i = parse_type 0 in
-  match List.nth tokens i with Eof -> t | _ -> fail "trailing tokens"
-
-let parse s = try Ok (parse_exn s) with Parse_error msg -> Error msg
-
 (* Extended: recursive types with mu / &'bN *)
 
 type mu_raw =
@@ -367,6 +252,29 @@ let parse_mu_exn s =
   match List.nth tokens i with Eof -> t | _ -> fail "trailing tokens"
 
 let parse_mu s = try Ok (parse_mu_exn s) with Parse_error msg -> Error msg
+
+(* Lowering: turn mu_raw into the simple Type_syntax.t when no mu/rec vars *)
+let rec to_simple_exn (t : mu_raw) : Type_syntax.t =
+  match t with
+  | UnitR -> Unit
+  | PairR (a, b) -> Pair (to_simple_exn a, to_simple_exn b)
+  | SumR (a, b) -> Sum (to_simple_exn a, to_simple_exn b)
+  | CR (name, args) -> C (name, List.map to_simple_exn args)
+  | VarR v -> Var v
+  | ModAnnotR (u, lv) -> Mod_annot (to_simple_exn u, lv)
+  | ModConstR lv -> Mod_const lv
+  | MuR _ | RecvarR _ ->
+    raise (Parse_error "mu/recvar not allowed in simple types")
+
+let to_simple (t : mu_raw) : (Type_syntax.t, string) result =
+  try Ok (to_simple_exn t) with Parse_error msg -> Error msg
+
+(* Simple parser wrapper now reuses mu parser + lowering *)
+let parse_exn s =
+  let m = parse_mu_exn s in
+  to_simple_exn m
+
+let parse s = match parse_mu s with Error e -> Error e | Ok m -> to_simple m
 
 (* A cyclic graph representation to hold direct cycles via refs. *)
 type cyclic_desc =

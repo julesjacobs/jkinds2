@@ -212,8 +212,21 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
     bs
 
 (* CLI driver: print initial kinds then run the fixpoint. *)
+exception Unsupported_mu of string list
+
 let solve_program (prog : Decl_parser.program) ~(max_iters : int) :
     (string * Kind.t) list =
+  (* Check for mu-based declarations, which this inference pass cannot
+     handle. *)
+  let mu_names =
+    List.filter_map
+      (fun (it : Decl_parser.decl_item) ->
+        match Decl_parser.rhs_mu_of_name it.name with
+        | Some _ -> Some it.name
+        | None -> None)
+      prog
+  in
+  (match mu_names with [] -> () | names -> raise (Unsupported_mu names));
   let bindings =
     List.map (fun (it : Decl_parser.decl_item) -> (it.name, it.rhs)) prog
   in

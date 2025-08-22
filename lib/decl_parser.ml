@@ -88,14 +88,14 @@ let parse_program_exn (s : string) : decl_item list =
         List.length args
     in
     let rhs_t =
-      match Type_parser.parse rhs with
-      | Ok t -> t
-      | Error _ -> (
-        match Type_parser.parse_mu rhs with
-        | Ok m ->
+      match Type_parser.parse_mu rhs with
+      | Ok m -> (
+        match Type_parser.to_simple m with
+        | Ok t -> t
+        | Error _ ->
           Hashtbl.replace mu_table name m;
-          Type_syntax.Unit
-        | Error e -> raise (Parse_error ("type expression: " ^ e)))
+          Type_syntax.Unit)
+      | Error e -> raise (Parse_error ("type expression: " ^ e))
     in
     (* Scope check for 'a vars in simple types *)
     let rec check_vars (t : Type_syntax.t) : unit =
