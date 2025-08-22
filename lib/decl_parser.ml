@@ -6,8 +6,9 @@ type decl_item = {
   name : string;
   arity : int;
   abstract : bool;
+  rhs_mu_raw : Type_parser.mu_raw;
   rhs_simple : Type_syntax.t option;
-  rhs_mu : Type_parser.mu_raw option;
+  rhs_cyclic : Type_parser.cyclic;
 }
 
 type program = decl_item list
@@ -81,14 +82,17 @@ let parse_program_exn (s : string) : decl_item list =
                   (String.concat ", " expected_args)));
         List.length args
     in
-    let rhs_simple, rhs_mu =
+    let rhs_mu_raw =
       match Type_menhir_driver.parse_mu rhs with
-      | Ok m -> (
-        match Type_parser.to_simple m with
-        | Ok t -> (Some t, None)
-        | Error _ -> (None, Some m))
+      | Ok m -> m
       | Error e -> raise (Parse_error ("type expression: " ^ e))
     in
+    let rhs_simple =
+      match Type_parser.to_simple rhs_mu_raw with
+      | Ok t -> Some t
+      | Error _ -> None
+    in
+    let rhs_cyclic = Type_parser.to_cyclic rhs_mu_raw in
     (* Scope check for 'a vars in simple types only *)
     (match rhs_simple with
     | Some t ->
@@ -108,7 +112,7 @@ let parse_program_exn (s : string) : decl_item list =
       in
       check_vars t
     | None -> ());
-    { name; arity; abstract; rhs_simple; rhs_mu }
+    { name; arity; abstract; rhs_mu_raw; rhs_simple; rhs_cyclic }
   in
   let items = List.map parse_line lines in
   (* Check duplicates *)

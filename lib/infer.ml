@@ -221,7 +221,7 @@ let solve_program (prog : Decl_parser.program) ~(max_iters : int) :
   let mu_names =
     List.filter_map
       (fun (it : Decl_parser.decl_item) ->
-        if it.rhs_mu <> None then Some it.name else None)
+        if it.rhs_simple = None then Some it.name else None)
       prog
   in
   (match mu_names with [] -> () | names -> raise (Unsupported_mu names));

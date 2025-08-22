@@ -16,7 +16,8 @@ let () =
     (round "(unit + 'a1) @@ [1,0]" = "(unit + 'a1) @@ [1,0]");
   (* Ensure parser accepts mod annotations; inference not tested here *)
   let _ =
-    let m = Type_menhir_driver.parse_mu_exn "F('a1) @@ [1,0]" in
-    Type_parser.to_simple_exn m
+    match Type_menhir_driver.parse_mu "F('a1) @@ [1,0]" with
+    | Ok m -> ignore (Type_parser.to_simple_exn m)
+    | Error e -> failwith e
   in
   print_endline "✓ mod_annot tests passed"

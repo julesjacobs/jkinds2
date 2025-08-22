@@ -76,6 +76,7 @@ let to_cyclic (t : mu_raw) : cyclic =
 
 (* Cyclic parsing wrapper removed; compose Type_menhir_driver.parse_mu and
    to_cyclic instead. *)
+(* For parsing, use Type_menhir_driver to produce [mu_raw], then [to_cyclic]. *)
 
 (* Pretty-print a cyclic value, cutting cycles with numbered anchors. We only
    introduce an anchor (#n=) when we actually detect a cycle (back-edge) to that

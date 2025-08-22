@@ -1,3 +1,5 @@
+[@@@warning "-27-37"]
+
 module Make
     (Lat : Lattice_intf.LATTICE)
     (Ty : sig
@@ -51,9 +53,9 @@ end = struct
       | Ty _, Atom _ -> 1
   end
 
-  module L = Lattice_solver.Make (Lat) (Var)
+  module LSolver = Lattice_solver.Make (Lat) (Var)
 
-  type kind = L.poly
+  type kind = LSolver.poly
 
   type ops = {
     const : lat -> kind;
@@ -68,7 +70,13 @@ end = struct
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
 
   let norm (env : env) (k : ckind) : kind = failwith "unimplemented"
-  let normalize = failwith "unimplemented"
-  let leq = failwith "unimplemented"
-  let round_up = failwith "unimplemented"
+
+  let normalize (env : env) (k : ckind) : (lat * atom list) list =
+    failwith "unimplemented"
+
+  let leq (env : env) (k1 : ckind) (k2 : ckind) : bool =
+    LSolver.leq (norm env k1) (norm env k2)
+
+  let round_up (env : env) (k : ckind) : lat = failwith "unimplemented"
+  (* LSolver.round_up (norm env k) *)
 end

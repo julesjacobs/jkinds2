@@ -8,10 +8,12 @@
   kind
   infer2
   infer
+  infer3
   type_parser
   type_menhir
   type_lexer
   type_menhir_driver
+  jkind_solver
   decl_parser
   lattice_intf
   product_lattice

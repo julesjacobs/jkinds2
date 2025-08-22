@@ -1,0 +1,70 @@
+open Decl_parser
+
+module TyM = struct
+  type t = Type_parser.cyclic
+
+  let compare_ty : t -> t -> int = Stdlib.compare
+end
+
+module ConstrM = struct
+  type t = string
+
+  let compare = String.compare
+end
+
+module JK = Jkind_solver.Make (Axis_lattice) (TyM) (ConstrM)
+
+type env = JK.env
+type lat = Axis_lattice.t
+type atom = JK.atom
+
+let mu_of_simple (t : Type_syntax.t) : Type_parser.mu_raw =
+  let open Type_parser in
+  let rec go (t : Type_syntax.t) : mu_raw =
+    match t with
+    | Type_syntax.Unit -> UnitR
+    | Type_syntax.Var v -> VarR v
+    | Type_syntax.C (name, args) -> CR (name, List.map go args)
+    | Type_syntax.Pair (a, b) -> PairR (go a, go b)
+    | Type_syntax.Sum (a, b) -> SumR (go a, go b)
+    | Type_syntax.Mod_annot (u, lv) -> ModAnnotR (go u, lv)
+    | Type_syntax.Mod_const lv -> ModConstR lv
+  in
+  go t
+
+let ckind_of_cyclic (c : Type_parser.cyclic) : JK.ckind =
+ fun (ops : JK.ops) -> ops.kind_of c
+
+let env_of_program (prog : program) : env =
+  let table =
+    List.fold_left (fun acc (it : decl_item) -> (it.name, it) :: acc) [] prog
+  in
+  let lookup_name (name : string) : decl_item option =
+    List.assoc_opt name table
+  in
+  let kind_of (c : Type_parser.cyclic) : JK.ckind = ckind_of_cyclic c in
+  let lookup (name : string) : JK.constr_decl =
+    match lookup_name name with
+    | None -> failwith ("infer3: unknown constructor " ^ name)
+    | Some it ->
+      let args =
+        let rec vars i acc =
+          if i = 0 then acc else vars (i - 1) (Type_parser.CVar i :: acc)
+        in
+        vars it.arity []
+      in
+      let kind = ckind_of_cyclic it.rhs_cyclic in
+      let decl : JK.constr_decl = { args; kind; abstract = it.abstract } in
+      decl
+  in
+  { JK.kind_of; lookup }
+
+let normalize_decl (env : env) (it : decl_item) : (lat * atom list) list =
+  JK.normalize env (ckind_of_cyclic it.rhs_cyclic)
+
+let leq_kinds (env : env) (lhs : Type_parser.cyclic) (rhs : Type_parser.cyclic)
+    : bool =
+  JK.leq env (ckind_of_cyclic lhs) (ckind_of_cyclic rhs)
+
+let round_up_kind (env : env) (c : Type_parser.cyclic) : lat =
+  JK.round_up env (ckind_of_cyclic c)

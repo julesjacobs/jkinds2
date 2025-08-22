@@ -113,9 +113,9 @@ let to_poly_mu_raw (m : Type_parser.mu_raw) : S.poly =
   to_poly_cyclic cyc
 
 let to_poly_decl_rhs (it : Decl_parser.decl_item) : S.poly =
-  match it.rhs_mu with
-  | Some m -> to_poly_mu_raw m
-  | None -> ( match it.rhs_simple with Some t -> to_poly t | None -> S.bot)
+  match it.rhs_simple with
+  | Some t -> to_poly t
+  | None -> to_poly_mu_raw it.rhs_mu_raw
 
 let pp_poly (p : S.poly) : string =
   let pp_coeff x =

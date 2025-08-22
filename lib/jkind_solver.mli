@@ -1,36 +1,30 @@
 (* The JKind solver. *)
 
-(** Funconstr inputs:
-  - A type of types ty
-  - A type of construconstr names constr
-  - The lattice lat
+(** Functor inputs:
+    - The coefficient lattice [Lat]
+    - The type domain [Ty] with a comparison
+    - The constructor domain [Constr] with a comparison
 
-  Output:
-  - A type e of lattice terms
-  - Operations 
-    * const : lat -> kind
-    * join : kind list -> kind
-    * modality : lat -> kind -> kind
-    * constr : constr -> kind list -> kind
-    * link : ty -> kind
-  - A type of environments, containing:
-    * expand : ty -> kind
-    * lookup : constr -> { args : ty list; body: ty; abstract: bool }
-  - The following procedures:
-    * leq : env -> kind -> kind -> bool
-    * round_up : env -> kind -> lat
-    * normalize : env -> kind -> (lat * atom list) list
-*)
+    Output:
+    - A Church-encoded kind [ckind = ops -> kind], where [kind] is the backend
+      semantic domain and [ops] provides the constructors. The solver interprets
+      [ckind] under a lattice-polynomial backend. *)
 
 module Make
-    (C : Lattice_intf.LATTICE)
-    (I : sig
-      type ty
-      type constr
+    (Lat : Lattice_intf.LATTICE)
+    (Ty : sig
+      type t
+
+      val compare_ty : t -> t -> int
+    end)
+    (Constr : sig
+      type t
+
+      val compare : t -> t -> int
     end) : sig
-  type ty = I.ty
-  type constr = I.constr
-  type lat = C.t
+  type ty = Ty.t
+  type constr = Constr.t
+  type lat = Lat.t
   type kind
 
   type ops = {
