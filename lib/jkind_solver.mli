@@ -1,15 +1,26 @@
 (* The JKind solver. *)
 
-(* Funconstr inputs: - A type of types ty - A type of construconstr names constr
-   - The lattice lat
+(** Funconstr inputs:
+  - A type of types ty
+  - A type of construconstr names constr
+  - The lattice lat
 
-   Output: - A type e of lattice terms - Operations * const : lat -> expr * join
-   : expr list -> expr * modality : lat -> expr -> expr * constr : constr ->
-   expr list -> expr * link : ty -> expr - A type of environments, containing: *
-   expand : ty -> expr * lookup : constr -> { args : ty list; body: ty;
-   abstract: bool } - The following procedures: * leq : env -> expr -> expr ->
-   bool * round_up : env -> expr -> lat * normalize : env -> expr -> (lat * atom
-   list) list *)
+  Output:
+  - A type e of lattice terms
+  - Operations 
+    * const : lat -> kind
+    * join : kind list -> kind
+    * modality : lat -> kind -> kind
+    * constr : constr -> kind list -> kind
+    * link : ty -> kind
+  - A type of environments, containing:
+    * expand : ty -> kind
+    * lookup : constr -> { args : ty list; body: ty; abstract: bool }
+  - The following procedures:
+    * leq : env -> kind -> kind -> bool
+    * round_up : env -> kind -> lat
+    * normalize : env -> kind -> (lat * atom list) list
+*)
 
 module Make
     (C : Lattice_intf.LATTICE)
@@ -20,23 +31,22 @@ module Make
   type ty = I.ty
   type constr = I.constr
   type lat = C.t
+  type kind
 
-  (* Abstract expression language over kinds *)
-  type expr
+  type ops = {
+    const : lat -> kind;
+    join : kind list -> kind;
+    modality : lat -> kind -> kind;
+    constr : constr -> kind list -> kind;
+    kind_of : ty -> kind;
+  }
 
-  val const : lat -> expr
-  val join : expr list -> expr
-  val modality : lat -> expr -> expr
-  val constr : constr -> expr list -> expr
-  val link : ty -> expr
-
+  type ckind = ops -> kind
   type constr_decl = { args : ty list; body : ty; abstract : bool }
-  type env = { expand : ty -> expr; lookup : constr -> constr_decl }
-
-  val leq : env -> expr -> expr -> bool
-  val round_up : env -> expr -> lat
-
+  type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
   type atom = { constr : constr; arg_index : int }
 
-  val normalize : env -> expr -> (lat * atom list) list
+  val normalize : env -> ckind -> (lat * atom list) list
+  val leq : env -> ckind -> ckind -> bool
+  val round_up : env -> ckind -> lat
 end
