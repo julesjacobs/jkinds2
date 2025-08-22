@@ -24,14 +24,13 @@ module Make
   }
 
   type ckind = ops -> kind
-  type constr_decl = { args : ty list; body : ty; abstract : bool }
+  type constr_decl = { args : ty list; kind : ckind; abstract : bool }
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
+  type atom = { constr : constr; arg_index : int }
 
   val normalize : env -> ckind -> (lat * atom list) list
   val leq : env -> ckind -> ckind -> bool
   val round_up : env -> ckind -> lat
-
-  type atom = { constr : constr; arg_index : int }
 end = struct
   type ty = Ty.t
   type constr = Constr.t
@@ -65,9 +64,10 @@ end = struct
   }
 
   type ckind = ops -> kind
-  type constr_decl = { args : ty list; body : ty; abstract : bool }
+  type constr_decl = { args : ty list; kind : ckind; abstract : bool }
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
 
+  let norm (env : env) (k : ckind) : kind = failwith "unimplemented"
   let normalize = failwith "unimplemented"
   let leq = failwith "unimplemented"
   let round_up = failwith "unimplemented"

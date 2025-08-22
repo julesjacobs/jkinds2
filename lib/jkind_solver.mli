@@ -42,7 +42,7 @@ module Make
   }
 
   type ckind = ops -> kind
-  type constr_decl = { args : ty list; body : ty; abstract : bool }
+  type constr_decl = { args : ty list; kind : ckind; abstract : bool }
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
   type atom = { constr : constr; arg_index : int }
 
