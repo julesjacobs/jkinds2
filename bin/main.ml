@@ -24,7 +24,6 @@ let () =
     find_flag 2
   in
   let content = read_file file in
-  (* Decl_parser will populate mu_table when mu-typed RHS is detected. *)
   let prog = Jkinds_lib.Decl_parser.parse_program_exn content in
   let kinds_lfp =
     try Jkinds_lib.Infer.solve_program prog ~max_iters

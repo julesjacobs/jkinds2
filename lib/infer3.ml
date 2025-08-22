@@ -18,20 +18,6 @@ type env = JK.env
 type lat = Axis_lattice.t
 type atom = JK.atom
 
-let mu_of_simple (t : Type_syntax.t) : Type_parser.mu_raw =
-  let open Type_parser in
-  let rec go (t : Type_syntax.t) : mu_raw =
-    match t with
-    | Type_syntax.Unit -> UnitR
-    | Type_syntax.Var v -> VarR v
-    | Type_syntax.C (name, args) -> CR (name, List.map go args)
-    | Type_syntax.Pair (a, b) -> PairR (go a, go b)
-    | Type_syntax.Sum (a, b) -> SumR (go a, go b)
-    | Type_syntax.Mod_annot (u, lv) -> ModAnnotR (go u, lv)
-    | Type_syntax.Mod_const lv -> ModConstR lv
-  in
-  go t
-
 let ckind_of_cyclic (c : Type_parser.cyclic) : JK.ckind =
  fun (ops : JK.ops) -> ops.kind_of c
 

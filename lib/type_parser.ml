@@ -16,7 +16,7 @@ type mu_raw =
   | RecvarR of int (* &'bN *)
 
 (* Parser entrypoints are now provided by the Menhir-based driver. Use
-   Type_menhir_driver.parse_mu / parse_mu_exn instead. *)
+   Type_menhir_driver.parse_mu instead. *)
 
 (* Lowering: turn mu_raw into the simple Type_syntax.t when no mu/rec vars *)
 let rec to_simple_exn (t : mu_raw) : Type_syntax.t =
@@ -34,8 +34,8 @@ let rec to_simple_exn (t : mu_raw) : Type_syntax.t =
 let to_simple (t : mu_raw) : (Type_syntax.t, string) result =
   try Ok (to_simple_exn t) with Parse_error msg -> Error msg
 
-(* Simple parser wrapper removed; use Type_menhir_driver.parse_mu[_exn] and then
-   to_simple[_exn] from this module. *)
+(* Simple parser wrapper removed; use Type_menhir_driver.parse_mu and then
+   to_simple/to_simple_exn from this module. *)
 
 (* Cyclic graph representation where only MuLink carries mutability. All other
    nodes are pure. A Mu binder produces a [MuLink r] whose ref ultimately points
