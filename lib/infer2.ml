@@ -73,22 +73,12 @@ type var = S.var
 
 (* ---- Cyclic translation support ---- *)
 let to_poly_cyclic (root : Type_parser.cyclic) : S.poly =
-  let table : (Type_parser.cyclic, S.var) Hashtbl.t = Hashtbl.create 64 in
+  (* Allocate one solver variable per MuLink ref. *)
+  let table : (Type_parser.cyclic ref, S.var) Hashtbl.t = Hashtbl.create 64 in
 
   let rec translate (n : Type_parser.cyclic) : S.poly =
-    match Hashtbl.find_opt table n with
-    | Some v -> S.var v
-    | None ->
-      (* Allocate a fresh var for this cyclic node and record before
-         descending *)
-      let v = get_var (VarLabel.TyRec (Hashtbl.length table)) in
-      Hashtbl.add table n v;
-      let rhs = translate_desc !n in
-      S.solve_lfp v rhs;
-      (* Return the solved polynomial for the root of this node *)
-      S.bound v
-  and translate_desc (d : Type_parser.cyclic_desc) : S.poly =
-    match d with
+    match n with
+    | Type_parser.MuLink r -> translate_link r
     | Type_parser.CUnit -> S.const Axis_lattice.bot
     | Type_parser.CVar i -> S.var (get_var (VarLabel.TyVar i))
     | Type_parser.CMod_const lv -> const_levels lv
@@ -106,6 +96,15 @@ let to_poly_cyclic (root : Type_parser.cyclic) : S.poly =
         S.join acc (S.meet vi (translate t))
       in
       List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
+  and translate_link (r : Type_parser.cyclic ref) : S.poly =
+    match Hashtbl.find_opt table r with
+    | Some v -> S.var v
+    | None ->
+      let v = get_var (VarLabel.TyRec (Hashtbl.length table)) in
+      Hashtbl.add table r v;
+      let rhs = translate !r in
+      S.solve_lfp v rhs;
+      S.bound v
   in
   translate root
 

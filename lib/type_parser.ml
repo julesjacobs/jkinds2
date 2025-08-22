@@ -276,8 +276,10 @@ let parse_exn s =
 
 let parse s = match parse_mu s with Error e -> Error e | Ok m -> to_simple m
 
-(* A cyclic graph representation to hold direct cycles via refs. *)
-type cyclic_desc =
+(* Cyclic graph representation where only MuLink carries mutability. All other
+   nodes are pure. A Mu binder produces a [MuLink r] whose ref ultimately points
+   to the binder body, and recursive occurrences refer to the same link. *)
+type cyclic =
   | CUnit
   | CPair of cyclic * cyclic
   | CSum of cyclic * cyclic
@@ -285,29 +287,29 @@ type cyclic_desc =
   | CVar of int
   | CMod_annot of cyclic * int array
   | CMod_const of int array
-
-and cyclic = cyclic_desc ref
+  | MuLink of cyclic ref
 
 let to_cyclic (t : mu_raw) : cyclic =
   let rec go env t =
     match t with
-    | UnitR -> ref CUnit
-    | PairR (a, b) -> ref (CPair (go env a, go env b))
-    | SumR (a, b) -> ref (CSum (go env a, go env b))
-    | CR (name, args) -> ref (CCtor (name, List.map (go env) args))
-    | VarR v -> ref (CVar v)
-    | ModAnnotR (u, lv) -> ref (CMod_annot (go env u, lv))
-    | ModConstR lv -> ref (CMod_const lv)
+    | UnitR -> CUnit
+    | PairR (a, b) -> CPair (go env a, go env b)
+    | SumR (a, b) -> CSum (go env a, go env b)
+    | CR (name, args) -> CCtor (name, List.map (go env) args)
+    | VarR v -> CVar v
+    | ModAnnotR (u, lv) -> CMod_annot (go env u, lv)
+    | ModConstR lv -> CMod_const lv
     | RecvarR bi -> (
       match List.assoc_opt bi env with
-      | Some r -> r
+      | Some r -> MuLink r
       | None -> failwith "unbound 'b index")
     | MuR (bi, body) ->
-      let hole : cyclic = ref CUnit in
+      let hole : cyclic ref = ref CUnit in
       let env' = (bi, hole) :: env in
       let body_c = go env' body in
-      hole := !body_c;
-      hole
+      hole := body_c;
+      (* Return the link itself so top-level gets an anchor *)
+      MuLink hole
   in
   go [] t
 
@@ -320,34 +322,46 @@ let parse_mu_cyclic s =
    then print with anchors for those nodes only. *)
 
 let pp_cyclic (root : cyclic) : string =
-  (* Pass 1: detect nodes that are targets of back-edges (on recursion). *)
-  let onstack : (cyclic, bool) Hashtbl.t = Hashtbl.create 64 in
-  let visited : (cyclic, bool) Hashtbl.t = Hashtbl.create 64 in
-  let cyclic_nodes : (cyclic, bool) Hashtbl.t = Hashtbl.create 64 in
-  let rec dfs (n : cyclic) : unit =
-    if Hashtbl.mem visited n then ()
-    else (
-      Hashtbl.add visited n true;
-      Hashtbl.replace onstack n true;
-      let explore child =
-        if Hashtbl.mem onstack child then
-          Hashtbl.replace cyclic_nodes child true
-        else dfs child
-      in
-      (match !n with
-      | CUnit | CVar _ | CMod_const _ -> ()
-      | CMod_annot (t, _) -> explore t
-      | CPair (a, b) | CSum (a, b) ->
-        explore a;
-        explore b
-      | CCtor (_, args) -> List.iter explore args);
-      Hashtbl.remove onstack n)
-  in
-  dfs root;
+  (* Pass 1: detect link targets that participate in cycles. *)
+  let onstack_ref : (cyclic ref, unit) Hashtbl.t = Hashtbl.create 64 in
+  let visited_ref : (cyclic ref, unit) Hashtbl.t = Hashtbl.create 64 in
+  let cyclic_links : (cyclic ref, unit) Hashtbl.t = Hashtbl.create 64 in
 
-  (* Pass 2: print with anchors only for nodes in [cyclic_nodes]. *)
-  let id_of : (cyclic, int) Hashtbl.t = Hashtbl.create 64 in
-  let defined : (cyclic, bool) Hashtbl.t = Hashtbl.create 64 in
+  let rec dfs_node (n : cyclic) : unit =
+    match n with
+    | CUnit | CVar _ | CMod_const _ -> ()
+    | CMod_annot (t, _) -> dfs_node t
+    | CPair (a, b) | CSum (a, b) ->
+      dfs_node a;
+      dfs_node b
+    | CCtor (_, args) -> List.iter dfs_node args
+    | MuLink r -> dfs_ref r
+  and dfs_ref (r : cyclic ref) : unit =
+    if Hashtbl.mem visited_ref r then ()
+    else (
+      Hashtbl.add visited_ref r ();
+      Hashtbl.add onstack_ref r ();
+      (* Explore the target; encountering the same ref onstack marks a cycle *)
+      let rec explore (n : cyclic) : unit =
+        match n with
+        | MuLink r' ->
+          if Hashtbl.mem onstack_ref r' then Hashtbl.replace cyclic_links r' ()
+          else dfs_ref r'
+        | CUnit | CVar _ | CMod_const _ -> ()
+        | CMod_annot (t, _) -> explore t
+        | CPair (a, b) | CSum (a, b) ->
+          explore a;
+          explore b
+        | CCtor (_, args) -> List.iter explore args
+      in
+      explore !r;
+      Hashtbl.remove onstack_ref r)
+  in
+  dfs_node root;
+
+  (* Pass 2: print with anchors for cyclic links only. *)
+  let id_of : (cyclic ref, int) Hashtbl.t = Hashtbl.create 64 in
+  let defined : (cyclic ref, unit) Hashtbl.t = Hashtbl.create 64 in
 
   let fresh_id =
     let r = ref 0 in
@@ -357,27 +371,8 @@ let pp_cyclic (root : cyclic) : string =
   in
 
   let rec pp (n : cyclic) : string =
-    let needs_anchor = Hashtbl.mem cyclic_nodes n in
-    if needs_anchor then (
-      let id =
-        match Hashtbl.find_opt id_of n with
-        | Some k -> k
-        | None ->
-          let k = fresh_id () in
-          Hashtbl.add id_of n k;
-          k
-      in
-      match Hashtbl.find_opt defined n with
-      | Some true -> Printf.sprintf "#%d" id
-      | _ ->
-        Hashtbl.replace defined n true;
-        let body = pp_desc !n in
-        Printf.sprintf "#%d=%s" id body)
-    else pp_desc !n
-  and levels_to_string (levels : int array) : string =
-    levels |> Array.to_list |> List.map string_of_int |> String.concat ","
-  and pp_desc (d : cyclic_desc) : string =
-    match d with
+    match n with
+    | MuLink r -> pp_link r
     | CUnit -> "unit"
     | CVar v -> Printf.sprintf "'a%d" v
     | CMod_const lv -> Printf.sprintf "[%s]" (levels_to_string lv)
@@ -389,5 +384,24 @@ let pp_cyclic (root : cyclic) : string =
     | CCtor (name, args) ->
       let args_s = args |> List.map pp |> String.concat ", " in
       Printf.sprintf "%s(%s)" name args_s
+  and levels_to_string (levels : int array) : string =
+    levels |> Array.to_list |> List.map string_of_int |> String.concat ","
+  and pp_link (r : cyclic ref) : string =
+    let needs_anchor = Hashtbl.mem cyclic_links r in
+    if needs_anchor then (
+      let id =
+        match Hashtbl.find_opt id_of r with
+        | Some k -> k
+        | None ->
+          let k = fresh_id () in
+          Hashtbl.add id_of r k;
+          k
+      in
+      match Hashtbl.find_opt defined r with
+      | Some _ -> Printf.sprintf "#%d" id
+      | None ->
+        Hashtbl.add defined r ();
+        Printf.sprintf "#%d=%s" id (pp !r))
+    else pp !r
   in
   pp root
