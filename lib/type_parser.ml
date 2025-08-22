@@ -1,13 +1,5 @@
 open Type_syntax
 
-let make_var (v : int) : t = Var v
-let make_c (name : string) (args : t list) : t = C (name, args)
-
-(* Grammar (whitespace ignored): Type := Constr | Var Constr := IDENT [ '(' Type
-   (',' Type)* ')' ] Var := 'a' INT (* integers; 'a-1' means a0, reserved
-   special *) We also allow bare INT as var for convenience; 'a' prefix is
-   optional. *)
-
 exception Parse_error of string
 
 (* Extended: recursive types with mu / &'bN *)

@@ -141,21 +141,16 @@ let decompose_by_tyvars ~(arity : int) (p : S.poly) :
     in
     loop 1 []
   in
-  let groups = S.decompose_by ~universe p in
-  let base = ref S.bot in
+  let base, singles, mixed = S.decompose_linear ~universe p in
   let coeffs = Array.init arity (fun _ -> S.bot) in
-  let mixed = ref [] in
-  let () =
-    List.iter
-      (fun (key, poly) ->
-        match key with
-        | [] -> base := S.join !base poly
-        | [ VarLabel.TyVar i ] when i >= 1 && i <= arity ->
-          coeffs.(i - 1) <- S.join coeffs.(i - 1) poly
-        | _ -> mixed := (key, poly) :: !mixed)
-      groups
-  in
-  (!base, coeffs, List.rev !mixed)
+  List.iter
+    (fun (v, poly) ->
+      match v with
+      | VarLabel.TyVar i when i >= 1 && i <= arity ->
+        coeffs.(i - 1) <- S.join coeffs.(i - 1) poly
+      | _ -> ())
+    singles;
+  (base, coeffs, mixed)
 
 let pp_varlabel : VarLabel.t -> string = function
   | VarLabel.Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index

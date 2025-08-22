@@ -273,4 +273,32 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         [] terms
     in
     groups
+
+  let decompose_linear ~(universe : V.t list) (p : poly) :
+      poly * (V.t * poly) list * (V.t list * poly) list =
+    let groups = decompose_by ~universe p in
+    let base = ref P.bot in
+    let singles_tbl : (V.t, poly) Hashtbl.t = Hashtbl.create 16 in
+    let mixed = ref [] in
+    List.iter
+      (fun (key, poly) ->
+        match key with
+        | [] -> base := P.join !base poly
+        | [ v ] ->
+          let prev =
+            match Hashtbl.find_opt singles_tbl v with
+            | Some x -> x
+            | None -> P.bot
+          in
+          Hashtbl.replace singles_tbl v (P.join prev poly)
+        | _ -> mixed := (key, poly) :: !mixed)
+      groups;
+    let singles =
+      universe
+      |> List.filter_map (fun v ->
+             match Hashtbl.find_opt singles_tbl v with
+             | None -> None
+             | Some p -> Some (v, p))
+    in
+    (!base, singles, List.rev !mixed)
 end
