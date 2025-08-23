@@ -69,13 +69,77 @@ end = struct
   type constr_decl = { args : ty list; kind : ckind; abstract : bool }
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
 
-  let norm (env : env) (k : ckind) : kind = failwith "unimplemented"
+  let make_ops (env : env) : ops =
+    (* Define all the trivial ops *)
+    let const l = LSolver.const l in
+    let join ks = List.fold_left LSolver.join LSolver.top ks in
+    let modality l k = LSolver.meet (LSolver.const l) k in
+
+    (* Create hash table mapping ty to kind for memoization *)
+    let ty_to_kind = Hashtbl.create 0 in
+    (* And hash table mapping constructor to coefficients *)
+    let constr_to_coeffs = Hashtbl.create 0 in
+
+    (* Define kind_of and constr ops *)
+    let rec kind_of (t : ty) : kind =
+      match Hashtbl.find_opt ty_to_kind t with
+      | Some k -> k
+      | None ->
+        (* Pre-insert lattice solver var for this type *)
+        let v = LSolver.new_var (Var.Ty t) in
+        Hashtbl.add ty_to_kind t (LSolver.var v);
+        let kind = env.kind_of t ops in
+        LSolver.solve_lfp v kind;
+        kind
+    and constr c ks =
+      (* Todo: need to explore the constructor definition using lookup to
+         contrain the coeffs and base *)
+      let base, coeffs =
+        match Hashtbl.find_opt constr_to_coeffs c with
+        | Some base_and_coeffs -> base_and_coeffs
+        | None ->
+          let base = LSolver.new_var (Var.Atom { constr = c; arg_index = 0 }) in
+          let coeffs =
+            List.mapi
+              (fun i _ ->
+                LSolver.new_var (Var.Atom { constr = c; arg_index = i + 1 }))
+              ks
+          in
+          Hashtbl.add constr_to_coeffs c (base, coeffs);
+          (base, coeffs)
+      in
+      (* Meet each arg with the corresponding coeff *)
+      let ks' =
+        List.map2 (fun k coeff -> LSolver.meet k (LSolver.var coeff)) ks coeffs
+      in
+      (* Join all the ks'' plus the base *)
+      let k' = List.fold_left LSolver.join (LSolver.var base) ks' in
+      (* Return that kind *)
+      k'
+    (* (* We need to use env.lookup to get the kind of the constructor *) let
+       {args; kind; abstract} = env.lookup c in (* We need to compute the kind
+       here but in an environment mapping args -> coeffs *) let kind' = failwith
+       "unimplemented" in (* Do a linear decomposition of kind' into coeffs' *)
+       let coeffs' = failwith "unimplemented" in (* Now we need to solve_lfp
+       coeffs = coeffs' if concrete, or assert_leq if abstract, taking into
+       account that we need to join the 0th coeff' into the other coeffs' for
+       assert_leq *) if abstract then failwith "unimplemented" else failwith
+       "unimplemented" kind' *)
+    and ops = { const; join; modality; constr; kind_of } in
+    ops
+
+  let norm (env : env) (k : ckind) : kind =
+    let ops = make_ops env in
+    k ops
 
   let normalize (env : env) (k : ckind) : (lat * atom list) list =
     failwith "unimplemented"
 
   let leq (env : env) (k1 : ckind) (k2 : ckind) : bool =
-    LSolver.leq (norm env k1) (norm env k2)
+    let ops = make_ops env in
+    let k1' = k1 ops in
+    let k2' = k2 ops in
+    LSolver.leq k1' k2'
 
   let round_up (env : env) (k : ckind) : lat = failwith "unimplemented"
   (* LSolver.round_up (norm env k) *)
