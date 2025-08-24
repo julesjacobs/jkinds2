@@ -101,6 +101,16 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     in
     List.iter update_dependent dependents_snapshot
 
+  (* Queue of pending ≤ assertions to be processed lazily. *)
+  let pending_asserts : (Var.t * P.t) list ref = ref []
+
+  let has_unsolved_tmp_in (p : P.t) : bool =
+    let vars = P.support p in
+    P.VarSet.exists
+      (fun (u : Var.t) -> match (u.name, u.eliminated) with None, false -> true | _ -> false)
+      vars
+
+
   let new_var =
     let r = ref 0 in
     fun (name : V.t) ->
@@ -157,14 +167,23 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     in
     if P.VarMap.is_empty subs then p else P.subst ~subs p
 
+  let process_pending_asserts () : unit =
+    let q = !pending_asserts in
+    if q <> [] then (
+      pending_asserts := [];
+      List.iter
+        (fun ((v : Var.t), (p : P.t)) ->
+          if v.eliminated then failwith "assert_leq: variable already eliminated";
+          if has_unsolved_tmp_in p then
+            failwith "assert_leq: contains unsolved temporary variable";
+          let p' = normalize_poly p in
+          let new_bound = P.meet v.bound p' in
+          replace_bound v new_bound)
+        (List.rev q))
+
   let assert_leq (Handle v : var) (p : poly) : unit =
     if v.eliminated then failwith "assert_leq: variable already eliminated";
-    (* 1) substitute all bounds into p *)
-    let p' = normalize_poly p in
-    (* 2) new bound is (self ⊓ p') *)
-    let new_bound = P.meet v.bound p' in
-    (* 3) set and propagate to dependents *)
-    replace_bound v new_bound
+    pending_asserts := (v, p) :: !pending_asserts
 
   let solve_lfp (Handle v : tmp) (p : poly) : unit =
     if v.eliminated then failwith "solve_lfp: variable already eliminated";
@@ -184,11 +203,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     v.eliminated <- true
 
   let leq (a : poly) (b : poly) : bool =
+    process_pending_asserts ();
     let a' = normalize_poly a in
     let b' = normalize_poly b in
     P.leq a' b'
 
   let normalize (p : poly) : (lat * V.t list) list =
+    process_pending_asserts ();
     let p' = normalize_poly p in
     let terms = P.to_list p' in
     let var_names (vs : P.VarSet.t) : V.t list =
@@ -197,7 +218,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     List.map (fun (vars, coeff) -> (coeff, var_names vars)) terms
 
   let is_eliminated (Handle v : var) = v.eliminated
-  let bound (Handle v : var) : poly = v.bound
+  let bound (Handle v : var) : poly =
+    process_pending_asserts (); v.bound
   let name (Handle v : var) : V.t =
     match v.name with Some n -> n | None -> failwith "name: temporary var"
 
@@ -241,6 +263,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         | _ -> "(" ^ String.concat " ⊔ " term_strings ^ ")"
 
   let pp_state_line ?pp_var ?pp_coeff (Handle v : var) : string =
+    process_pending_asserts ();
     let lhs =
       match (v.name, pp_var) with
       | Some n, Some f -> f n
@@ -256,6 +279,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
      grouped poly, we remove designated variables from each term while keeping
      non-designated variables. *)
   let decompose_by ~(universe : V.t list) (p : poly) : (V.t list * poly) list =
+    process_pending_asserts ();
     (* Index map for stable ordering of keys *)
     let module VSet = Set.Make (V) in
     let idx_tbl = Hashtbl.create 16 in
@@ -315,6 +339,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let decompose_linear ~(universe : V.t list) (p : poly) :
       poly * (V.t * poly) list * (V.t list * poly) list =
+    process_pending_asserts ();
     let groups = decompose_by ~universe p in
     let base = ref P.bot in
     let singles_tbl : (V.t, poly) Hashtbl.t = Hashtbl.create 16 in
