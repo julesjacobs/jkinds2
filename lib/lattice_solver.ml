@@ -9,7 +9,7 @@ end
 module Make (C : LATTICE) (V : ORDERED) = struct
   module rec Var : sig
     type t = {
-      name : V.t;
+      name : V.t option;
       id : int;
       mutable bound : P.t;
       mutable eliminated : bool;
@@ -19,7 +19,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     val compare : t -> t -> int
   end = struct
     type t = {
-      name : V.t;
+      name : V.t option;
       id : int;
       mutable bound : P.t;
       mutable eliminated : bool;
@@ -48,7 +48,11 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   end =
     Lattice_polynomial.Make (C) (Var)
 
-  type var = Var.t
+  type named
+  type temp
+  type 'k handle = Handle of Var.t
+  type var = named handle
+  type tmp = temp handle
   type lat = C.t
   type poly = P.t
 
@@ -103,13 +107,41 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       let x = !r in
       r := x + 1;
       let v =
-        Var.{ name; id = x; bound = P.bot; eliminated = false; dependents = [] }
+        Var.
+          {
+            name = Some name;
+            id = x;
+            bound = P.bot;
+            eliminated = false;
+            dependents = [];
+          }
       in
       (* Initialize bound to the variable itself, not top *)
       v.bound <- P.var v;
-      v
+      Handle v
 
-  let var (v : var) : poly = P.var v
+  let new_tmp =
+    let r = ref 0 in
+    fun () ->
+      let x = !r in
+      r := x + 1;
+      let v =
+        Var.
+          {
+            name = None;
+            id = x;
+            bound = P.bot;
+            eliminated = false;
+            dependents = [];
+          }
+      in
+      v.bound <- P.var v;
+      Handle v
+
+  let as_tmp (Handle v : var) : tmp = Handle v
+
+  let var (Handle v : var) : poly = P.var v
+  let tmp (Handle t : tmp) : poly = P.var t
   let const (c : lat) : poly = P.const c
   let top : poly = P.top
   let bot : poly = P.bot
@@ -125,7 +157,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     in
     if P.VarMap.is_empty subs then p else P.subst ~subs p
 
-  let assert_leq (v : var) (p : poly) : unit =
+  let assert_leq (Handle v : var) (p : poly) : unit =
     if v.eliminated then failwith "assert_leq: variable already eliminated";
     (* 1) substitute all bounds into p *)
     let p' = normalize_poly p in
@@ -134,7 +166,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     (* 3) set and propagate to dependents *)
     replace_bound v new_bound
 
-  let solve_lfp (v : var) (p : poly) : unit =
+  let solve_lfp (Handle v : tmp) (p : poly) : unit =
     if v.eliminated then failwith "solve_lfp: variable already eliminated";
     (* 1) normalize the poly w.r.t. other vars *)
     let p_norm = normalize_poly p in
@@ -160,13 +192,14 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let p' = normalize_poly p in
     let terms = P.to_list p' in
     let var_names (vs : P.VarSet.t) : V.t list =
-      vs |> P.VarSet.elements |> List.map (fun (v : Var.t) -> v.name)
+      vs |> P.VarSet.elements |> List.filter_map (fun (v : Var.t) -> v.name)
     in
     List.map (fun (vars, coeff) -> (coeff, var_names vars)) terms
 
-  let is_eliminated (v : var) = v.eliminated
-  let bound (v : var) : poly = v.bound
-  let name (v : var) : V.t = v.name
+  let is_eliminated (Handle v : var) = v.eliminated
+  let bound (Handle v : var) : poly = v.bound
+  let name (Handle v : var) : V.t =
+    match v.name with Some n -> n | None -> failwith "name: temporary var"
 
   let pp ?pp_var ?pp_coeff (p : poly) : string =
     (* Pretty-print like Modality.pp, but generic over vars and coeffs *)
@@ -177,7 +210,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       match pp_coeff with Some f -> f | None -> fun (_ : C.t) -> "⊤"
     in
     let var_elems s =
-      P.VarSet.elements s |> List.map (fun (v : Var.t) -> pp_var_fn v.name)
+      P.VarSet.elements s
+      |> List.map (fun (v : Var.t) ->
+             match v.name with Some n -> pp_var_fn n | None -> "_")
     in
     (* Detect bottom and top via to_list and structure instead of equal *)
     let ts = P.to_list p in
@@ -205,9 +240,12 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         | [ s ] -> s
         | _ -> "(" ^ String.concat " ⊔ " term_strings ^ ")"
 
-  let pp_state_line ?pp_var ?pp_coeff (v : var) : string =
+  let pp_state_line ?pp_var ?pp_coeff (Handle v : var) : string =
     let lhs =
-      match pp_var with Some f -> f v.name | None -> Printf.sprintf "v%d" v.id
+      match (v.name, pp_var) with
+      | Some n, Some f -> f n
+      | Some _, None -> Printf.sprintf "v%d" v.id
+      | None, _ -> Printf.sprintf "v%d" v.id
     in
     let rel = if v.eliminated then "=" else "≤" in
     let rhs = pp ?pp_var ?pp_coeff v.bound in
@@ -255,8 +293,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
           let designated_names, other_vars =
             List.fold_left
               (fun (d, o) (v : Var.t) ->
-                if VSet.mem v.name universe_set then (v.name :: d, o)
-                else (d, v :: o))
+                match v.name with
+                | Some n when VSet.mem n universe_set -> (n :: d, o)
+                | _ -> (d, v :: o))
               ([], []) vars_list
           in
           let designated_sorted =

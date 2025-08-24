@@ -15,14 +15,22 @@ end
 
 module Make (C : LATTICE) (V : ORDERED) : sig
   type var
+  (* Temporary variables used only for solve_lfp. *)
+  type tmp
   type lat = C.t
   type poly
 
   (* Create a fresh solver variable labeled by an external identifier *)
   val new_var : V.t -> var
+  (* Create a fresh anonymous temporary variable (no external name). *)
+  val new_tmp : unit -> tmp
+  (* Explicitly treat a named var as a temporary for solving. *)
+  val as_tmp : var -> tmp
 
   (* Variables and constants are leaves of polys *)
   val var : var -> poly
+  (* Convert a temporary variable to a polynomial term. *)
+  val tmp : tmp -> poly
   val const : lat -> poly
 
   (* Lattice structure on polys *)
@@ -38,7 +46,7 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   (* Solve the least fixpoint for var = poly(var, other vars); variable is
      eliminated after this (can't assert_leq or solve_lfp again). Throws an
      exception if the equation is inconsistent with existing (in)equalities *)
-  val solve_lfp : var -> poly -> unit
+  val solve_lfp : tmp -> poly -> unit
 
   (* Pure check: forall xs, poly1(xs) ≤ poly2(xs) *)
   val leq : poly -> poly -> bool

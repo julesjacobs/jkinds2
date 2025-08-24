@@ -86,8 +86,8 @@ end = struct
       | Some k -> k
       | None ->
         (* Pre-insert lattice solver var for this type *)
-        let v = LSolver.new_var (Var.Ty t) in
-        Hashtbl.add ty_to_kind t (LSolver.var v);
+        let v = LSolver.new_tmp () in
+        Hashtbl.add ty_to_kind t (LSolver.tmp v);
         let kind = env.kind_of t ops in
         LSolver.solve_lfp v kind;
         kind
@@ -128,9 +128,9 @@ end = struct
     and ops = { const; join; modality; constr; kind_of } in
     ops
 
-  let norm (env : env) (k : ckind) : kind =
-    let ops = make_ops env in
-    k ops
+  (* let norm (env : env) (k : ckind) : kind =
+     let ops = make_ops env in
+     k ops *)
 
   let normalize (env : env) (k : ckind) : (lat * atom list) list =
     failwith "unimplemented"

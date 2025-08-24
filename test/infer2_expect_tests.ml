@@ -73,7 +73,7 @@ let%expect_test "two-phase abstract solving (one/two)" =
 
     => all bot
   *)
-  S.solve_lfp two0 base_two;
+  S.solve_lfp (S.as_tmp two0) base_two;
   print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff one0);
   print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff two0);
   [%expect {|
@@ -102,7 +102,7 @@ let%expect_test "two-phase abstract solving (one/two) lfp first" =
   let base_two = S.var one0 in
   (* Abstract phase: assert leq C.0 ≤ base(C), meet-self happens in
      assert_leq. *)
-  S.solve_lfp two0 base_two;
+  S.solve_lfp (S.as_tmp two0) base_two;
   print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff one0);
   print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff two0);
   [%expect {|

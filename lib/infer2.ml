@@ -103,7 +103,7 @@ let to_poly_cyclic (root : Type_parser.cyclic) : S.poly =
       let v = get_var (VarLabel.TyRec (Hashtbl.length table)) in
       Hashtbl.add table r v;
       let rhs = translate !r in
-      S.solve_lfp v rhs;
+      S.solve_lfp (S.as_tmp v) rhs;
       S.bound v
   in
   translate root
@@ -202,10 +202,10 @@ let solve_linear_for_program (prog : Decl_parser.program) : unit =
     (fun { it; base; coeffs } ->
       if not it.abstract then (
         let v0 = get_atom_var ~ctor:it.name ~index:0 in
-        S.solve_lfp v0 base;
+        S.solve_lfp (S.as_tmp v0) base;
         for i = 1 to it.arity do
           let vi = get_atom_var ~ctor:it.name ~index:i in
-          S.solve_lfp vi coeffs.(i - 1)
+          S.solve_lfp (S.as_tmp vi) coeffs.(i - 1)
         done))
     decs;
   (* Phase 2: assert abstracts as ≤ constraints, using base ∨ coeff_i *)
