@@ -45,6 +45,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     val leq : t -> t -> bool
     val support : t -> VarSet.t
     val subst : subs:t VarMap.t -> t -> t
+    val pp :
+      ?pp_var:(Var.t -> string) -> ?pp_coeff:(C.t -> string) -> t -> string
   end =
     Lattice_polynomial.Make (C) (Var)
 
@@ -198,43 +200,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     match v.name with Some n -> n | None -> failwith "name: temporary var"
 
   let pp ?pp_var ?pp_coeff (p : poly) : string =
-    (* Pretty-print like Modality.pp, but generic over vars and coeffs *)
-    let pp_var_fn =
-      match pp_var with Some f -> f | None -> fun (_ : V.t) -> "_"
+    let pp_coeff_fn = match pp_coeff with Some f -> f | None -> fun (_:C.t)->"⊤" in
+    let pp_var_internal (v : Var.t) : string =
+      match v.name with
+      | Some n -> (match pp_var with Some f -> f n | None -> "_")
+      | None -> Printf.sprintf "v%d" v.id
     in
-    let pp_coeff_fn =
-      match pp_coeff with Some f -> f | None -> fun (_ : C.t) -> "⊤"
-    in
-    let var_elems s =
-      P.VarSet.elements s
-      |> List.map (fun (v : Var.t) ->
-             match v.name with Some n -> pp_var_fn n | None -> "_")
-    in
-    (* Detect bottom and top via to_list and structure instead of equal *)
-    let ts = P.to_list p in
-    if ts = [] then "⊥"
-    else
-      let is_top =
-        match ts with
-        | [ (s, c) ] -> P.VarSet.is_empty s && C.equal c C.top
-        | _ -> false
-      in
-      if is_top then "⊤"
-      else
-        let term_strings =
-          ts
-          |> List.map (fun (s, c) ->
-                 let vars = var_elems s in
-                 if C.equal c C.top then
-                   let vars_str = String.concat " ⊓ " vars in
-                   if List.length vars = 1 then vars_str
-                   else "(" ^ vars_str ^ ")"
-                 else if P.VarSet.is_empty s then pp_coeff_fn c
-                 else "(" ^ String.concat " ⊓ " (pp_coeff_fn c :: vars) ^ ")")
-        in
-        match term_strings with
-        | [ s ] -> s
-        | _ -> "(" ^ String.concat " ⊔ " term_strings ^ ")"
+    P.pp ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_fn p
 
   let pp_state_line ?pp_var ?pp_coeff (v : var) : string =
     process_pending_asserts ();

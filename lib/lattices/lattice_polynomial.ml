@@ -223,23 +223,25 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let ceil (p : t) : C.t = eval (fun _ -> C.top) p
   let floor (p : t) : C.t = eval (fun _ -> C.bot) p
 
-  (* Pretty printer (ASCII); you can pass printers for variables and coeffs. *)
-  let pp ?(pp_var = fun _ -> "_") ?(pp_coeff = fun _ -> "<c>") (p : t) : string
-      =
+  (* Pretty printer with deterministic ordering. Strategy: convert each term to
+     a string using provided printers, then sort lexicographically by that
+     string. This avoids depending on structural ordering of variables. *)
+  let pp ?(pp_var = fun _ -> "_") ?(pp_coeff = fun _ -> "<c>") (p : t) : string =
     if SetMap.is_empty p then "⊥"
     else
-      let show_set s =
-        if VarSet.is_empty s then ""
-        else
-          let xs = VarSet.elements s |> List.map pp_var in
-          " ⊓ " ^ String.concat " ⊓ " xs
-      in
-      let terms_str =
+      let term_strings =
         to_list p
-        |> List.map (fun (s, c) -> "{" ^ pp_coeff c ^ show_set s ^ "}")
-        |> String.concat " ⊔ "
+        |> List.map (fun (s, c) ->
+               let vs = VarSet.elements s |> List.map pp_var |> List.sort String.compare in
+               let body =
+                 match vs with
+                 | [] -> pp_coeff c
+                 | _ -> pp_coeff c ^ " ⊓ " ^ String.concat " ⊓ " vs
+               in
+               "{" ^ body ^ "}")
+        |> List.sort String.compare
       in
-      "{" ^ terms_str ^ "}"
+      "{" ^ String.concat " ⊔ " term_strings ^ "}"
 
   (* Backward-compat alias to emphasize approximation semantics. *)
   let co_sub = co_sub_approx

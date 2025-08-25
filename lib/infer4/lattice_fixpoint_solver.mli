@@ -17,6 +17,7 @@ module type ORDERED = sig
   type t
 
   val compare : t -> t -> int
+  val to_string : t -> string
 end
 
 module Make (C : LATTICE) (V : ORDERED) : sig
@@ -74,4 +75,9 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   (* Pretty-print a polynomial with customizable printers. *)
   val pp :
     ?pp_var:(V.t -> string) -> ?pp_coeff:(lat -> string) -> poly -> string
+
+  (* Configure pretty-printers used only for internal tracing/logging. If not
+     set, logs print rigid vars as "_" and coefficients as "⊤". *)
+  val set_log_printers :
+    ?pp_var:(V.t -> string) -> ?pp_coeff:(lat -> string) -> unit -> unit
 end

@@ -171,9 +171,11 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
       in
       let rhs = conc_sol @ current in
       let next0 = substitute_kinds_bindings ~lhs:abs_bs ~rhs in
+      (* Join base (index 0) into all parameter entries before meeting with self. *)
       let next =
         List.map
           (fun (n, k) ->
+            let k = Kind.normalize_up k in
             match StrMap.find_opt n arity_by_name with
             | Some arity ->
               let rec meet_self i acc =

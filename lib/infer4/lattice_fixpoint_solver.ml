@@ -4,6 +4,8 @@ module type ORDERED = sig
   type t
 
   val compare : t -> t -> int
+
+  val to_string : t -> string
 end
 
 module Make (C : LATTICE) (V : ORDERED) = struct
@@ -14,7 +16,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       | Rigid of V.t
       | Var of var_state
 
-    and var_state = P.t option ref
+    and var_state = { id : int; mutable sol : P.t option }
 
     val compare : t -> t -> int
   end = struct
@@ -22,7 +24,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       | Rigid of V.t
       | Var of var_state
 
-    and var_state = P.t option ref
+    and var_state = { id : int; mutable sol : P.t option }
 
     let tag = function Rigid _ -> 0 | Var _ -> 1
 
@@ -49,14 +51,49 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     val leq : t -> t -> bool
     val support : t -> VarSet.t
     val subst : subs:t VarMap.t -> t -> t
+    val pp :
+      ?pp_var:(Var.t -> string) -> ?pp_coeff:(C.t -> string) -> t -> string
   end =
     Lattice_polynomial.Make (C) (Var)
 
   type var = Var.var_state
   type poly = P.t
 
+  (* tracing support *)
+  let trace_enabled =
+    match Sys.getenv_opt "JKINDS_TRACE" with
+    | Some s ->
+        let s = String.lowercase_ascii (String.trim s) in
+        not (s = "" || s = "0" || s = "false" || s = "no")
+    | None -> false
+
+  let log fmt = if trace_enabled then Printf.eprintf (fmt ^^ "\n") else Printf.ifprintf stderr fmt
+
+  let next_id = ref 0
+
+  (* Pretty printer configuration for logging within this module. *)
+  let log_pp_var : (V.t -> string) option ref = ref None
+  let log_pp_coeff : (C.t -> string) option ref = ref None
+
+  let set_log_printers ?pp_var ?pp_coeff () : unit =
+    (match pp_var with Some f -> log_pp_var := Some f | None -> ());
+    (match pp_coeff with Some f -> log_pp_coeff := Some f | None -> ())
+
+  let pp_log (p : poly) : string =
+    let pp_var_internal = function
+      | Var.Rigid n -> V.to_string n
+      | Var.Var s -> Printf.sprintf "v%d" s.id
+    in
+    let pp_coeff_internal = match !log_pp_coeff with Some f -> f | None -> fun (_:C.t)->"⊤" in
+    P.pp ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_internal p
+
   (* Public constructors *)
-  let new_var () : var = ref None
+  let new_var () : var =
+    let id = !next_id in
+    incr next_id;
+    let v = { Var.id = id; Var.sol = None } in
+    log "[fix] new_var v%d" id;
+    v
 
   let var (v : var) : poly = P.var (Var.Var v)
   let rigid (n : V.t) : poly = P.var (Var.Rigid n)
@@ -68,15 +105,15 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let meet (a : poly) (b : poly) : poly = P.meet a b
 
   (* Internal: force solved solver variables inside a polynomial *)
-  let force_poly (p : poly) : poly =
+  let rec force_poly (p : poly) : poly =
     let vars = P.support p in
     let subs =
       P.VarSet.fold
         (fun v acc ->
           match v with
           | Var.Rigid _ -> acc
-          | Var.Var s -> (
-            match !s with Some q -> P.VarMap.add v q acc | None -> acc))
+          | Var.Var s -> 
+              match s.Var.sol with Some q -> P.VarMap.add v (force_poly q) acc | None -> acc)
         vars P.VarMap.empty
     in
     if P.VarMap.is_empty subs then p else P.subst ~subs p
@@ -87,7 +124,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       (function
         | Var.Rigid _ -> ()
         | Var.Var s -> (
-          match !s with
+          match s.Var.sol with
           | Some _ -> ()
           | None -> failwith (ctx ^ ": contains unsolved solver variable")))
       vars
@@ -98,40 +135,46 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let solve_pending_gfps () : unit =
     if !pending_gfp <> [] then (
+      log "[fix] solving %d pending GFPs" (List.length !pending_gfp);
       let items = List.rev !pending_gfp in
       pending_gfp := [];
       List.iter
-        (fun (v, rhs') ->
-          (match !v with Some _ -> failwith "solve_gfps: variable already solved" | None -> ());
+        (fun (v, rhs) ->
+          (match v.Var.sol with Some _ -> failwith "solve_gfps: variable already solved" | None -> ());
           let subs = P.VarMap.(empty |> add (Var.Var v) P.top) in
+          let rhs' = force_poly rhs in
           let cand = P.subst ~subs rhs' in
-          let cand' = force_poly cand in
-          v := Some cand')
+          v.Var.sol <- Some cand;
+          log "[fix] gfp(v%d, rhs=%s)" v.Var.id (pp_log cand))
         items)
 
   let enter_query_phase () : unit =
     if !phase <> Query then (
+      log "[fix] enter_query_phase";
       solve_pending_gfps ();
       phase := Query)
 
   let solve_lfp (v : var) (rhs : poly) : unit =
     (match !phase with Build -> () | _ -> failwith "solve_lfp: after query phase");
-    (match !v with Some _ -> failwith "solve_lfp: variable already solved" | None -> ());
+    (match v.Var.sol with Some _ -> failwith "solve_lfp: variable already solved" | None -> ());
     let rhs' = force_poly rhs in
     (* substitute self by bot for LFP candidate *)
     let subs = P.VarMap.(empty |> add (Var.Var v) P.bot) in
     let cand = P.subst ~subs rhs' in
     let cand' = force_poly cand in
-    v := Some cand'
+    v.Var.sol <- Some cand';
+    log "[fix] lfp(v%d, rhs=%s)" v.Var.id (pp_log cand')
 
   let enqueue_gfp (v : var) (rhs : poly) : unit =
     (match !phase with Build -> () | _ -> failwith "enqueue_gfp: after query phase");
-    (match !v with Some _ -> failwith "enqueue_gfp: variable already solved" | None -> ());
+    (match v.Var.sol with Some _ -> failwith "enqueue_gfp: variable already solved" | None -> ());
     pending_gfp := (v, rhs) :: !pending_gfp
+    ; log "[fix] enqueue_gfp(v%d, rhs=%s)" v.Var.id (pp_log rhs)
 
   (* No explicit solve_gfps: queries enter query phase and solve pending GFPs. *)
 
   let leq (a : poly) (b : poly) : bool =
+    log "[fix] leq(%s, %s)" (pp_log a) (pp_log b);
     enter_query_phase ();
     let a' = force_poly a in
     let b' = force_poly b in
@@ -140,6 +183,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     P.leq a' b'
 
   let normalize (p : poly) : (lat * V.t list) list =
+    log "[fix] normalize(%s)" (pp_log p);
     enter_query_phase ();
     let p' = force_poly p in
     require_no_unsolved "normalize" p';
@@ -153,6 +197,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* Group polynomial terms by designated rigid variables. *)
   let decompose_by ~(universe : V.t list) (p : poly) : (V.t list * poly) list =
+    log "[fix] decompose_by(|U|=%d, p=%s)" (List.length universe) (pp_log p);
     (* Do NOT change phase here. Only force already-solved vars. *)
     let p_norm = force_poly p in
     let module VSet = Set.Make (V) in
@@ -193,6 +238,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let decompose_linear ~(universe : V.t list) (p : poly) :
       poly * (V.t * poly) list * (V.t list * poly) list =
+    log "[fix] decompose_linear(|U|=%d, p=%s)" (List.length universe) (pp_log p);
     (* Do NOT change phase here. *)
     let groups = decompose_by ~universe p in
     let base = ref P.bot in
@@ -214,31 +260,11 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     (!base, singles, List.rev !mixed)
 
   let pp ?pp_var ?pp_coeff (p : poly) : string =
-    let pp_var_fn = match pp_var with Some f -> f | None -> fun (_ : V.t) -> "_" in
-    let pp_coeff_fn = match pp_coeff with Some f -> f | None -> fun (_ : C.t) -> "⊤" in
-    let var_elems s =
-      P.VarSet.elements s
-      |> List.map (function Var.Rigid n -> pp_var_fn n | Var.Var _ -> "_")
+    let p = force_poly p in
+    let pp_coeff_fn = match pp_coeff with Some f -> f | None -> fun (_:C.t)->"⊤" in
+    let pp_var_internal = function
+      | Var.Rigid n -> (match pp_var with Some f -> f n | None -> V.to_string n)
+      | Var.Var s -> Printf.sprintf "v%d" s.Var.id
     in
-    let ts = P.to_list p in
-    if ts = [] then "⊥"
-    else
-      let is_top =
-        match ts with
-        | [ (s, c) ] -> P.VarSet.is_empty s && C.equal c C.top
-        | _ -> false
-      in
-      if is_top then "⊤"
-      else
-        let term_strings =
-          ts
-          |> List.map (fun (s, c) ->
-                 let vars = var_elems s in
-                 if C.equal c C.top then
-                   let vars_str = String.concat " ⊓ " vars in
-                   if List.length vars = 1 then vars_str else "(" ^ vars_str ^ ")"
-                 else if P.VarSet.is_empty s then pp_coeff_fn c
-                 else "(" ^ String.concat " ⊓ " (pp_coeff_fn c :: vars) ^ ")")
-        in
-        match term_strings with [ s ] -> s | _ -> "(" ^ String.concat " ⊔ " term_strings ^ ")"
+    P.pp ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_fn p
 end

@@ -1,0 +1,3 @@
+type foo() : [2,1]
+
+type bar() = foo()

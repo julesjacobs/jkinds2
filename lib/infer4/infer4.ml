@@ -21,6 +21,11 @@ module RigidName = struct
     | TyVar x, TyVar y -> Int.compare x y
     | Atom _, TyVar _ -> -1
     | TyVar _, Atom _ -> 1
+
+  let to_string (a : t) : string =
+    match a with
+    | Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index
+    | TyVar v -> Printf.sprintf "'a%d" v
 end
 
 module S = Lattice_fixpoint_solver.Make (Axis_lattice) (RigidName)
@@ -38,36 +43,7 @@ let pp_rigid = function
   | RigidName.TyVar v -> Printf.sprintf "'a%d" v
 
 let pp_poly (p : S.poly) : string =
-  let terms = S.normalize p in
-  let term_key (c, vars) =
-    let vs = List.map pp_rigid vars |> List.sort String.compare in
-    let cs = pp_coeff_axis c in
-    (vs, cs)
-  in
-  let sorted =
-    List.stable_sort
-      (fun a b ->
-        let (va, ca) = term_key a in
-        let (vb, cb) = term_key b in
-        match Stdlib.compare va vb with 0 -> String.compare ca cb | k -> k)
-      terms
-  in
-  match sorted with
-  | [] -> "⊥"
-  | [ (c, vars) ] when vars = [] && Axis_lattice.equal c Axis_lattice.top -> "⊤"
-  | _ ->
-      let term_str (c, vars) =
-        let vars_s = List.map pp_rigid vars |> List.sort String.compare in
-        if Axis_lattice.equal c Axis_lattice.top then
-          (match vars_s with
-          | [] -> "⊤"
-          | [ v ] -> v
-          | vs -> "(" ^ String.concat " ⊓ " vs ^ ")")
-        else if vars_s = [] then pp_coeff_axis c
-        else "(" ^ String.concat " ⊓ " (pp_coeff_axis c :: vars_s) ^ ")"
-      in
-      let parts = List.map term_str sorted in
-      (match parts with [ s ] -> s | _ -> "(" ^ String.concat " ⊔ " parts ^ ")")
+  S.pp ~pp_var:pp_rigid ~pp_coeff:pp_coeff_axis p
 
 (* Global atom solver vars (per program run) *)
 module AtomKey = struct
@@ -85,7 +61,7 @@ let abstract_ctors : StringSet.t ref = ref StringSet.empty
 
 let reset_state () = atom_vars := AtomMap.empty
 
-let get_atom_solver (ctor : string) (index : int) : S.var =
+let get_atom_var (ctor : string) (index : int) : S.var =
   let key = (ctor, index) in
   match AtomMap.find_opt key !atom_vars with
   | Some v -> v
@@ -105,8 +81,7 @@ let const_levels (levels : int array) : S.poly =
 (* Translation to polynomials (rigid variables only) *)
 let is_abstract (name : string) : bool = StringSet.mem name !abstract_ctors
 
-let atom_poly (name : string) (i : int) : S.poly =
-  if is_abstract name then rigid_atom name i else S.var (get_atom_solver name i)
+let atom_poly (name : string) (i : int) : S.poly = S.var (get_atom_var name i)
 
 let rec to_poly (t : Type_syntax.t) : S.poly =
   match t with
@@ -227,10 +202,10 @@ let solve_linear_for_program (prog : Decl_parser.program) : unit =
   List.iter
     (fun { it; base; coeffs } ->
       if not it.abstract then (
-        let v0 = get_atom_solver it.name 0 in
+        let v0 = get_atom_var it.name 0 in
         S.solve_lfp v0 base;
         for i = 1 to it.arity do
-          let vi = get_atom_solver it.name i in
+          let vi = get_atom_var it.name i in
           S.solve_lfp vi coeffs.(i - 1)
         done))
     decs;
@@ -238,10 +213,10 @@ let solve_linear_for_program (prog : Decl_parser.program) : unit =
   List.iter
     (fun { it; base; coeffs } ->
       if it.abstract then (
-        let v0 = get_atom_solver it.name 0 in
+        let v0 = get_atom_var it.name 0 in
         S.enqueue_gfp v0 (S.meet (rigid_atom it.name 0) base);
         for i = 1 to it.arity do
-          let vi = get_atom_solver it.name i in
+          let vi = get_atom_var it.name i in
           let rhs = S.join base coeffs.(i - 1) in
           S.enqueue_gfp vi (S.meet (rigid_atom it.name i) rhs)
         done))
@@ -256,7 +231,7 @@ let atom_state_lines_for_program (prog : Decl_parser.program) : string list =
     (fun (it : Decl_parser.decl_item) ->
       for i = 0 to it.arity do
         let lhs = Printf.sprintf "%s.%d" it.name i in
-        let v = get_atom_solver it.name i in
+        let v = get_atom_var it.name i in
         let rhs = pp_poly (S.var v) in
         lines := (lhs ^ " = " ^ rhs) :: !lines
       done)
@@ -264,7 +239,7 @@ let atom_state_lines_for_program (prog : Decl_parser.program) : string list =
   List.rev !lines
 
 let atom_bound_poly ~(ctor : string) ~(index : int) : S.poly =
-  let v = get_atom_solver ctor index in
+  let v = get_atom_var ctor index in
   S.var v
 
 let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list =
