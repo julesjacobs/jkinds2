@@ -21,8 +21,11 @@ let () =
   let content = read_file file in
   let prog = Jkinds_lib.Decl_parser.parse_program_exn content in
   let _unused = max_iters in (* keep flag accepted to avoid breaking scripts *)
+  let t0 = Unix.gettimeofday () in
   let out2 = Jkinds_lib.Infer2.run_program prog in
+  let t1 = Unix.gettimeofday () in
   let out4 = Jkinds_lib.Infer4.run_program prog in
+  let t2 = Unix.gettimeofday () in
   let items = [ ("Infer2", out2); ("Infer4", out4) ] in
   let groups = ref [] in
   let add_group label text =
@@ -41,3 +44,8 @@ let () =
       let header = String.concat " & " labels ^ " normalized kinds:" in
       Printf.printf "%s\n%s\n\n" header text)
     (List.rev !groups)
+  ;
+  let msf x = x *. 1000.0 in
+  let infer2_ms = msf (t1 -. t0) in
+  let infer4_ms = msf (t2 -. t1) in
+  Printf.printf "Timing: Infer2: %.3f ms, Infer4: %.3f ms\n" infer2_ms infer4_ms

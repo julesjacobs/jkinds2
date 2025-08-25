@@ -1,4 +1,4 @@
 (executable
  (public_name jkinds)
  (name main)
- (libraries jkinds_lib))
+ (libraries jkinds_lib unix))
