@@ -142,7 +142,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let subs = P.VarMap.(empty |> add (Var.Var v) self_value) in
     let cand = P.subst ~subs rhs' in
     v.Var.sol <- Some cand; 
-    log "[fix] lfp(v%d, %s, %s)=%s" v.Var.id (pp_log rhs) (pp_log self_value) (pp_log cand)
+    log "[fix] lfp(v%d, %s, %s) = %s" v.Var.id (pp_log rhs) (pp_log self_value) (pp_log cand)
     
   let solve_pending_gfps () : unit =
     if !pending_gfp <> [] then (

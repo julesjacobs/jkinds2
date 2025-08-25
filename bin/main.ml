@@ -20,10 +20,10 @@ let () =
   in
   let content = read_file file in
   let prog = Jkinds_lib.Decl_parser.parse_program_exn content in
+  let _unused = max_iters in (* keep flag accepted to avoid breaking scripts *)
   let out2 = Jkinds_lib.Infer2.run_program prog in
   let out4 = Jkinds_lib.Infer4.run_program prog in
-  let outc = Jkinds_lib.Infer.run_program prog ~max_iters in
-  let items = [ ("Infer2", out2); ("Infer4", out4); ("Classic", outc) ] in
+  let items = [ ("Infer2", out2); ("Infer4", out4) ] in
   let groups = ref [] in
   let add_group label text =
     let rec aux acc =
