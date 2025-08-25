@@ -245,11 +245,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
             let body = pp_coeff c ^ " ⊓ " ^ String.concat " ⊓ " vs in
             (body, true)
       in
-      let show_term (s, c) : string =
-        let body, has_meet = term_body s c in
-        if n_terms > 1 && has_meet then "(" ^ body ^ ")" else body
+      let items =
+        terms |> List.map (fun (s, c) -> let body, has_meet = term_body s c in (body, has_meet))
+        |> List.sort (fun (a, _) (b, _) -> String.compare a b)
       in
-      terms |> List.map show_term |> String.concat " ⊔ "
+      items
+      |> List.map (fun (body, has_meet) -> if n_terms > 1 && has_meet then "(" ^ body ^ ")" else body)
+      |> String.concat " ⊔ "
 
   let to_string (p : t) : string = pp ~pp_var:(fun _ -> "_") ~pp_coeff:C.to_string p
 
