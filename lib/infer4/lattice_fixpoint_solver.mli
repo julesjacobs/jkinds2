@@ -75,4 +75,3 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   val pp :
     ?pp_var:(V.t -> string) -> ?pp_coeff:(lat -> string) -> poly -> string
 end
-

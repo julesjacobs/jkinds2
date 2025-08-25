@@ -243,3 +243,17 @@ let solve_program (prog : Decl_parser.program) ~(max_iters : int) :
   in
   least_fixpoint_bindings_with_self_init ~max_iters ~abstracts kinds
 
+let run_program (prog : Decl_parser.program) ~(max_iters : int) : string =
+  let kinds_lfp =
+    try solve_program prog ~max_iters
+    with Unsupported_mu _ ->
+      let prog' =
+        List.filter
+          (fun (it : Decl_parser.decl_item) -> it.rhs_simple <> None)
+          prog
+      in
+      solve_program prog' ~max_iters
+  in
+  kinds_lfp
+  |> List.map (fun (n, k) -> Printf.sprintf "%s: %s" n (Kind.pp k))
+  |> String.concat "\n"

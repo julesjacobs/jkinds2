@@ -1,7 +1,6 @@
 module Type_syntax = Type_syntax
 module Modality = Modality
 module Kind = Kind
-module Infer : module type of Infer
 module Type_parser : module type of Type_parser
 module Decl_parser : module type of Decl_parser
 module Product_lattice : module type of Product_lattice
@@ -34,4 +33,33 @@ module Infer2 : sig
   val atom_state_lines_for_program : Decl_parser.program -> string list
   val normalized_kind_for_decl : Decl_parser.decl_item -> (int * poly) list
   val pp_varlabel : var_label -> string
+  val run_program : Decl_parser.program -> string
+end
+
+(* Classic run wrapper for normalized kinds *)
+module Infer : sig
+  include module type of Infer
+  val run_program : Decl_parser.program -> max_iters:int -> string
+end
+
+module Infer4 : sig
+  module RigidName : sig
+    type t = Atom of Modality.atom | TyVar of int
+  end
+
+  type poly
+
+  val to_poly : Type_syntax.t -> poly
+  val to_poly_mu_raw : Type_parser.mu_raw -> poly
+  val to_poly_decl_rhs : Decl_parser.decl_item -> poly
+  val pp_poly : poly -> string
+
+  val decompose_by_tyvars :
+    arity:int -> poly -> poly * poly array * (RigidName.t list * poly) list
+
+  val solve_linear_for_program : Decl_parser.program -> unit
+  val atom_state_lines_for_program : Decl_parser.program -> string list
+  val normalized_kind_for_decl : Decl_parser.decl_item -> (int * poly) list
+  val pp_varlabel : RigidName.t -> string
+  val run_program : Decl_parser.program -> string
 end

@@ -127,7 +127,36 @@ let pp_poly (p : S.poly) : string =
     | VarLabel.TyVar v -> Printf.sprintf "'a%d" v
     | VarLabel.TyRec i -> Printf.sprintf "μb%d" i
   in
-  S.pp ~pp_var ~pp_coeff p
+  let terms = S.normalize p in
+  let term_key (c, vars) =
+    let vs = List.map pp_var vars |> List.sort String.compare in
+    let cs = pp_coeff c in
+    (vs, cs)
+  in
+  let sorted =
+    List.stable_sort
+      (fun a b ->
+        let (va, ca) = term_key a in
+        let (vb, cb) = term_key b in
+        match Stdlib.compare va vb with 0 -> String.compare ca cb | k -> k)
+      terms
+  in
+  match sorted with
+  | [] -> "⊥"
+  | [ (c, vars) ] when vars = [] && Axis_lattice.equal c Axis_lattice.top -> "⊤"
+  | _ ->
+      let term_str (c, vars) =
+        let vars_s = List.map pp_var vars |> List.sort String.compare in
+        if Axis_lattice.equal c Axis_lattice.top then
+          (match vars_s with
+          | [] -> "⊤"
+          | [ v ] -> v
+          | vs -> "(" ^ String.concat " ⊓ " vs ^ ")")
+        else if vars_s = [] then pp_coeff c
+        else "(" ^ String.concat " ⊓ " (pp_coeff c :: vars_s) ^ ")"
+      in
+      let parts = List.map term_str sorted in
+      (match parts with [ s ] -> s | _ -> "(" ^ String.concat " ⊔ " parts ^ ")")
 
 (* Decompose a polynomial by type variables 'a1..'aarity. Returns base (key=[]),
    coefficients array of length [arity] where index i corresponds to 'a{i+1},
@@ -256,3 +285,16 @@ let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list
   in
   loop 0 []
 
+
+let run_program (prog : Decl_parser.program) : string =
+  solve_linear_for_program prog;
+  prog
+  |> List.map (fun (it : Decl_parser.decl_item) ->
+         let entries = normalized_kind_for_decl it in
+         let body =
+           entries
+           |> List.map (fun (i, p) -> Printf.sprintf "%d ↦ %s" i (pp_poly p))
+           |> String.concat ", "
+         in
+         Printf.sprintf "%s: {%s}" it.name body)
+  |> String.concat "\n"

@@ -1,1 +1,4 @@
+type leaf('a1) : [2,1]
+type node('a1,'a2) : [2,1]
+
 type btree('a1) = (leaf('a1) + node(btree('a1), btree('a1)))

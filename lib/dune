@@ -11,6 +11,7 @@
   infer2
   infer
   infer3
+  infer4
   type_parser
   type_menhir
   type_lexer

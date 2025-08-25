@@ -1,3 +1,6 @@
+type t1('a1) : [2,1]
+type t2('a1) : [2,1]
+
 type foo1('a1) = t2(t1('a1)) * t1(unit)
 type foo2('a1) = t1(t2('a1)) * t2(unit)
 

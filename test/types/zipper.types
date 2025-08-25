@@ -1,3 +1,6 @@
+type cons('a1,'a2) : [2,1]
+type down('a1,'a2) : [2,1]
+
 type list('a1) = unit + cons('a1, list('a1))
 type ctx('a1) = unit + down('a1, ctx('a1))
 type zipper('a1) = (ctx('a1) * list('a1))

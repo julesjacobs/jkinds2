@@ -153,9 +153,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* Group polynomial terms by designated rigid variables. *)
   let decompose_by ~(universe : V.t list) (p : poly) : (V.t list * poly) list =
-    enter_query_phase ();
+    (* Do NOT change phase here. Only force already-solved vars. *)
     let p_norm = force_poly p in
-    require_no_unsolved "decompose_by" p_norm;
     let module VSet = Set.Make (V) in
     let idx_tbl = Hashtbl.create 16 in
     List.iteri (fun i v -> Hashtbl.replace idx_tbl v i) universe;
@@ -194,7 +193,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let decompose_linear ~(universe : V.t list) (p : poly) :
       poly * (V.t * poly) list * (V.t list * poly) list =
-    enter_query_phase ();
+    (* Do NOT change phase here. *)
     let groups = decompose_by ~universe p in
     let base = ref P.bot in
     let singles_tbl : (V.t, poly) Hashtbl.t = Hashtbl.create 16 in
@@ -243,4 +242,3 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         in
         match term_strings with [ s ] -> s | _ -> "(" ^ String.concat " ⊔ " term_strings ^ ")"
 end
-

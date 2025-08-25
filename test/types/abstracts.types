@@ -1,3 +1,8 @@
+type none() : [2,1]
+type some('a1) : [2,1]
+type leaf() : [2,1]
+type node('a1,'a2) : [2,1]
+
 type foo() : unit
 type bar() : [0,1]
 type baz() : [2,1] 
