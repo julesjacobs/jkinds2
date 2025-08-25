@@ -1,14 +1,6 @@
 (* A fixpoint-oriented solver for (in)equalities over multivariate lattice
    polynomials with an explicit separation between rigid variables and solver
    variables.
-
-   Key ideas (from NOTES.md):
-   - Only solve solver variables (each exactly once via LFP or GFP).
-   - Rigid variables are named external symbols; they are never solved.
-   - Force before use: substitute solved solver vars; treat unsolved solver vars
-     as their paired rigid variable; public normalization returns a list of
-     (lat * V.t list) with only rigid variable names.
-   - LFPs are solved before any GFP (attempting GFP first should be rejected).
 *)
 
 module type LATTICE = Lattice_intf.LATTICE
