@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-25 18:16:38 UTC
+Generated: 2025-08-25 18:17:06 UTC
 
 ## abstracts.types
 
@@ -520,17 +520,15 @@ orchid: {0 ↦ portable.0, 1 ↦ portable.1}
 
 ```
 type portended('a1) : [2,1]
+type ref('a1) : [2,1]
 type foo('a1) = portended(ref('a1))
 ```
 
 Program output:
 ```
-Infer4 normalized kinds:
+Infer2 & Infer4 normalized kinds:
 portended: {0 ↦ portended.0, 1 ↦ portended.1}
-foo: {0 ↦ portended.0 ⊔ (portended.1 ⊓ v2), 1 ↦ portended.1 ⊓ v3}
-
-Infer2 normalized kinds:
-portended: {0 ↦ portended.0, 1 ↦ portended.1}
+ref: {0 ↦ ref.0, 1 ↦ ref.1}
 foo: {0 ↦ portended.0 ⊔ (portended.1 ⊓ ref.0), 1 ↦ portended.1 ⊓ ref.1}
 ```
 
