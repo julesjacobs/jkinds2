@@ -34,7 +34,7 @@ let%expect_test "assert_leq meets self and records dependency" =
   let x = S.new_var "x" in
   let y = S.new_var "y" in
   assert_leq_dump y (S.meet (S.const (c 1 0)) (S.var x)) [ ("y", y) ];
-  [%expect {| y ≤ ([1,0] ⊓ x ⊓ y) |}]
+  [%expect {| y ≤ [1,0] ⊓ x ⊓ y |}]
 
 let%expect_test "solve_lfp substitutes into dependents and eliminates var" =
   let x = S.new_var "x" in
@@ -43,8 +43,8 @@ let%expect_test "solve_lfp substitutes into dependents and eliminates var" =
   S.solve_lfp x (S.const (c 2 0));
   print_state [ ("y", y) ];
   [%expect {|
-    y ≤ ([1,0] ⊓ x ⊓ y)
-    y ≤ ([1,0] ⊓ y)
+    y ≤ [1,0] ⊓ x ⊓ y
+    y ≤ [1,0] ⊓ y
     |}]
 
 let%expect_test "assert on eliminated variable fails" =
@@ -88,7 +88,7 @@ let%expect_test "complex propagation and elimination scenario" =
   [%expect
     {|
     x ≤ x
-    y ≤ (([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y))
+    y ≤ ([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y)
     z ≤ z
     w ≤ w
     |}];
@@ -96,25 +96,25 @@ let%expect_test "complex propagation and elimination scenario" =
   [%expect
     {|
     x ≤ x
-    y ≤ (([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y))
-    z ≤ ([1,0] ⊓ x ⊓ y ⊓ z)
+    y ≤ ([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y)
+    z ≤ [1,0] ⊓ x ⊓ y ⊓ z
     w ≤ w
     |}];
   assert_leq_dump w (S.meet (S.var z) (S.var x));
   [%expect
     {|
     x ≤ x
-    y ≤ (([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y))
-    z ≤ ([1,0] ⊓ x ⊓ y ⊓ z)
-    w ≤ ([1,0] ⊓ x ⊓ y ⊓ z ⊓ w)
+    y ≤ ([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y)
+    z ≤ [1,0] ⊓ x ⊓ y ⊓ z
+    w ≤ [1,0] ⊓ w ⊓ x ⊓ y ⊓ z
     |}];
   print_state [ ("x", x); ("y", y); ("z", z); ("w", w) ];
   [%expect
     {|
     x ≤ x
-    y ≤ (([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y))
-    z ≤ ([1,0] ⊓ x ⊓ y ⊓ z)
-    w ≤ ([1,0] ⊓ x ⊓ y ⊓ z ⊓ w)
+    y ≤ ([0,1] ⊓ y) ⊔ ([1,0] ⊓ x ⊓ y)
+    z ≤ [1,0] ⊓ x ⊓ y ⊓ z
+    w ≤ [1,0] ⊓ w ⊓ x ⊓ y ⊓ z
     |}];
   (* eliminate x, then z *)
   S.solve_lfp x (S.const (c 1 1));
@@ -122,9 +122,9 @@ let%expect_test "complex propagation and elimination scenario" =
   [%expect
     {|
     x = [1,1]
-    y ≤ ([1,1] ⊓ y)
-    z ≤ ([1,0] ⊓ y ⊓ z)
-    w ≤ ([1,0] ⊓ y ⊓ z ⊓ w)
+    y ≤ [1,1] ⊓ y
+    z ≤ [1,0] ⊓ y ⊓ z
+    w ≤ [1,0] ⊓ w ⊓ y ⊓ z
     |}];
   (match
      try
@@ -147,14 +147,14 @@ let%expect_test "dependent updates propagate to direct dependents" =
   assert_leq_dump y (S.meet (S.const (c 1 0)) (S.var x));
   [%expect {|
     x ≤ x
-    y ≤ ([1,0] ⊓ x ⊓ y)
+    y ≤ [1,0] ⊓ x ⊓ y
     z ≤ z
     |}];
   assert_leq_dump z (S.meet (S.const (c 2 0)) (S.var x));
   [%expect {|
     x ≤ x
-    y ≤ ([1,0] ⊓ x ⊓ y)
-    z ≤ ([2,0] ⊓ x ⊓ z)
+    y ≤ [1,0] ⊓ x ⊓ y
+    z ≤ [2,0] ⊓ x ⊓ z
     |}];
   S.solve_lfp x (S.const (c 0 1));
   print_state [ ("x", x); ("y", y); ("z", z) ];
@@ -184,7 +184,7 @@ let%expect_test "complex joins and propagation scenario" =
   [%expect
     {|
     a ≤ a
-    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
+    b ≤ ([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c)
     c ≤ c
     d ≤ d
     e ≤ e
@@ -195,8 +195,8 @@ let%expect_test "complex joins and propagation scenario" =
   [%expect
     {|
     a ≤ a
-    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
-    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
+    b ≤ ([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c)
+    c ≤ ([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c)
     d ≤ d
     e ≤ e
     f ≤ f
@@ -205,9 +205,9 @@ let%expect_test "complex joins and propagation scenario" =
   [%expect
     {|
     a ≤ a
-    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
-    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d ≤ (([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d))
+    b ≤ ([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c)
+    c ≤ ([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c)
+    d ≤ ([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d)
     e ≤ e
     f ≤ f
     |}];
@@ -215,31 +215,31 @@ let%expect_test "complex joins and propagation scenario" =
   [%expect
     {|
     a ≤ a
-    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
-    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d ≤ (([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d))
-    e ≤ (([1,1] ⊓ a ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e))
+    b ≤ ([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c)
+    c ≤ ([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c)
+    d ≤ ([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d)
+    e ≤ ([1,1] ⊓ a ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e)
     f ≤ f
     |}];
   assert_leq_dump f (S.meet (S.var e) (S.var b));
   [%expect
     {|
     a ≤ a
-    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
-    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d ≤ (([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d))
-    e ≤ (([1,1] ⊓ a ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e))
-    f ≤ (([1,1] ⊓ a ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f))
+    b ≤ ([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c)
+    c ≤ ([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c)
+    d ≤ ([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d)
+    e ≤ ([1,1] ⊓ a ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e)
+    f ≤ ([1,1] ⊓ a ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f)
     |}];
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
     a ≤ a
-    b ≤ (([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
-    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d ≤ (([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d))
-    e ≤ (([1,1] ⊓ a ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e))
-    f ≤ (([1,1] ⊓ a ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f))
+    b ≤ ([0,1] ⊓ b) ⊔ ([1,0] ⊓ a ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c)
+    c ≤ ([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c)
+    d ≤ ([1,1] ⊓ a ⊓ b ⊓ d) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d)
+    e ≤ ([1,1] ⊓ a ⊓ b ⊓ d ⊓ e) ⊔ ([1,1] ⊓ a ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e)
+    f ≤ ([1,1] ⊓ a ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ a ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f)
     |}];
   (* eliminate a safely with a constant; then eliminate c and b with meet-self
      patterns to avoid inequality violations *)
@@ -248,23 +248,23 @@ let%expect_test "complex joins and propagation scenario" =
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
-    a = ([2,0] ⊔ ([0,1] ⊓ b))
-    b ≤ (([1,1] ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c))
-    c ≤ (([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c))
-    d ≤ (([1,1] ⊓ b ⊓ d) ⊔ ([1,0] ⊓ c ⊓ d) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d))
-    e ≤ (([1,1] ⊓ b ⊓ d ⊓ e) ⊔ ([1,0] ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e))
-    f ≤ (([1,1] ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f))
+    a = [2,0] ⊔ ([0,1] ⊓ b)
+    b ≤ ([1,1] ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c)
+    c ≤ ([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c)
+    d ≤ ([1,1] ⊓ b ⊓ d) ⊔ ([1,0] ⊓ c ⊓ d) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d)
+    e ≤ ([1,1] ⊓ b ⊓ d ⊓ e) ⊔ ([1,0] ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e)
+    f ≤ ([1,1] ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f)
     |}];
   S.solve_lfp cv (S.meet (S.var b) (S.const (c 2 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
-    a = ([2,0] ⊔ ([0,1] ⊓ b))
-    b ≤ ([1,1] ⊓ b)
-    c = ([1,0] ⊓ b)
-    d ≤ ([1,1] ⊓ b ⊓ d)
-    e ≤ ([1,1] ⊓ b ⊓ d ⊓ e)
-    f ≤ ([1,1] ⊓ b ⊓ d ⊓ e ⊓ f)
+    a = [2,0] ⊔ ([0,1] ⊓ b)
+    b ≤ [1,1] ⊓ b
+    c = [1,0] ⊓ b
+    d ≤ [1,1] ⊓ b ⊓ d
+    e ≤ [1,1] ⊓ b ⊓ d ⊓ e
+    f ≤ [1,1] ⊓ b ⊓ d ⊓ e ⊓ f
     |}];
   S.solve_lfp b (S.meet (S.var b) (S.const (c 1 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
@@ -289,20 +289,20 @@ let%expect_test "dependencies" =
   assert_leq_dump y (S.join (S.var x) (S.var z));
   [%expect {|
     x ≤ x
-    y ≤ ((x ⊓ y) ⊔ (y ⊓ z))
+    y ≤ (x ⊓ y) ⊔ (y ⊓ z)
     z ≤ z
     |}];
   assert_leq_dump x (S.meet (S.var z) (S.const (c 0 1)));
   [%expect {|
-    x ≤ ([0,1] ⊓ x ⊓ z)
-    y ≤ (y ⊓ z)
+    x ≤ [0,1] ⊓ x ⊓ z
+    y ≤ y ⊓ z
     z ≤ z
     |}];
   assert_leq_dump z (S.meet (S.var y) (S.const (c 2 0)));
   [%expect {|
     x ≤ ⊥
-    y ≤ ([2,0] ⊓ y ⊓ z)
-    z ≤ ([2,0] ⊓ y ⊓ z)
+    y ≤ [2,0] ⊓ y ⊓ z
+    z ≤ [2,0] ⊓ y ⊓ z
     |}];
   S.solve_lfp y (S.join (S.var z) (S.var y));
   print_state [ ("x", x); ("y", y); ("z", z) ];
@@ -323,38 +323,38 @@ let%expect_test "dependencies2" =
   assert_leq_dump y (S.join (S.var x) (S.var z));
   [%expect {|
     x ≤ x
-    y ≤ ((x ⊓ y) ⊔ (y ⊓ z))
+    y ≤ (x ⊓ y) ⊔ (y ⊓ z)
     z ≤ z
     |}];
   assert_leq_dump x (S.join (S.var z) (S.const (c 0 1)));
   [%expect
     {|
-    x ≤ (([0,1] ⊓ x) ⊔ ([2,0] ⊓ x ⊓ z))
-    y ≤ (([0,1] ⊓ x ⊓ y) ⊔ (y ⊓ z))
+    x ≤ ([0,1] ⊓ x) ⊔ ([2,0] ⊓ x ⊓ z)
+    y ≤ ([0,1] ⊓ x ⊓ y) ⊔ (y ⊓ z)
     z ≤ z
     |}];
   assert_leq_dump z (S.join (S.var y) (S.const (c 2 0)));
   [%expect
     {|
-    x ≤ (([0,1] ⊓ x) ⊔ ([2,0] ⊓ x ⊓ z))
-    y ≤ (([0,1] ⊓ x ⊓ y) ⊔ (y ⊓ z))
-    z ≤ (([2,0] ⊓ z) ⊔ ([0,1] ⊓ y ⊓ z))
+    x ≤ ([0,1] ⊓ x) ⊔ ([2,0] ⊓ x ⊓ z)
+    y ≤ ([0,1] ⊓ x ⊓ y) ⊔ (y ⊓ z)
+    z ≤ ([2,0] ⊓ z) ⊔ ([0,1] ⊓ y ⊓ z)
     |}];
   S.solve_lfp y (S.join (S.var z) (S.var y));
   print_state [ ("x", x); ("y", y); ("z", z) ];
   [%expect
     {|
-    x ≤ (([0,1] ⊓ x) ⊔ ([2,0] ⊓ x ⊓ z))
-    y = ([2,0] ⊓ z)
-    z ≤ ([2,0] ⊓ z)
+    x ≤ ([0,1] ⊓ x) ⊔ ([2,0] ⊓ x ⊓ z)
+    y = [2,0] ⊓ z
+    z ≤ [2,0] ⊓ z
     |}];
   S.solve_lfp x (S.var z);
   print_state [ ("x", x); ("y", y); ("z", z) ];
   [%expect
     {|
-    x = ([2,0] ⊓ z)
-    y = ([2,0] ⊓ z)
-    z ≤ ([2,0] ⊓ z)
+    x = [2,0] ⊓ z
+    y = [2,0] ⊓ z
+    z ≤ [2,0] ⊓ z
     |}];
   S.solve_lfp z (S.join (S.var z) (S.const (c 1 0)));
   print_state [ ("x", x); ("y", y); ("z", z) ];
@@ -388,7 +388,7 @@ let%expect_test
     {|
     x = [1,0]
     assert_leq: variable already eliminated
-    x2 ≤ ([2,0] ⊓ x2)
+    x2 ≤ [2,0] ⊓ x2
     x2 = [1,0]
     |}]
 
@@ -418,12 +418,12 @@ let%expect_test
     {|
     -- after solve_lfp y --
     x ≤ x
-    y = ([2,0] ⊓ x)
+    y = [2,0] ⊓ x
     -- after assert_leq x <= [1,0] /\ y --
-    x ≤ ([1,0] ⊓ x)
-    y = ([1,0] ⊓ x)
+    x ≤ [1,0] ⊓ x
+    y = [1,0] ⊓ x
     -- fresh: after assert_leq x' <= [1,0] /\ y' --
-    x' ≤ ([1,0] ⊓ x' ⊓ y')
+    x' ≤ [1,0] ⊓ x' ⊓ y'
     y' ≤ y'
     -- fresh: after solve_lfp y' --
     x' ≤ ⊥

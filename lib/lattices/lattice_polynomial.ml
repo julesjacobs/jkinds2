@@ -223,25 +223,33 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let ceil (p : t) : C.t = eval (fun _ -> C.top) p
   let floor (p : t) : C.t = eval (fun _ -> C.bot) p
 
-  (* Pretty printer with deterministic ordering. Strategy: convert each term to
-     a string using provided printers, then sort lexicographically by that
-     string. This avoids depending on structural ordering of variables. *)
+  (* Pretty printer with deterministic ordering.
+     - Prints ⊥ for empty polynomial.
+     - Prints ⊤ for constant-top.
+     - Omits unnecessary meets with ⊤ and joins with ⊥ (the latter never
+       appear in canonical form). *)
   let pp ?(pp_var = fun _ -> "_") ?(pp_coeff = fun _ -> "<c>") (p : t) : string =
     if SetMap.is_empty p then "⊥"
     else
-      let term_strings =
-        to_list p
-        |> List.map (fun (s, c) ->
-               let vs = VarSet.elements s |> List.map pp_var |> List.sort String.compare in
-               let body =
-                 match vs with
-                 | [] -> pp_coeff c
-                 | _ -> pp_coeff c ^ " ⊓ " ^ String.concat " ⊓ " vs
-               in
-               "{" ^ body ^ "}")
-        |> List.sort String.compare
+      let terms = to_list p in
+      let n_terms = List.length terms in
+      let term_body (s : vars) (c : coeff) : string * bool =
+        (* returns (body, has_meet) *)
+        let vs = VarSet.elements s |> List.map pp_var |> List.sort String.compare in
+        let is_top = C.equal c C.top in
+        match (vs, is_top) with
+        | [], true -> ("⊤", false)
+        | [], false -> (pp_coeff c, false)
+        | _ :: _, true -> (String.concat " ⊓ " vs, List.length vs > 1)
+        | _ :: _, false ->
+            let body = pp_coeff c ^ " ⊓ " ^ String.concat " ⊓ " vs in
+            (body, true)
       in
-      "{" ^ String.concat " ⊔ " term_strings ^ "}"
+      let show_term (s, c) : string =
+        let body, has_meet = term_body s c in
+        if n_terms > 1 && has_meet then "(" ^ body ^ ")" else body
+      in
+      terms |> List.map show_term |> String.concat " ⊔ "
 
   let to_string (p : t) : string = pp ~pp_var:(fun _ -> "_") ~pp_coeff:C.to_string p
 

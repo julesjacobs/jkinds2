@@ -52,4 +52,4 @@ let%expect_test "abstract F/H constraints show extra F.0 disjunct in F.1" =
   in
   S.assert_leq f1 f1_rhs;
   print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff f1);
-  [%expect {| F.1 ≤ (([0,1] ⊓ H.1 ⊓ F.1) ⊔ ([0,1] ⊓ H.0 ⊓ F.0 ⊓ F.1)) |}]
+  [%expect {| F.1 ≤ ([0,1] ⊓ F.1 ⊓ H.1) ⊔ ([0,1] ⊓ F.0 ⊓ F.1 ⊓ H.0) |}]

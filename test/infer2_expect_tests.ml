@@ -55,7 +55,7 @@ let%expect_test "two-phase abstract solving (one/two)" =
   print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff one0);
   print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff two0);
   [%expect {|
-    one.0 ≤ ([0,1] ⊓ one.0 ⊓ two.0)
+    one.0 ≤ [0,1] ⊓ one.0 ⊓ two.0
     two.0 ≤ two.0
     |}];
   (* Solve concrete: two.0 = one.0, keep abstract as inequality. *)
@@ -110,6 +110,6 @@ let%expect_test "two-phase abstract solving (one/two) lfp first" =
   print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff one0);
   print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff two0);
   [%expect {|
-    one.0 ≤ ([0,1] ⊓ one.0)
-    two.0 = ([0,1] ⊓ one.0)
+    one.0 ≤ [0,1] ⊓ one.0
+    two.0 = [0,1] ⊓ one.0
     |}]
