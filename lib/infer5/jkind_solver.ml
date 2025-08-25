@@ -4,6 +4,8 @@ module Make
       type t
 
       val compare_ty : t -> t -> int
+
+      val to_string : t -> string
     end)
     (Constr : sig
       type t
@@ -40,7 +42,7 @@ end = struct
   type atom = { constr : constr; arg_index : int }
 
   module RigidName = struct
-    type t = Atom of atom | TyVar of int
+    type t = Atom of atom | Ty of ty
   
     let compare (a : t) (b : t) : int =
       match (a, b) with
@@ -48,14 +50,16 @@ end = struct
           match Constr.compare a1.constr a2.constr with
           | 0 -> Int.compare a1.arg_index a2.arg_index
           | c -> c)
-      | TyVar x, TyVar y -> Int.compare x y
-      | Atom _, TyVar _ -> -1
-      | TyVar _, Atom _ -> 1
+      | Ty x, Ty y -> Stdlib.compare x y
+      | Atom _, Ty _ -> -1
+      | Ty _, Atom _ -> 1
   
     let to_string (a : t) : string =
       match a with
       | Atom a -> Printf.sprintf "%s.%d" (Constr.to_string a.constr) a.arg_index
-      | TyVar v -> Printf.sprintf "'a%d" v
+      | Ty v -> Printf.sprintf "<%s>" (Ty.to_string v)
+
+    let atomic constr arg_index = Atom { constr; arg_index }
   end
   
   module LSolver = Lattice_fixpoint_solver.Make (Lat) (RigidName)
@@ -91,7 +95,7 @@ end = struct
       | Some k -> k
       | None ->
         (* Pre-insert lattice solver var for this type *)
-        let v = LSolver.new_var (RigidName.TyVar t) in
+        let v = LSolver.new_var () in
         Hashtbl.add ty_to_kind t (LSolver.var v);
         let kind = env.kind_of t ops in
         LSolver.solve_lfp v kind;
@@ -103,31 +107,32 @@ end = struct
         match Hashtbl.find_opt constr_to_coeffs c with
         | Some base_and_coeffs -> base_and_coeffs
         | None ->
-          let base = LSolver.new_var (RigidName.Atom { constr = c; arg_index = 0 }) in
+          let base = LSolver.new_var () in
           let coeffs =
-            List.mapi (fun i _ -> LSolver.new_var (RigidName.Atom { constr = c; arg_index = i + 1 })) ks
+            List.map(fun _ -> LSolver.new_var ()) ks
           in
           Hashtbl.add constr_to_coeffs c (base, coeffs);
           (* Recursively compute the kind of the body *)
           let {args; kind; abstract} = env.lookup c in
-          List.iter (fun ty -> Hashtbl.add ty_to_kind ty (LSolver.var (LSolver.new_var (Var.Ty ty)))) args;
+          List.iter (fun ty -> Hashtbl.add ty_to_kind ty (LSolver.rigid (RigidName.Ty ty))) args;
           (* Compute body kind *)
           let kind' = kind ops in
           (* Extract coeffs' from kind' *)
-          let (base',coeffs',rest) = LSolver.decompose_linear ~universe:(List.map (fun ty -> Var.Ty ty) args) kind' in
+          let (base',coeffs',rest) = LSolver.decompose_linear ~universe:(List.map (fun ty -> RigidName.Ty ty) args) kind' in
           assert (rest = []);
           if abstract then begin
             (* We need to assert that kind' is less than or equal to the base *)
-            LSolver.assert_leq base base';
-            List.iter2
-              (fun coeff (var, coeff') ->
-                LSolver.assert_leq coeff (LSolver.join base' coeff'))
-              coeffs coeffs'
+            LSolver.enqueue_gfp base (LSolver.meet base' (LSolver.rigid (RigidName.atomic c 0)));
+            List.iteri (fun i (coeff,coeff') -> 
+              let rhs = LSolver.join coeff' base' in
+              let bound = LSolver.meet rhs (LSolver.rigid (RigidName.atomic c (i + 1))) in
+              LSolver.enqueue_gfp coeff bound
+              ) (List.combine coeffs (List.map (fun (_name, coeff') -> coeff') coeffs'));
           end else begin
             (* We need to solve for the coeffs *)
             LSolver.solve_lfp base base';
             List.iter2
-              (fun coeff (var, coeff') -> LSolver.solve_lfp coeff coeff')
+              (fun coeff (_name, coeff') -> LSolver.solve_lfp coeff coeff')
               coeffs coeffs'
           end;
           (base, coeffs)
