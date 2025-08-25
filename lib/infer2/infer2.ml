@@ -19,6 +19,11 @@ module VarLabel = struct
     | TyRec _, Atom _ -> 1
     | TyVar _, TyRec _ -> -1
     | TyRec _, TyVar _ -> 1
+
+  let to_string = function
+    | Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index
+    | TyVar v -> Printf.sprintf "'a%d" v
+    | TyRec i -> Printf.sprintf "μb%d" i
 end
 
 module S = Lattice_solver.Make (Axis_lattice) (VarLabel)
@@ -118,12 +123,7 @@ let to_poly_decl_rhs (it : Decl_parser.decl_item) : S.poly =
 
 let pp_poly (p : S.poly) : string =
   let pp_coeff = Axis_lattice.to_string in
-  let pp_var = function
-    | VarLabel.Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index
-    | VarLabel.TyVar v -> Printf.sprintf "'a%d" v
-    | VarLabel.TyRec i -> Printf.sprintf "μb%d" i
-  in
-  S.pp ~pp_var ~pp_coeff p
+  S.pp ~pp_var:VarLabel.to_string ~pp_coeff p
 
 (* Decompose a polynomial by type variables 'a1..'aarity. Returns base (key=[]),
    coefficients array of length [arity] where index i corresponds to 'a{i+1},
@@ -147,10 +147,7 @@ let decompose_by_tyvars ~(arity : int) (p : S.poly) :
     singles;
   (base, coeffs, mixed)
 
-let pp_varlabel : VarLabel.t -> string = function
-  | VarLabel.Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index
-  | VarLabel.TyVar v -> Printf.sprintf "'a%d" v
-  | VarLabel.TyRec i -> Printf.sprintf "μb%d" i
+let pp_varlabel : VarLabel.t -> string = VarLabel.to_string
 
 let pp_state_line (v : S.var) : string =
   let pp_coeff = Axis_lattice.to_string in

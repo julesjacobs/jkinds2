@@ -35,9 +35,7 @@ type poly = S.poly
 
 let pp_coeff_axis = Axis_lattice.to_string
 
-let pp_rigid = RigidName.to_string
-
-let pp_poly (p : S.poly) : string = S.pp ~pp_var:pp_rigid ~pp_coeff:pp_coeff_axis p
+let pp_poly (p : S.poly) : string = S.pp ~pp_var:RigidName.to_string ~pp_coeff:pp_coeff_axis p
 
 (* Global atom solver vars (per program run) *)
 module AtomKey = struct
