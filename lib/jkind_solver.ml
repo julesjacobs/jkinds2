@@ -86,8 +86,8 @@ end = struct
       | Some k -> k
       | None ->
         (* Pre-insert lattice solver var for this type *)
-        let v = LSolver.new_tmp () in
-        Hashtbl.add ty_to_kind t (LSolver.tmp v);
+        let v = LSolver.new_var (Var.Ty t) in
+        Hashtbl.add ty_to_kind t (LSolver.var v);
         let kind = env.kind_of t ops in
         LSolver.solve_lfp v kind;
         kind
@@ -100,12 +100,31 @@ end = struct
         | None ->
           let base = LSolver.new_var (Var.Atom { constr = c; arg_index = 0 }) in
           let coeffs =
-            List.mapi
-              (fun i _ ->
-                LSolver.new_var (Var.Atom { constr = c; arg_index = i + 1 }))
-              ks
+            List.mapi (fun i _ -> LSolver.new_var (Var.Atom { constr = c; arg_index = i + 1 })) ks
           in
           Hashtbl.add constr_to_coeffs c (base, coeffs);
+          (* Recursively compute the kind of the body *)
+          let {args; kind; abstract} = env.lookup c in
+          List.iter (fun ty -> Hashtbl.add ty_to_kind ty (LSolver.var (LSolver.new_var (Var.Ty ty)))) args;
+          (* Compute body kind *)
+          let kind' = kind ops in
+          (* Extract coeffs' from kind' *)
+          let (base',coeffs',rest) = LSolver.decompose_linear ~universe:(List.map (fun ty -> Var.Ty ty) args) kind' in
+          assert (rest = []);
+          if abstract then begin
+            (* We need to assert that kind' is less than or equal to the base *)
+            LSolver.assert_leq base base';
+            List.iter2
+              (fun coeff (var, coeff') ->
+                LSolver.assert_leq coeff (LSolver.join base' coeff'))
+              coeffs coeffs'
+          end else begin
+            (* We need to solve for the coeffs *)
+            LSolver.solve_lfp base base';
+            List.iter2
+              (fun coeff (var, coeff') -> LSolver.solve_lfp coeff coeff')
+              coeffs coeffs'
+          end;
           (base, coeffs)
       in
       (* Meet each arg with the corresponding coeff *)
@@ -116,15 +135,6 @@ end = struct
       let k' = List.fold_left LSolver.join (LSolver.var base) ks' in
       (* Return that kind *)
       k'
-    (* (* We need to use env.lookup to get the kind of the constructor *) let
-       {args; kind; abstract} = env.lookup c in (* We need to compute the kind
-       here but in an environment mapping args -> coeffs *) let kind' = failwith
-       "unimplemented" in (* Do a linear decomposition of kind' into coeffs' *)
-       let coeffs' = failwith "unimplemented" in (* Now we need to solve_lfp
-       coeffs = coeffs' if concrete, or assert_leq if abstract, taking into
-       account that we need to join the 0th coeff' into the other coeffs' for
-       assert_leq *) if abstract then failwith "unimplemented" else failwith
-       "unimplemented" kind' *)
     and ops = { const; join; modality; constr; kind_of } in
     ops
 

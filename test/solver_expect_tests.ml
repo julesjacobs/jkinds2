@@ -43,7 +43,7 @@ let%expect_test "solve_lfp substitutes into dependents and eliminates var" =
   let x = S.new_var "x" in
   let y = S.new_var "y" in
   assert_leq_dump y (S.meet (S.const (c 1 0)) (S.var x)) [ ("y", y) ];
-  S.solve_lfp (S.as_tmp x) (S.const (c 2 0));
+  S.solve_lfp x (S.const (c 2 0));
   print_state [ ("y", y) ];
   [%expect {|
     y ≤ ([1,0] ⊓ x ⊓ y)
@@ -52,7 +52,7 @@ let%expect_test "solve_lfp substitutes into dependents and eliminates var" =
 
 let%expect_test "assert on eliminated variable fails" =
   let x = S.new_var "x" in
-  S.solve_lfp (S.as_tmp x) (S.const (c 0 0));
+  S.solve_lfp x (S.const (c 0 0));
   (match
      try
        S.assert_leq x (S.const (c 1 0));
@@ -65,10 +65,10 @@ let%expect_test "assert on eliminated variable fails" =
 
 let%expect_test "double elimination fails" =
   let x = S.new_var "x" in
-  S.solve_lfp (S.as_tmp x) (S.const (c 0 0));
+  S.solve_lfp x (S.const (c 0 0));
   (match
      try
-       S.solve_lfp (S.as_tmp x) (S.const (c 0 0));
+       S.solve_lfp x (S.const (c 0 0));
        Ok ()
      with Failure msg -> Error msg
    with
@@ -120,7 +120,7 @@ let%expect_test "complex propagation and elimination scenario" =
     w ≤ ([1,0] ⊓ x ⊓ y ⊓ z ⊓ w)
     |}];
   (* eliminate x, then z *)
-  S.solve_lfp (S.as_tmp x) (S.const (c 1 1));
+  S.solve_lfp x (S.const (c 1 1));
   print_state [ ("x", x); ("y", y); ("z", z); ("w", w) ];
   [%expect
     {|
@@ -131,7 +131,7 @@ let%expect_test "complex propagation and elimination scenario" =
     |}];
   (match
      try
-       S.solve_lfp (S.as_tmp z) (S.const (c 2 0));
+       S.solve_lfp z (S.const (c 2 0));
        Ok ()
      with Failure msg -> Error msg
    with
@@ -159,7 +159,7 @@ let%expect_test "dependent updates propagate to direct dependents" =
     y ≤ ([1,0] ⊓ x ⊓ y)
     z ≤ ([2,0] ⊓ x ⊓ z)
     |}];
-  S.solve_lfp (S.as_tmp x) (S.const (c 0 1));
+  S.solve_lfp x (S.const (c 0 1));
   print_state [ ("x", x); ("y", y); ("z", z) ];
   [%expect {|
     x = [0,1]
@@ -246,7 +246,7 @@ let%expect_test "complex joins and propagation scenario" =
     |}];
   (* eliminate a safely with a constant; then eliminate c and b with meet-self
      patterns to avoid inequality violations *)
-  S.solve_lfp (S.as_tmp a)
+  S.solve_lfp a
     (S.join (S.var a) (S.join (S.var b) (S.const (c 2 0))));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
@@ -258,7 +258,7 @@ let%expect_test "complex joins and propagation scenario" =
     e ≤ (([1,1] ⊓ b ⊓ d ⊓ e) ⊔ ([1,0] ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e))
     f ≤ (([1,1] ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f))
     |}];
-  S.solve_lfp (S.as_tmp cv) (S.meet (S.var b) (S.const (c 2 0)));
+  S.solve_lfp cv (S.meet (S.var b) (S.const (c 2 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
@@ -269,7 +269,7 @@ let%expect_test "complex joins and propagation scenario" =
     e ≤ ([1,1] ⊓ b ⊓ d ⊓ e)
     f ≤ ([1,1] ⊓ b ⊓ d ⊓ e ⊓ f)
     |}];
-  S.solve_lfp (S.as_tmp b) (S.meet (S.var b) (S.const (c 1 0)));
+  S.solve_lfp b (S.meet (S.var b) (S.const (c 1 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
@@ -307,7 +307,7 @@ let%expect_test "dependencies" =
     y ≤ ([2,0] ⊓ y ⊓ z)
     z ≤ ([2,0] ⊓ y ⊓ z)
     |}];
-  S.solve_lfp (S.as_tmp y) (S.join (S.var z) (S.var y));
+  S.solve_lfp y (S.join (S.var z) (S.var y));
   print_state [ ("x", x); ("y", y); ("z", z) ];
   [%expect {|
     x ≤ ⊥
@@ -343,7 +343,7 @@ let%expect_test "dependencies2" =
     y ≤ (([0,1] ⊓ x ⊓ y) ⊔ (y ⊓ z))
     z ≤ (([2,0] ⊓ z) ⊔ ([0,1] ⊓ y ⊓ z))
     |}];
-  S.solve_lfp (S.as_tmp y) (S.join (S.var z) (S.var y));
+  S.solve_lfp y (S.join (S.var z) (S.var y));
   print_state [ ("x", x); ("y", y); ("z", z) ];
   [%expect
     {|
@@ -351,7 +351,7 @@ let%expect_test "dependencies2" =
     y = ([2,0] ⊓ z)
     z ≤ ([2,0] ⊓ z)
     |}];
-  S.solve_lfp (S.as_tmp x) (S.var z);
+  S.solve_lfp x (S.var z);
   print_state [ ("x", x); ("y", y); ("z", z) ];
   [%expect
     {|
@@ -359,7 +359,7 @@ let%expect_test "dependencies2" =
     y = ([2,0] ⊓ z)
     z ≤ ([2,0] ⊓ z)
     |}];
-  S.solve_lfp (S.as_tmp z) (S.join (S.var z) (S.const (c 1 0)));
+  S.solve_lfp z (S.join (S.var z) (S.const (c 1 0)));
   print_state [ ("x", x); ("y", y); ("z", z) ];
   [%expect {|
     x = [1,0]
@@ -371,7 +371,7 @@ let%expect_test
     "order difference: solve_lfp then assert_leq vs assert_leq then solve_lfp" =
   let x = S.new_var "x" in
   (* Solve first, then try to assert on the eliminated variable *)
-  S.solve_lfp (S.as_tmp x) (S.const (c 1 0));
+  S.solve_lfp x (S.const (c 1 0));
   print_state [ ("x", x) ];
   (match
      try
@@ -385,7 +385,7 @@ let%expect_test
   let x2 = S.new_var "x2" in
   S.assert_leq x2 (S.meet (S.var x2) (S.const (c 2 0)));
   print_state [ ("x2", x2) ];
-  S.solve_lfp (S.as_tmp x2) (S.const (c 1 0));
+  S.solve_lfp x2 (S.const (c 1 0));
   print_state [ ("x2", x2) ];
   [%expect
     {|
@@ -402,7 +402,7 @@ let%expect_test
   let c10 = c 1 0 in
   let c20 = c 2 0 in
   (* Sequence A: solve y first, then assert on x *)
-  S.solve_lfp (S.as_tmp y) (S.meet (S.const c20) (S.var x));
+  S.solve_lfp y (S.meet (S.const c20) (S.var x));
   print_endline "-- after solve_lfp y --";
   print_state [ ("x", x); ("y", y) ];
   S.assert_leq x (S.meet (S.const c10) (S.var y));
@@ -414,7 +414,7 @@ let%expect_test
   S.assert_leq x' (S.meet (S.const c10) (S.var y'));
   print_endline "-- fresh: after assert_leq x' <= [1,0] /\\ y' --";
   print_state [ ("x'", x'); ("y'", y') ];
-  S.solve_lfp (S.as_tmp y') (S.meet (S.const c20) (S.var x'));
+  S.solve_lfp y' (S.meet (S.const c20) (S.var x'));
   print_endline "-- fresh: after solve_lfp y' --";
   print_state [ ("x'", x'); ("y'", y') ];
   [%expect

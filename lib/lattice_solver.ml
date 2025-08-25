@@ -48,11 +48,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   end =
     Lattice_polynomial.Make (C) (Var)
 
-  type named
-  type temp
-  type 'k handle = Handle of Var.t
-  type var = named handle
-  type tmp = temp handle
+  type var = Var.t
   type lat = C.t
   type poly = P.t
 
@@ -128,30 +124,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       in
       (* Initialize bound to the variable itself, not top *)
       v.bound <- P.var v;
-      Handle v
-
-  let new_tmp =
-    let r = ref 0 in
-    fun () ->
-      let x = !r in
-      r := x + 1;
-      let v =
-        Var.
-          {
-            name = None;
-            id = x;
-            bound = P.bot;
-            eliminated = false;
-            dependents = [];
-          }
-      in
-      v.bound <- P.var v;
-      Handle v
-
-  let as_tmp (Handle v : var) : tmp = Handle v
-
-  let var (Handle v : var) : poly = P.var v
-  let tmp (Handle t : tmp) : poly = P.var t
+      v
+  let var (v : var) : poly = P.var v
   let const (c : lat) : poly = P.const c
   let top : poly = P.top
   let bot : poly = P.bot
@@ -181,11 +155,11 @@ module Make (C : LATTICE) (V : ORDERED) = struct
           replace_bound v new_bound)
         (List.rev q))
 
-  let assert_leq (Handle v : var) (p : poly) : unit =
+  let assert_leq (v : var) (p : poly) : unit =
     if v.eliminated then failwith "assert_leq: variable already eliminated";
     pending_asserts := (v, p) :: !pending_asserts
 
-  let solve_lfp (Handle v : tmp) (p : poly) : unit =
+  let solve_lfp (v : var) (p : poly) : unit =
     if v.eliminated then failwith "solve_lfp: variable already eliminated";
     (* 1) normalize the poly w.r.t. other vars *)
     let p_norm = normalize_poly p in
@@ -217,10 +191,10 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     in
     List.map (fun (vars, coeff) -> (coeff, var_names vars)) terms
 
-  let is_eliminated (Handle v : var) = v.eliminated
-  let bound (Handle v : var) : poly =
+  let is_eliminated (v : var) = v.eliminated
+  let bound (v : var) : poly =
     process_pending_asserts (); v.bound
-  let name (Handle v : var) : V.t =
+  let name (v : var) : V.t =
     match v.name with Some n -> n | None -> failwith "name: temporary var"
 
   let pp ?pp_var ?pp_coeff (p : poly) : string =
@@ -262,7 +236,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         | [ s ] -> s
         | _ -> "(" ^ String.concat " ⊔ " term_strings ^ ")"
 
-  let pp_state_line ?pp_var ?pp_coeff (Handle v : var) : string =
+  let pp_state_line ?pp_var ?pp_coeff (v : var) : string =
     process_pending_asserts ();
     let lhs =
       match (v.name, pp_var) with
