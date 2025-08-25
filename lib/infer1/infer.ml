@@ -242,3 +242,4 @@ let solve_program (prog : Decl_parser.program) ~(max_iters : int) :
     |> List.map (fun (n, k) -> (n, Kind.normalize_up k))
   in
   least_fixpoint_bindings_with_self_init ~max_iters ~abstracts kinds
+

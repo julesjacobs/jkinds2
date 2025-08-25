@@ -255,3 +255,4 @@ let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list
       loop (i + 1) ((i, p') :: acc)
   in
   loop 0 []
+

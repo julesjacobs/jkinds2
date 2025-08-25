@@ -1,3 +1,5 @@
+(include_subdirs unqualified)
+
 (library
  (public_name jkinds)
  (name jkinds_lib)
@@ -21,9 +23,3 @@
   lattice_solver
   axis_lattice
   jkinds_lib))
-
-(ocamllex
- (modules type_lexer))
-
-(menhir
- (modules type_menhir))

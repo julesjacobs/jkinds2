@@ -1,0 +1,7 @@
+; Generators for parser sources
+
+(menhir
+ (modules type_menhir))
+
+(ocamllex
+ (modules type_lexer))
