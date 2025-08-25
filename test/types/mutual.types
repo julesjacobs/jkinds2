@@ -1,2 +1,4 @@
+type cons('a1) : [2,1]
+
 type oddlist('a1) = unit + cons('a1, evenlist('a1))
 type evenlist('a1) = unit + cons('a1, oddlist('a1))

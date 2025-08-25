@@ -1,1 +1,2 @@
+type portended('a1) : [2,1]
 type foo('a1) = portended(ref('a1))

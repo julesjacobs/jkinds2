@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-25 18:13:51 UTC
+Generated: 2025-08-25 18:16:38 UTC
 
 ## abstracts.types
 
@@ -481,17 +481,16 @@ bar: {0 ↦ [1,0]}
 ## mutual.types
 
 ```
+type cons('a1) : [2,1]
+
 type oddlist('a1) = unit + cons('a1, evenlist('a1))
 type evenlist('a1) = unit + cons('a1, oddlist('a1))
 ```
 
 Program output:
 ```
-Infer4 normalized kinds:
-oddlist: {0 ↦ v0, 1 ↦ v1}
-evenlist: {0 ↦ v0, 1 ↦ v1}
-
-Infer2 normalized kinds:
+Infer2 & Infer4 normalized kinds:
+cons: {0 ↦ cons.0, 1 ↦ cons.1}
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
 ```
@@ -520,15 +519,18 @@ orchid: {0 ↦ portable.0, 1 ↦ portable.1}
 ## ref.types
 
 ```
+type portended('a1) : [2,1]
 type foo('a1) = portended(ref('a1))
 ```
 
 Program output:
 ```
 Infer4 normalized kinds:
-foo: {0 ↦ v0 ⊔ (v1 ⊓ v2), 1 ↦ v1 ⊓ v3}
+portended: {0 ↦ portended.0, 1 ↦ portended.1}
+foo: {0 ↦ portended.0 ⊔ (portended.1 ⊓ v2), 1 ↦ portended.1 ⊓ v3}
 
 Infer2 normalized kinds:
+portended: {0 ↦ portended.0, 1 ↦ portended.1}
 foo: {0 ↦ portended.0 ⊔ (portended.1 ⊓ ref.0), 1 ↦ portended.1 ⊓ ref.1}
 ```
 
