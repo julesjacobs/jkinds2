@@ -26,10 +26,7 @@ end
 
 module S = Lattice_solver.Make (C) (VL)
 
-let pp_coeff x =
-  let levels = C.decode x |> Array.to_list in
-  let parts = levels |> List.map string_of_int |> String.concat "," in
-  Printf.sprintf "[%s]" parts
+let pp_coeff = C.to_string
 
 let pp_poly p = S.pp ~pp_var:Infer2.pp_varlabel ~pp_coeff p
 

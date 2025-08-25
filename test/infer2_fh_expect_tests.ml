@@ -26,10 +26,7 @@ end
 
 module S = Lattice_solver.Make (C) (VL)
 
-let pp_coeff x =
-  let levels = C.decode x |> Array.to_list in
-  let parts = levels |> List.map string_of_int |> String.concat "," in
-  Printf.sprintf "[%s]" parts
+let pp_coeff = C.to_string
 
 let%expect_test "abstract F/H constraints show extra F.0 disjunct in F.1" =
   let h0 =

@@ -117,11 +117,7 @@ let to_poly_decl_rhs (it : Decl_parser.decl_item) : S.poly =
   to_poly_mu_raw it.rhs_mu_raw
 
 let pp_poly (p : S.poly) : string =
-  let pp_coeff x =
-    let levels = Axis_lattice.decode x |> Array.to_list in
-    let parts = levels |> List.map string_of_int |> String.concat "," in
-    Printf.sprintf "[%s]" parts
-  in
+  let pp_coeff = Axis_lattice.to_string in
   let pp_var = function
     | VarLabel.Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index
     | VarLabel.TyVar v -> Printf.sprintf "'a%d" v
@@ -157,11 +153,7 @@ let pp_varlabel : VarLabel.t -> string = function
   | VarLabel.TyRec i -> Printf.sprintf "μb%d" i
 
 let pp_state_line (v : S.var) : string =
-  let pp_coeff x =
-    let levels = Axis_lattice.decode x |> Array.to_list in
-    let parts = levels |> List.map string_of_int |> String.concat "," in
-    Printf.sprintf "[%s]" parts
-  in
+  let pp_coeff = Axis_lattice.to_string in
   S.pp_state_line ~pp_var:pp_varlabel ~pp_coeff v
 
 let get_atom_var ~(ctor : string) ~(index : int) : S.var =
