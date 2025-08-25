@@ -12,7 +12,7 @@ module ConstrM = struct
   let compare = String.compare
 end
 
-module JK = Jkind_solver1.Make (Axis_lattice) (TyM) (ConstrM)
+module JK = Jkind_solver.Make (Axis_lattice) (TyM) (ConstrM)
 
 type env = JK.env
 type lat = Axis_lattice.t
