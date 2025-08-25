@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-25 17:36:49 UTC
+Generated: 2025-08-25 17:44:17 UTC
 
 ## abstracts.types
 

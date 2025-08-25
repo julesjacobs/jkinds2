@@ -92,7 +92,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let id = !next_id in
     incr next_id;
     let v = { Var.id = id; Var.sol = None } in
-    log "[fix] new_var v%d" id;
+    log "[fix] new_var() = v%d" id;
     v
 
   let var (v : var) : poly = P.var (Var.Var v)
@@ -113,11 +113,15 @@ module Make (C : LATTICE) (V : ORDERED) = struct
           match v with
           | Var.Rigid _ -> acc
           | Var.Var s -> 
-              match s.Var.sol with Some q -> P.VarMap.add v (force_poly q) acc | None -> acc)
+              match s.Var.sol with 
+              | Some q -> 
+                let q' = force_poly q in
+                s.Var.sol <- Some q';
+                P.VarMap.add v q' acc 
+              | None -> acc)
         vars P.VarMap.empty
     in
     if P.VarMap.is_empty subs then p else P.subst ~subs p
-
   let require_no_unsolved (ctx : string) (p : poly) : unit =
     let vars = P.support p in
     P.VarSet.iter
@@ -133,6 +137,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let phase : phase ref = ref Build
   let pending_gfp : (var * poly) list ref = ref []
 
+  let solve_fp (v : var) (rhs : poly) (self_value : poly) : unit =
+    let rhs' = force_poly rhs in
+    let subs = P.VarMap.(empty |> add (Var.Var v) self_value) in
+    let cand = P.subst ~subs rhs' in
+    v.Var.sol <- Some cand; 
+    log "[fix] lfp(v%d, %s, %s)=%s" v.Var.id (pp_log rhs) (pp_log self_value) (pp_log cand)
+    
   let solve_pending_gfps () : unit =
     if !pending_gfp <> [] then (
       log "[fix] solving %d pending GFPs" (List.length !pending_gfp);
@@ -141,11 +152,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       List.iter
         (fun (v, rhs) ->
           (match v.Var.sol with Some _ -> failwith "solve_gfps: variable already solved" | None -> ());
-          let subs = P.VarMap.(empty |> add (Var.Var v) P.top) in
-          let rhs' = force_poly rhs in
-          let cand = P.subst ~subs rhs' in
-          v.Var.sol <- Some cand;
-          log "[fix] gfp(v%d, rhs=%s)" v.Var.id (pp_log cand))
+          solve_fp v rhs P.top)
         items)
 
   let enter_query_phase () : unit =
@@ -157,19 +164,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let solve_lfp (v : var) (rhs : poly) : unit =
     (match !phase with Build -> () | _ -> failwith "solve_lfp: after query phase");
     (match v.Var.sol with Some _ -> failwith "solve_lfp: variable already solved" | None -> ());
-    let rhs' = force_poly rhs in
-    (* substitute self by bot for LFP candidate *)
-    let subs = P.VarMap.(empty |> add (Var.Var v) P.bot) in
-    let cand = P.subst ~subs rhs' in
-    let cand' = force_poly cand in
-    v.Var.sol <- Some cand';
-    log "[fix] lfp(v%d, rhs=%s)" v.Var.id (pp_log cand')
+    solve_fp v rhs P.bot
 
   let enqueue_gfp (v : var) (rhs : poly) : unit =
     (match !phase with Build -> () | _ -> failwith "enqueue_gfp: after query phase");
     (match v.Var.sol with Some _ -> failwith "enqueue_gfp: variable already solved" | None -> ());
     pending_gfp := (v, rhs) :: !pending_gfp
-    ; log "[fix] enqueue_gfp(v%d, rhs=%s)" v.Var.id (pp_log rhs)
+    ; log "[fix] enqueue_gfp(v%d, %s)" v.Var.id (pp_log rhs)
 
   (* No explicit solve_gfps: queries enter query phase and solve pending GFPs. *)
 
