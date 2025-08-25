@@ -38,9 +38,7 @@ let pp_coeff_axis (x : Axis_lattice.t) : string =
   let parts = levels |> List.map string_of_int |> String.concat "," in
   Printf.sprintf "[%s]" parts
 
-let pp_rigid = function
-  | RigidName.Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index
-  | RigidName.TyVar v -> Printf.sprintf "'a%d" v
+let pp_rigid = RigidName.to_string
 
 let pp_poly (p : S.poly) : string =
   S.pp ~pp_var:pp_rigid ~pp_coeff:pp_coeff_axis p
@@ -150,7 +148,7 @@ let decompose_by_tyvars ~(arity : int) (p : S.poly) :
     singles;
   (base, coeffs, mixed)
 
-let pp_varlabel : RigidName.t -> string = pp_rigid
+let pp_varlabel : RigidName.t -> string = RigidName.to_string
 
 (* Solving program: build per-atom equations and solve LFPs *)
 type linear_decomp = { it : Decl_parser.decl_item; base : S.poly; coeffs : S.poly array }

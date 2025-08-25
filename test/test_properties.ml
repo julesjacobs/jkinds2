@@ -96,6 +96,7 @@ module PolyProps = struct
     let leq a b = (not a) || b
     let co_sub a b = a && not b
     let equal a b = a = b
+    let to_string (b : bool) = if b then "⊤" else "⊥"
   end
 
   module Var = struct

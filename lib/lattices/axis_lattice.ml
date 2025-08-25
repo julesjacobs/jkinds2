@@ -4,3 +4,5 @@ module T = Product_lattice.Make (struct
 end)
 
 include T
+
+let to_string = T.to_string

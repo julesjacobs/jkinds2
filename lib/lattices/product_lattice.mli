@@ -36,4 +36,7 @@ module Make (_ : SHAPE) : sig
 
   (* Pretty-print; optionally name axes *)
   val pp : ?axis_names:string array -> t -> string
+
+  (* Compact representation, e.g., "[a,b,...]" where entries are axis levels. *)
+  val to_string : t -> string
 end

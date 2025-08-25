@@ -70,21 +70,19 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let log fmt = if trace_enabled then Printf.eprintf (fmt ^^ "\n") else Printf.ifprintf stderr fmt
 
   let next_id = ref 0
-
-  (* Pretty printer configuration for logging within this module. *)
+  (* logging pretty-printer hooks *)
   let log_pp_var : (V.t -> string) option ref = ref None
   let log_pp_coeff : (C.t -> string) option ref = ref None
-
   let set_log_printers ?pp_var ?pp_coeff () : unit =
     (match pp_var with Some f -> log_pp_var := Some f | None -> ());
     (match pp_coeff with Some f -> log_pp_coeff := Some f | None -> ())
 
   let pp_log (p : poly) : string =
     let pp_var_internal = function
-      | Var.Rigid n -> V.to_string n
-      | Var.Var s -> Printf.sprintf "v%d" s.id
+      | Var.Rigid n -> (match !log_pp_var with Some f -> f n | None -> V.to_string n)
+      | Var.Var s -> Printf.sprintf "v#%d" s.id
     in
-    let pp_coeff_internal = match !log_pp_coeff with Some f -> f | None -> fun (_:C.t)->"⊤" in
+    let pp_coeff_internal = match !log_pp_coeff with Some f -> f | None -> C.to_string in
     P.pp ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_internal p
 
   (* Public constructors *)
@@ -92,7 +90,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let id = !next_id in
     incr next_id;
     let v = { Var.id = id; Var.sol = None } in
-    log "[fix] new_var() = v%d" id;
+    log "[fix] new_var v#%d" id;
     v
 
   let var (v : var) : poly = P.var (Var.Var v)

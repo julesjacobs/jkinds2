@@ -243,6 +243,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       in
       "{" ^ String.concat " ⊔ " term_strings ^ "}"
 
+  let to_string (p : t) : string = pp ~pp_var:(fun _ -> "_") ~pp_coeff:C.to_string p
+
   (* Backward-compat alias to emphasize approximation semantics. *)
   let co_sub = co_sub_approx
 end

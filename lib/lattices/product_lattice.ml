@@ -154,4 +154,11 @@ module Make (S : SHAPE) = struct
     done;
     Buffer.add_char b '}';
     Buffer.contents b
+
+  let to_string (v : t) : string =
+    let levels = decode v in
+    let parts =
+      levels |> Array.to_list |> List.map string_of_int |> String.concat ","
+    in
+    Printf.sprintf "[%s]" parts
 end
