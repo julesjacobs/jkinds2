@@ -31,7 +31,6 @@ module Infer2 : sig
 
   val solve_linear_for_program : Decl_parser.program -> unit
   val atom_state_lines_for_program : Decl_parser.program -> string list
-  val normalized_kind_for_decl : Decl_parser.decl_item -> (int * poly) list
   val pp_varlabel : var_label -> string
   val run_program : Decl_parser.program -> string
 end
@@ -60,7 +59,6 @@ module Infer4 : sig
 
   val solve_linear_for_program : Decl_parser.program -> unit
   val atom_state_lines_for_program : Decl_parser.program -> string list
-  val normalized_kind_for_decl : Decl_parser.decl_item -> (int * poly) list
   val pp_varlabel : RigidName.t -> string
   val run_program : Decl_parser.program -> string
 end

@@ -239,6 +239,25 @@ let atom_bound_poly ~(ctor : string) ~(index : int) : S.poly =
   let v = get_atom_var ~ctor ~index in
   S.bound v
 
+module PpPoly = Lattice_polynomial.Make (Axis_lattice) (VarLabel)
+
+let to_pppoly (p : S.poly) : PpPoly.t =
+  let terms = S.normalize p in
+  let to_vars (vs : VarLabel.t list) : PpPoly.vars =
+    List.fold_left (fun acc v -> PpPoly.VarSet.add v acc) PpPoly.VarSet.empty vs
+  in
+  terms |> List.map (fun (c, vs) -> (to_vars vs, c)) |> PpPoly.of_list
+
+let pp_entry (ctor : string) (i : int) : string =
+  let p = atom_bound_poly ~ctor ~index:i in
+  if i = 0 then pp_poly p
+  else
+    let base = atom_bound_poly ~ctor ~index:0 in
+    let p_poly = to_pppoly p in
+    let base_poly = to_pppoly base in
+    let diff = PpPoly.co_sub_approx p_poly base_poly in
+    PpPoly.pp ~pp_var:VarLabel.to_string ~pp_coeff:Axis_lattice.to_string diff
+
 let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list
     =
   let rec loop i acc =
@@ -250,7 +269,6 @@ let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list
         else
           let u = [ VarLabel.Atom { Modality.ctor = it.name; index = 0 } ] in
           let groups = S.decompose_by ~universe:u p in
-          (* Keep only terms not containing C.0 (key = []) *)
           groups
           |> List.filter (fun (k, _) -> k = [])
           |> List.fold_left (fun acc (_, poly) -> S.join acc poly) S.bot
@@ -263,11 +281,14 @@ let run_program (prog : Decl_parser.program) : string =
   solve_linear_for_program prog;
   prog
   |> List.map (fun (it : Decl_parser.decl_item) ->
-         let entries = normalized_kind_for_decl it in
          let body =
-           entries
-           |> List.map (fun (i, p) -> Printf.sprintf "%d ↦ %s" i (pp_poly p))
-           |> String.concat ", "
+           let rec loop i acc =
+             if i > it.arity then List.rev acc
+             else
+               let s = pp_entry it.name i in
+               loop (i + 1) (Printf.sprintf "%d ↦ %s" i s :: acc)
+           in
+           loop 0 [] |> String.concat ", "
          in
          Printf.sprintf "%s: {%s}" it.name body)
   |> String.concat "\n"
