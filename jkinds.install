@@ -1,0 +1,141 @@
+lib: [
+  "_build/install/default/lib/jkinds/META"
+  "_build/install/default/lib/jkinds/dune-package"
+  "_build/install/default/lib/jkinds/infer1/infer.ml" {"infer1/infer.ml"}
+  "_build/install/default/lib/jkinds/infer1/infer.mli" {"infer1/infer.mli"}
+  "_build/install/default/lib/jkinds/infer1/kind.ml" {"infer1/kind.ml"}
+  "_build/install/default/lib/jkinds/infer1/kind.mli" {"infer1/kind.mli"}
+  "_build/install/default/lib/jkinds/infer1/modality.ml" {"infer1/modality.ml"}
+  "_build/install/default/lib/jkinds/infer1/modality.mli" {"infer1/modality.mli"}
+  "_build/install/default/lib/jkinds/infer2/infer2.ml" {"infer2/infer2.ml"}
+  "_build/install/default/lib/jkinds/infer2/lattice_solver.ml" {"infer2/lattice_solver.ml"}
+  "_build/install/default/lib/jkinds/infer2/lattice_solver.mli" {"infer2/lattice_solver.mli"}
+  "_build/install/default/lib/jkinds/infer3/infer3.ml" {"infer3/infer3.ml"}
+  "_build/install/default/lib/jkinds/infer3/jkind_solver1.ml" {"infer3/jkind_solver1.ml"}
+  "_build/install/default/lib/jkinds/infer3/jkind_solver1.mli" {"infer3/jkind_solver1.mli"}
+  "_build/install/default/lib/jkinds/infer4/infer4.ml" {"infer4/infer4.ml"}
+  "_build/install/default/lib/jkinds/infer4/lattice_fixpoint_solver.ml" {"infer4/lattice_fixpoint_solver.ml"}
+  "_build/install/default/lib/jkinds/infer4/lattice_fixpoint_solver.mli" {"infer4/lattice_fixpoint_solver.mli"}
+  "_build/install/default/lib/jkinds/infer5/infer5.ml" {"infer5/infer5.ml"}
+  "_build/install/default/lib/jkinds/infer5/jkind_solver.ml" {"infer5/jkind_solver.ml"}
+  "_build/install/default/lib/jkinds/infer5/jkind_solver.mli" {"infer5/jkind_solver.mli"}
+  "_build/install/default/lib/jkinds/jkinds_lib.a"
+  "_build/install/default/lib/jkinds/jkinds_lib.cma"
+  "_build/install/default/lib/jkinds/jkinds_lib.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib.cmxa"
+  "_build/install/default/lib/jkinds/jkinds_lib.ml"
+  "_build/install/default/lib/jkinds/jkinds_lib.mli"
+  "_build/install/default/lib/jkinds/jkinds_lib__.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__.ml"
+  "_build/install/default/lib/jkinds/jkinds_lib__Axis_lattice.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Axis_lattice.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Axis_lattice.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Decl_parser.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Decl_parser.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Decl_parser.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Decl_parser.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer2.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer2.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer2.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer3.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer3.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer3.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer4.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer4.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer4.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer5.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer5.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Infer5.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Jkind_solver.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Jkind_solver.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Jkind_solver.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Jkind_solver.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Jkind_solver1.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Jkind_solver1.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Jkind_solver1.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Jkind_solver1.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Kind.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Kind.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Kind.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Kind.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_fixpoint_solver.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_fixpoint_solver.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_fixpoint_solver.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_fixpoint_solver.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_intf.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_intf.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_intf.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_polynomial.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_polynomial.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_polynomial.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_polynomial.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_solver.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_solver.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_solver.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Lattice_solver.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Modality.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Modality.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Modality.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Modality.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Product_lattice.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Product_lattice.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Product_lattice.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Product_lattice.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_lexer.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_lexer.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_lexer.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_menhir.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_menhir.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_menhir.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_menhir.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_menhir_driver.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_menhir_driver.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_menhir_driver.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_menhir_driver.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_parser.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_parser.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_parser.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_parser.cmx"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_syntax.cmi"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_syntax.cmt"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_syntax.cmti"
+  "_build/install/default/lib/jkinds/jkinds_lib__Type_syntax.cmx"
+  "_build/install/default/lib/jkinds/lattices/axis_lattice.ml" {"lattices/axis_lattice.ml"}
+  "_build/install/default/lib/jkinds/lattices/lattice_intf.ml" {"lattices/lattice_intf.ml"}
+  "_build/install/default/lib/jkinds/lattices/lattice_polynomial.ml" {"lattices/lattice_polynomial.ml"}
+  "_build/install/default/lib/jkinds/lattices/lattice_polynomial.mli" {"lattices/lattice_polynomial.mli"}
+  "_build/install/default/lib/jkinds/lattices/product_lattice.ml" {"lattices/product_lattice.ml"}
+  "_build/install/default/lib/jkinds/lattices/product_lattice.mli" {"lattices/product_lattice.mli"}
+  "_build/install/default/lib/jkinds/opam"
+  "_build/install/default/lib/jkinds/parser/decl_parser.ml" {"parser/decl_parser.ml"}
+  "_build/install/default/lib/jkinds/parser/decl_parser.mli" {"parser/decl_parser.mli"}
+  "_build/install/default/lib/jkinds/parser/type_lexer.ml" {"parser/type_lexer.ml"}
+  "_build/install/default/lib/jkinds/parser/type_menhir.ml" {"parser/type_menhir.ml"}
+  "_build/install/default/lib/jkinds/parser/type_menhir.mli" {"parser/type_menhir.mli"}
+  "_build/install/default/lib/jkinds/parser/type_menhir_driver.ml" {"parser/type_menhir_driver.ml"}
+  "_build/install/default/lib/jkinds/parser/type_menhir_driver.mli" {"parser/type_menhir_driver.mli"}
+  "_build/install/default/lib/jkinds/parser/type_parser.ml" {"parser/type_parser.ml"}
+  "_build/install/default/lib/jkinds/parser/type_parser.mli" {"parser/type_parser.mli"}
+  "_build/install/default/lib/jkinds/parser/type_syntax.ml" {"parser/type_syntax.ml"}
+  "_build/install/default/lib/jkinds/parser/type_syntax.mli" {"parser/type_syntax.mli"}
+]
+libexec: [
+  "_build/install/default/lib/jkinds/jkinds_lib.cmxs"
+]
+bin: [
+  "_build/install/default/bin/check_arity"
+  "_build/install/default/bin/jkinds"
+  "_build/install/default/bin/print_cvars"
+]
+doc: [
+  "_build/install/default/doc/jkinds/README.md"
+]

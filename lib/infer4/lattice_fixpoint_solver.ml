@@ -194,9 +194,31 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let rigid_names (vs : P.VarSet.t) : V.t list =
       vs
       |> P.VarSet.elements
-      |> List.filter_map (function Var.Rigid n -> Some n | Var.Var _ -> None)
+      |> List.filter_map (function
+           | Var.Rigid n -> Some n
+           | Var.Var _ -> failwith "normalize: unsolved variable")
     in
     List.map (fun (vars, coeff) -> (coeff, rigid_names vars)) terms
+
+  module RigidPoly = Lattice_polynomial.Make (C) (V)
+
+  let normalize_poly (p : poly) : RigidPoly.t =
+    (* Ensure all solver variables are solved and eliminated, as in
+       [normalize]. *)
+    enter_query_phase ();
+    let p' = force_poly p in
+    require_no_unsolved "normalize_poly" p';
+    let terms = P.to_list p' in
+    let to_rigid_vars (vs : P.VarSet.t) : RigidPoly.VarSet.t =
+      P.VarSet.fold
+        (fun v acc ->
+          match v with
+          | Var.Rigid n -> RigidPoly.VarSet.add n acc
+          | Var.Var _ -> failwith "normalize_poly: unsolved variable")
+        vs RigidPoly.VarSet.empty
+    in
+    let rl = List.map (fun (s, c) -> (to_rigid_vars s, c)) terms in
+    RigidPoly.of_list rl
 
   (* Group polynomial terms by designated rigid variables. *)
   let decompose_by ~(universe : V.t list) (p : poly) : (V.t list * poly) list =

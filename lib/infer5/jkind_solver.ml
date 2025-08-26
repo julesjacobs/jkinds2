@@ -16,6 +16,7 @@ module Make
   type constr = Constr.t
   type lat = Lat.t
   type kind
+  type solver
 
   type ops = {
     const : lat -> kind;
@@ -30,9 +31,18 @@ module Make
   type constr_decl = { args : ty list; kind : ckind; abstract : bool }
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
   type atom = { constr : constr; arg_index : int }
-  type solver
+
+  module RigidName : sig
+    type t = Atom of atom | Ty of ty
+
+    val compare : t -> t -> int
+    val to_string : t -> string
+  end
+
+  type poly = Lattice_polynomial.Make(Lat)(RigidName).t
 
   val make_solver : env -> solver
+  val constr_kind_poly : solver -> constr -> poly * poly list
   val normalize : solver -> ckind -> (lat * atom list) list
   val leq : solver -> ckind -> ckind -> bool
   val round_up : solver -> ckind -> lat
@@ -66,6 +76,8 @@ end = struct
     let atomic constr arg_index = Atom { constr; arg_index }
   end
 
+  type poly = Lattice_polynomial.Make(Lat)(RigidName).t
+
   module LSolver = Lattice_fixpoint_solver.Make (Lat) (RigidName)
 
   type kind = LSolver.poly
@@ -82,7 +94,11 @@ end = struct
   type ckind = ops -> kind
   type constr_decl = { args : ty list; kind : ckind; abstract : bool }
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
-  type solver = { ops : ops }
+
+  type solver = {
+    ops : ops;
+    constr_kind_poly : constr -> LSolver.RigidPoly.t * LSolver.RigidPoly.t list;
+  }
 
   let make_solver (env : env) : solver =
     (* Define all the trivial ops *)
@@ -179,7 +195,20 @@ end = struct
       (* Return that kind *)
       k'
     and ops = { const; join; modality; constr; kind_of; rigid } in
-    { ops }
+    let constr_kind_poly c =
+      let base, coeffs = constr_kind c in
+      let base_poly = LSolver.normalize_poly (LSolver.var base) in
+      let coeffs_poly =
+        List.map
+          (fun coeff -> LSolver.normalize_poly (LSolver.var coeff))
+          coeffs
+      in
+      (base_poly, coeffs_poly)
+    in
+    { ops; constr_kind_poly }
+
+  let constr_kind_poly (solver : solver) (c : constr) : poly * poly list =
+    solver.constr_kind_poly c
 
   let normalize (solver : solver) (k : ckind) : (lat * atom list) list =
     let p = k solver.ops in

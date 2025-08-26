@@ -53,6 +53,12 @@ module Make (C : LATTICE) (V : ORDERED) : sig
      (sorted) and all solver variables have been eliminated via forcing. *)
   val normalize : poly -> (lat * V.t list) list
 
+  (* Normalize to a canonical lattice polynomial over rigid variables [V.t].
+     Equivalent information as [normalize], but packaged as a polynomial. *)
+  module RigidPoly : module type of Lattice_polynomial.Make (C) (V)
+
+  val normalize_poly : poly -> RigidPoly.t
+
   (* Decompose/group by designated rigid variables' names in [universe]. Works
      on the forced form. *)
   val decompose_by : universe:V.t list -> poly -> (V.t list * poly) list

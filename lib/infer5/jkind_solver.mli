@@ -44,7 +44,17 @@ module Make
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
   type atom = { constr : constr; arg_index : int }
 
+  module RigidName : sig
+    type t = Atom of atom | Ty of ty
+
+    val compare : t -> t -> int
+    val to_string : t -> string
+  end
+
+  type poly = Lattice_polynomial.Make(Lat)(RigidName).t
+
   val make_solver : env -> solver
+  val constr_kind_poly : solver -> constr -> poly * poly list
   val normalize : solver -> ckind -> (lat * atom list) list
   val leq : solver -> ckind -> ckind -> bool
   val round_up : solver -> ckind -> lat
