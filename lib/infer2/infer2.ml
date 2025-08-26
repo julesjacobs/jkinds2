@@ -78,38 +78,47 @@ type var = S.var
 
 (* ---- Cyclic translation support ---- *)
 let to_poly_cyclic (root : Type_parser.cyclic) : S.poly =
-  (* Allocate one solver variable per MuLink ref. *)
-  let table : (Type_parser.cyclic ref, S.var) Hashtbl.t = Hashtbl.create 64 in
+  (* Create solver vars only for nodes that actually participate in cycles. *)
+  let table : (Type_parser.cyclic, S.var) Hashtbl.t = Hashtbl.create 64 in
+  let onstack : (Type_parser.cyclic, unit) Hashtbl.t = Hashtbl.create 64 in
 
   let rec translate (n : Type_parser.cyclic) : S.poly =
-    match n with
-    | Type_parser.MuLink r -> translate_link r
-    | Type_parser.CUnit -> S.const Axis_lattice.bot
-    | Type_parser.CVar i -> S.var (get_var (VarLabel.TyVar i))
-    | Type_parser.CMod_const lv -> const_levels lv
-    | Type_parser.CMod_annot (t, lv) -> S.meet (const_levels lv) (translate t)
-    | Type_parser.CPair (a, b) | Type_parser.CSum (a, b) ->
-      S.join (translate a) (translate b)
-    | Type_parser.CCtor (name, args) ->
-      let base =
-        S.var (get_var (VarLabel.Atom { Modality.ctor = name; index = 0 }))
-      in
-      let step acc (i, t) =
-        let vi =
-          S.var (get_var (VarLabel.Atom { Modality.ctor = name; index = i }))
-        in
-        S.join acc (S.meet vi (translate t))
-      in
-      List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
-  and translate_link (r : Type_parser.cyclic ref) : S.poly =
-    match Hashtbl.find_opt table r with
+    match Hashtbl.find_opt table n with
     | Some v -> S.var v
     | None ->
-      let v = get_var (VarLabel.TyRec (Hashtbl.length table)) in
-      Hashtbl.add table r v;
-      let rhs = translate !r in
-      S.solve_lfp v rhs;
-      S.bound v
+      if Hashtbl.mem onstack n then (
+        (* Back-edge: allocate var now and return it *)
+        let v = get_var (VarLabel.TyRec (Hashtbl.length table)) in
+        Hashtbl.add table n v;
+        S.var v)
+      else (
+        Hashtbl.add onstack n ();
+        let rhs =
+          match n.Type_parser.node with
+          | Type_parser.CUnit -> S.const Axis_lattice.bot
+          | Type_parser.CVar i -> S.var (get_var (VarLabel.TyVar i))
+          | Type_parser.CMod_const lv -> const_levels lv
+          | Type_parser.CMod_annot (t, lv) ->
+              S.meet (const_levels lv) (translate t)
+          | Type_parser.CPair (a, b) | Type_parser.CSum (a, b) ->
+              S.join (translate a) (translate b)
+          | Type_parser.CCtor (name, args) ->
+              let base =
+                S.var (get_var (VarLabel.Atom { Modality.ctor = name; index = 0 }))
+              in
+              let step acc (i, t) =
+                let vi =
+                  S.var (get_var (VarLabel.Atom { Modality.ctor = name; index = i }))
+                in
+                S.join acc (S.meet vi (translate t))
+              in
+              List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
+        in
+        Hashtbl.remove onstack n;
+        (* If a var was allocated for this node (cycle), solve it; else return rhs. *)
+        match Hashtbl.find_opt table n with
+        | Some v -> S.solve_lfp v rhs; S.bound v
+        | None -> rhs)
   in
   translate root
 

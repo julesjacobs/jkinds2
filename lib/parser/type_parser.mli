@@ -14,7 +14,9 @@ type mu_raw =
 val to_simple_exn : mu_raw -> Type_syntax.t
 val to_simple : mu_raw -> (Type_syntax.t, string) result
 
-type cyclic =
+type cyclic = { id : int; mutable node : cnode }
+
+and cnode =
   | CUnit
   | CPair of cyclic * cyclic
   | CSum of cyclic * cyclic
@@ -22,7 +24,8 @@ type cyclic =
   | CVar of int
   | CMod_annot of cyclic * int array
   | CMod_const of int array
-  | MuLink of cyclic ref
 
 val to_cyclic : mu_raw -> cyclic
 val pp_cyclic : cyclic -> string
+
+val mk : cnode -> cyclic

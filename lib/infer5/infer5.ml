@@ -23,7 +23,7 @@ type atom = JK.atom
 let kind_of (c : Type_parser.cyclic) : JK.ckind =
  fun (ops : JK.ops) ->
   let open Type_parser in
-  match c with
+  match c.node with
   | CUnit -> ops.const Axis_lattice.bot
   | CMod_const lv -> ops.const (Axis_lattice.encode ~levels:lv)
   | CMod_annot (t, lv) ->
@@ -33,7 +33,6 @@ let kind_of (c : Type_parser.cyclic) : JK.ckind =
   | CCtor (name, args) ->
     let arg_kinds = List.map (fun t -> ops.kind_of t) args in
     ops.constr name arg_kinds
-  | MuLink r -> ops.kind_of !r
   | CVar _ -> failwith "kind_of: should not reach variables"
 
 let env_of_program (prog : program) : env =
@@ -46,7 +45,7 @@ let env_of_program (prog : program) : env =
     | Some it ->
       let args =
         let rec vars i acc =
-          if i = 0 then acc else vars (i - 1) (Type_parser.CVar i :: acc)
+          if i = 0 then acc else vars (i - 1) (Type_parser.mk (Type_parser.CVar i) :: acc)
         in
         vars it.arity []
       in

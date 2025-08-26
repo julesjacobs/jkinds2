@@ -93,32 +93,38 @@ let rec to_poly (t : Type_syntax.t) : S.poly =
 
 (* Cyclic translation with LFP solver vars for µ-binders *)
 let to_poly_cyclic (root : Type_parser.cyclic) : S.poly =
-  let table : (Type_parser.cyclic ref, S.var) Hashtbl.t = Hashtbl.create 64 in
+  let table : (Type_parser.cyclic, S.var) Hashtbl.t = Hashtbl.create 64 in
+  let onstack : (Type_parser.cyclic, unit) Hashtbl.t = Hashtbl.create 64 in
 
   let rec translate (n : Type_parser.cyclic) : S.poly =
-    match n with
-    | Type_parser.MuLink r -> translate_link r
-    | Type_parser.CUnit -> S.const Axis_lattice.bot
-    | Type_parser.CVar i -> rigid_tyvar i
-    | Type_parser.CMod_const lv -> const_levels lv
-    | Type_parser.CMod_annot (t, lv) -> S.meet (const_levels lv) (translate t)
-    | Type_parser.CPair (a, b) | Type_parser.CSum (a, b) -> S.join (translate a) (translate b)
-    | Type_parser.CCtor (name, args) ->
-        let base = atom_poly name 0 in
-        let step acc (i, t) =
-          let vi = atom_poly name i in
-          S.join acc (S.meet vi (translate t))
-        in
-        List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
-  and translate_link (r : Type_parser.cyclic ref) : S.poly =
-    match Hashtbl.find_opt table r with
+    match Hashtbl.find_opt table n with
     | Some v -> S.var v
     | None ->
+      if Hashtbl.mem onstack n then (
         let v = S.new_var () in
-        Hashtbl.add table r v;
-        let rhs = translate !r in
-        S.solve_lfp v rhs;
-        S.var v
+        Hashtbl.add table n v;
+        S.var v)
+      else (
+        Hashtbl.add onstack n ();
+        let rhs =
+          match n.Type_parser.node with
+          | Type_parser.CUnit -> S.const Axis_lattice.bot
+          | Type_parser.CVar i -> rigid_tyvar i
+          | Type_parser.CMod_const lv -> const_levels lv
+          | Type_parser.CMod_annot (t, lv) -> S.meet (const_levels lv) (translate t)
+          | Type_parser.CPair (a, b) | Type_parser.CSum (a, b) -> S.join (translate a) (translate b)
+          | Type_parser.CCtor (name, args) ->
+              let base = atom_poly name 0 in
+              let step acc (i, t) =
+                let vi = atom_poly name i in
+                S.join acc (S.meet vi (translate t))
+              in
+              List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
+        in
+        Hashtbl.remove onstack n;
+        match Hashtbl.find_opt table n with
+        | Some v -> S.solve_lfp v rhs; S.var v
+        | None -> rhs)
   in
   translate root
 
