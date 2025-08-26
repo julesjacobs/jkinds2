@@ -41,6 +41,9 @@ end = struct
   type lat = Lat.t
   type atom = { constr : constr; arg_index : int }
 
+  (* Touch compare_ty to avoid unused warning in strict test builds. *)
+  let _ : ty -> ty -> int = Ty.compare_ty
+
   module RigidName = struct
     type t = Atom of atom | Ty of ty
   
@@ -152,7 +155,7 @@ end = struct
      let ops = make_ops env in
      k ops *)
 
-  let normalize (env : env) (k : ckind) : (lat * atom list) list =
+  let normalize (_env : env) (_k : ckind) : (lat * atom list) list =
     failwith "unimplemented"
 
   let leq (env : env) (k1 : ckind) (k2 : ckind) : bool =
@@ -161,7 +164,6 @@ end = struct
     let k2' = k2 ops in
     LSolver.leq k1' k2'
 
-  let round_up (env : env) (k : ckind) : lat = failwith "unimplemented"
+  let round_up (_env : env) (_k : ckind) : lat = failwith "unimplemented"
   (* LSolver.round_up (norm env k) *)
 end
-

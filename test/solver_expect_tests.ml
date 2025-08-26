@@ -248,18 +248,18 @@ let%expect_test "complex joins and propagation scenario" =
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
-    a = [2,0] ⊔ ([0,1] ⊓ b)
+    a = ([0,1] ⊓ b) ⊔ [2,0]
     b ≤ ([1,1] ⊓ b) ⊔ ([2,0] ⊓ b ⊓ c)
     c ≤ ([1,1] ⊓ c) ⊔ ([2,0] ⊓ b ⊓ c)
-    d ≤ ([1,1] ⊓ b ⊓ d) ⊔ ([1,0] ⊓ c ⊓ d) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d)
-    e ≤ ([1,1] ⊓ b ⊓ d ⊓ e) ⊔ ([1,0] ⊓ c ⊓ d ⊓ e) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e)
+    d ≤ ([1,0] ⊓ c ⊓ d) ⊔ ([1,1] ⊓ b ⊓ d) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d)
+    e ≤ ([1,0] ⊓ c ⊓ d ⊓ e) ⊔ ([1,1] ⊓ b ⊓ d ⊓ e) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e)
     f ≤ ([1,1] ⊓ b ⊓ d ⊓ e ⊓ f) ⊔ ([2,0] ⊓ b ⊓ c ⊓ d ⊓ e ⊓ f)
     |}];
   S.solve_lfp cv (S.meet (S.var b) (S.const (c 2 0)));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
-    a = [2,0] ⊔ ([0,1] ⊓ b)
+    a = ([0,1] ⊓ b) ⊔ [2,0]
     b ≤ [1,1] ⊓ b
     c = [1,0] ⊓ b
     d ≤ [1,1] ⊓ b ⊓ d
@@ -338,7 +338,7 @@ let%expect_test "dependencies2" =
     {|
     x ≤ ([0,1] ⊓ x) ⊔ ([2,0] ⊓ x ⊓ z)
     y ≤ ([0,1] ⊓ x ⊓ y) ⊔ (y ⊓ z)
-    z ≤ ([2,0] ⊓ z) ⊔ ([0,1] ⊓ y ⊓ z)
+    z ≤ ([0,1] ⊓ y ⊓ z) ⊔ ([2,0] ⊓ z)
     |}];
   S.solve_lfp y (S.join (S.var z) (S.var y));
   print_state [ ("x", x); ("y", y); ("z", z) ];

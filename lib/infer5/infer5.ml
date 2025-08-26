@@ -4,12 +4,14 @@ module TyM = struct
   type t = Type_parser.cyclic
 
   let compare_ty : t -> t -> int = Stdlib.compare
+  let to_string (_ : t) : string = "<ty>"
 end
 
 module ConstrM = struct
   type t = string
 
   let compare = String.compare
+  let to_string (s : t) : string = s
 end
 
 module JK = Jkind_solver.Make (Axis_lattice) (TyM) (ConstrM)
@@ -64,3 +66,6 @@ let leq_kinds (env : env) (lhs : Type_parser.cyclic) (rhs : Type_parser.cyclic)
 let round_up_kind (env : env) (c : Type_parser.cyclic) : lat =
   JK.round_up env (fun ops -> ops.kind_of c)
 
+(* Minimal public wrapper to satisfy interface; implement later. *)
+let run_program (_prog : Decl_parser.program) : string =
+  "unimplemented"
