@@ -42,7 +42,7 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   val solve_lfp : var -> poly -> unit
   val enqueue_gfp : var -> poly -> unit
 
-  (* Enter query phase: solves any pending GFPs and prevents further LFP/GFP. *)
+  (* Enter query phase: solve any pending GFPs now (no phase tracking). *)
   val enter_query_phase : unit -> unit
 
   (* Pure check and normalization under the current solutions. [leq a b] holds

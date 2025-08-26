@@ -1,0 +1,1 @@
+type A('a1) = unit + 'a1

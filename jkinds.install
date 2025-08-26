@@ -134,6 +134,7 @@ libexec: [
 bin: [
   "_build/install/default/bin/check_arity"
   "_build/install/default/bin/jkinds"
+  "_build/install/default/bin/print_cvars"
 ]
 doc: [
   "_build/install/default/doc/jkinds/README.md"

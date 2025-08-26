@@ -7,3 +7,8 @@
  (public_name check_arity)
  (name check_arity)
  (libraries jkinds_lib))
+
+(executable
+ (public_name print_cvars)
+ (name print_cvars)
+ (libraries jkinds_lib))

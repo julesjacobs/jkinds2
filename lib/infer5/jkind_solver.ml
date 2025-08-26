@@ -109,10 +109,14 @@ end = struct
         | Some base_and_coeffs -> base_and_coeffs
         | None ->
           let base = LSolver.new_var () in
-          let coeffs = List.map (fun _ -> LSolver.new_var ()) ks in
+          (* Allocate coefficient vars based on declared arity, not on ks
+             length *)
+          let { args; kind; abstract } = env.lookup c in
+          let coeffs =
+            List.init (List.length args) (fun _ -> LSolver.new_var ())
+          in
           Hashtbl.add constr_to_coeffs c (base, coeffs);
           (* Recursively compute the kind of the body *)
-          let { args; kind; abstract } = env.lookup c in
           List.iter
             (fun ty ->
               Hashtbl.add ty_to_kind ty (LSolver.rigid (RigidName.Ty ty)))
@@ -126,6 +130,11 @@ end = struct
               kind'
           in
           assert (rest = []);
+          if List.length coeffs <> List.length coeffs' then
+            failwith
+              (Printf.sprintf
+                 "jkind_solver: coeffs mismatch for constr %s (length %d vs %d)"
+                 (Constr.to_string c) (List.length coeffs) (List.length coeffs'));
           if abstract then (
             (* We need to assert that kind' is less than or equal to the base *)
             LSolver.enqueue_gfp base
@@ -149,7 +158,15 @@ end = struct
       in
       (* Meet each arg with the corresponding coeff *)
       let ks' =
-        List.map2 (fun k coeff -> LSolver.meet k (LSolver.var coeff)) ks coeffs
+        (* Meet each provided argument with its coeff; missing args are ⊥. *)
+        let nth_opt lst i = try Some (List.nth lst i) with _ -> None in
+        List.mapi
+          (fun i coeff ->
+            let k =
+              match nth_opt ks i with Some k -> k | None -> LSolver.bot
+            in
+            LSolver.meet k (LSolver.var coeff))
+          coeffs
       in
       (* Join all the ks'' plus the base *)
       let k' = List.fold_left LSolver.join (LSolver.var base) ks' in

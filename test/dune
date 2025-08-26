@@ -4,6 +4,9 @@
   test_kind
   test_type_parser
   test_decl_parser
+  test_decl_params_ids
+  test_decl_params_distinct
+  test_cn_simple_ids
   ; test_substitute (removed: relied on non-exported infer helpers)
   test_product_lattice)
  (libraries jkinds_lib)

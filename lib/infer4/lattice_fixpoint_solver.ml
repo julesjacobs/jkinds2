@@ -132,9 +132,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
           | None -> failwith (ctx ^ ": contains unsolved solver variable")))
       vars
 
-  type phase = Build | Query
-
-  let phase : phase ref = ref Build
   let pending_gfp : (var * poly) list ref = ref []
 
   let solve_fp (v : var) (rhs : poly) (self_value : poly) : unit =
@@ -159,24 +156,17 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         items)
 
   let enter_query_phase () : unit =
-    if !phase <> Query then (
-      log "[fix] enter_query_phase";
-      solve_pending_gfps ();
-      phase := Query)
+    (* No phase: simply solve any pending GFPs now. *)
+    log "[fix] enter_query_phase";
+    solve_pending_gfps ()
 
   let solve_lfp (v : var) (rhs : poly) : unit =
-    (match !phase with
-    | Build -> ()
-    | _ -> failwith "solve_lfp: after query phase");
     (match v.Var.sol with
     | Some _ -> failwith "solve_lfp: variable already solved"
     | None -> ());
     solve_fp v rhs P.bot
 
   let enqueue_gfp (v : var) (rhs : poly) : unit =
-    (match !phase with
-    | Build -> ()
-    | _ -> failwith "enqueue_gfp: after query phase");
     (match v.Var.sol with
     | Some _ -> failwith "enqueue_gfp: variable already solved"
     | None -> ());
@@ -284,10 +274,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       groups;
     let singles =
       universe
-      |> List.filter_map (fun v ->
-             match Hashtbl.find_opt singles_tbl v with
-             | None -> None
-             | Some p -> Some (v, p))
+      |> List.map (fun v ->
+             let p =
+               match Hashtbl.find_opt singles_tbl v with
+               | None -> P.bot
+               | Some p -> p
+             in
+             (v, p))
     in
     (!base, singles, List.rev !mixed)
 

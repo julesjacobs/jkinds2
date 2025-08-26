@@ -3,8 +3,8 @@ open Decl_parser
 module TyM = struct
   type t = Type_parser.cyclic
 
-  let compare_ty : t -> t -> int = Stdlib.compare
-  let to_string (_ : t) : string = "<ty>"
+  let compare_ty t1 t2 = Int.compare t1.Type_parser.id t2.Type_parser.id
+  let to_string (t : t) : string = Type_parser.pp_cyclic t
 end
 
 module ConstrM = struct
@@ -33,7 +33,7 @@ let kind_of (c : Type_parser.cyclic) : JK.ckind =
   | CCtor (name, args) ->
     let arg_kinds = List.map (fun t -> ops.kind_of t) args in
     ops.constr name arg_kinds
-  | CVar _ -> failwith "kind_of: should not reach variables"
+  | CVar _ -> failwith ("infer5: should not reach variable " ^ TyM.to_string c)
 
 let env_of_program (prog : program) : env =
   let table =
@@ -41,10 +41,10 @@ let env_of_program (prog : program) : env =
   in
   let lookup (name : string) : JK.constr_decl =
     match List.assoc_opt name table with
-    | None -> failwith ("infer3: unknown constructor " ^ name)
+    | None -> failwith ("infer5: unknown constructor " ^ name)
     | Some it ->
       let args = it.params in
-      let kind = kind_of it.rhs_cyclic in
+      let kind : JK.ckind = fun ops -> ops.kind_of it.rhs_cyclic in
       let decl : JK.constr_decl = { args; kind; abstract = it.abstract } in
       decl
   in
@@ -60,22 +60,30 @@ let leq_kinds (env : env) (lhs : Type_parser.cyclic) (rhs : Type_parser.cyclic)
 let round_up_kind (env : env) (c : Type_parser.cyclic) : lat =
   JK.round_up env (fun ops -> ops.kind_of c)
 
-let pp_coeff = Axis_lattice.to_string
-let pp_atom (a : atom) : string = Printf.sprintf "%s.%d" a.constr a.arg_index
+module OrderedAtom = struct
+  type t = atom
+
+  let compare (a : t) (b : t) : int =
+    match String.compare a.constr b.constr with
+    | 0 -> Int.compare a.arg_index b.arg_index
+    | c -> c
+
+  let to_string (a : t) : string = Printf.sprintf "%s.%d" a.constr a.arg_index
+end
+
+module PpPoly = Lattice_polynomial.Make (Axis_lattice) (OrderedAtom)
+
+let poly_of_terms (ts : (lat * atom list) list) : PpPoly.t =
+  let to_vars (atoms : atom list) : PpPoly.vars =
+    List.fold_left
+      (fun acc a -> PpPoly.VarSet.add a acc)
+      PpPoly.VarSet.empty atoms
+  in
+  ts |> List.map (fun (c, atoms) -> (to_vars atoms, c)) |> PpPoly.of_list
 
 let pp_terms (ts : (lat * atom list) list) : string =
-  match ts with
-  | [] -> "⊥"
-  | _ ->
-    let pp_term (c, atoms) =
-      let cstr = Printf.sprintf "[%s]" (pp_coeff c) in
-      match atoms with
-      | [] -> cstr
-      | _ ->
-        let astr = atoms |> List.map pp_atom |> String.concat " ⊓ " in
-        Printf.sprintf "(%s ⊓ %s)" cstr astr
-    in
-    ts |> List.map pp_term |> String.concat " ⊔ "
+  let poly = poly_of_terms ts in
+  PpPoly.pp ~pp_var:OrderedAtom.to_string ~pp_coeff:Axis_lattice.to_string poly
 
 let run_program (prog : Decl_parser.program) : string =
   let env = env_of_program prog in
@@ -103,16 +111,23 @@ let run_program (prog : Decl_parser.program) : string =
   in
   prog
   |> List.map (fun (it : Decl_parser.decl_item) ->
-         let base = base_terms it.name in
+         let base_terms_list = base_terms it.name in
+         let base_poly = poly_of_terms base_terms_list in
          let entries =
            let rec loop i acc =
              if i > it.arity then List.rev acc
-             else if i = 0 then loop 1 ((0, base) :: acc)
+             else if i = 0 then loop 1 ((0, base_terms_list) :: acc)
              else
-               let ti =
+               let ti_terms =
                  coeff_terms it.name it.arity i |> filter_out_base it.name
                in
-               loop (i + 1) ((i, ti) :: acc)
+               let ti_poly = poly_of_terms ti_terms in
+               let ti_minus_base = PpPoly.co_sub_approx ti_poly base_poly in
+               let ti_terms' =
+                 PpPoly.to_list ti_minus_base
+                 |> List.map (fun (s, c) -> (c, PpPoly.VarSet.elements s))
+               in
+               loop (i + 1) ((i, ti_terms') :: acc)
            in
            loop 0 []
          in
