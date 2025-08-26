@@ -258,25 +258,6 @@ let pp_entry (ctor : string) (i : int) : string =
     let diff = PpPoly.co_sub_approx p_poly base_poly in
     PpPoly.pp ~pp_var:VarLabel.to_string ~pp_coeff:Axis_lattice.to_string diff
 
-let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list
-    =
-  let rec loop i acc =
-    if i > it.arity then List.rev acc
-    else
-      let p = atom_bound_poly ~ctor:it.name ~index:i in
-      let p' =
-        if i = 0 then p
-        else
-          let u = [ VarLabel.Atom { Modality.ctor = it.name; index = 0 } ] in
-          let groups = S.decompose_by ~universe:u p in
-          groups
-          |> List.filter (fun (k, _) -> k = [])
-          |> List.fold_left (fun acc (_, poly) -> S.join acc poly) S.bot
-      in
-      loop (i + 1) ((i, p') :: acc)
-  in
-  loop 0 []
-
 let run_program (prog : Decl_parser.program) : string =
   solve_linear_for_program prog;
   prog

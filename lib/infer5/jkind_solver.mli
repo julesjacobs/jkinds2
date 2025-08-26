@@ -28,6 +28,7 @@ module Make
   type constr = Constr.t
   type lat = Lat.t
   type kind
+  type solver
 
   type ops = {
     const : lat -> kind;
@@ -42,7 +43,8 @@ module Make
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
   type atom = { constr : constr; arg_index : int }
 
-  val normalize : env -> ckind -> (lat * atom list) list
-  val leq : env -> ckind -> ckind -> bool
-  val round_up : env -> ckind -> lat
+  val make_solver : env -> solver
+  val normalize : solver -> ckind -> (lat * atom list) list
+  val leq : solver -> ckind -> ckind -> bool
+  val round_up : solver -> ckind -> lat
 end

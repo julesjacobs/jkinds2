@@ -50,16 +50,6 @@ let env_of_program (prog : program) : env =
   in
   { lookup; kind_of }
 
-let normalize_decl (env : env) (it : decl_item) : (lat * atom list) list =
-  JK.normalize env (fun ops -> ops.kind_of it.rhs_cyclic)
-
-let leq_kinds (env : env) (lhs : Type_parser.cyclic) (rhs : Type_parser.cyclic)
-    : bool =
-  JK.leq env (fun ops -> ops.kind_of lhs) (fun ops -> ops.kind_of rhs)
-
-let round_up_kind (env : env) (c : Type_parser.cyclic) : lat =
-  JK.round_up env (fun ops -> ops.kind_of c)
-
 module OrderedAtom = struct
   type t = atom
 
@@ -87,11 +77,12 @@ let pp_terms (ts : (lat * atom list) list) : string =
 
 let run_program (prog : Decl_parser.program) : string =
   let env = env_of_program prog in
+  let solver = JK.make_solver env in
   let base_terms name : (lat * atom list) list =
-    JK.normalize env (fun ops -> ops.constr name [])
+    JK.normalize solver (fun ops -> ops.constr name [])
   in
   let coeff_terms name arity i : (lat * atom list) list =
-    JK.normalize env (fun ops ->
+    JK.normalize solver (fun ops ->
         let ks =
           List.init arity (fun j ->
               if j + 1 = i then ops.const Axis_lattice.top

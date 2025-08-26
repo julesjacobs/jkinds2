@@ -29,10 +29,12 @@ module Make
   type constr_decl = { args : ty list; kind : ckind; abstract : bool }
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
   type atom = { constr : constr; arg_index : int }
+  type solver
 
-  val normalize : env -> ckind -> (lat * atom list) list
-  val leq : env -> ckind -> ckind -> bool
-  val round_up : env -> ckind -> lat
+  val make_solver : env -> solver
+  val normalize : solver -> ckind -> (lat * atom list) list
+  val leq : solver -> ckind -> ckind -> bool
+  val round_up : solver -> ckind -> lat
 end = struct
   type ty = Ty.t
   type constr = Constr.t
@@ -175,11 +177,14 @@ end = struct
     and ops = { const; join; modality; constr; kind_of } in
     ops
 
+  type solver = ops
+
+  let make_solver (env : env) : solver = make_ops env
   (* let norm (env : env) (k : ckind) : kind = let ops = make_ops env in k
      ops *)
 
-  let normalize (env : env) (k : ckind) : (lat * atom list) list =
-    let ops = make_ops env in
+  let normalize (solver : solver) (k : ckind) : (lat * atom list) list =
+    let ops = solver in
     let p = k ops in
     LSolver.enter_query_phase ();
     let terms = LSolver.normalize p in
@@ -190,14 +195,14 @@ end = struct
     let conv_vars vs = vs |> List.filter_map conv_atom in
     List.map (fun (coeff, vars) -> (coeff, conv_vars vars)) terms
 
-  let leq (env : env) (k1 : ckind) (k2 : ckind) : bool =
-    let ops = make_ops env in
+  let leq (solver : solver) (k1 : ckind) (k2 : ckind) : bool =
+    let ops = solver in
     let k1' = k1 ops in
     let k2' = k2 ops in
     LSolver.leq k1' k2'
 
-  let round_up (env : env) (k : ckind) : lat =
-    let terms = normalize env k in
+  let round_up (solver : solver) (k : ckind) : lat =
+    let terms = normalize solver k in
     match terms with
     | [] -> Lat.bot
     | (c, _) :: rest ->
