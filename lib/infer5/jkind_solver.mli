@@ -16,11 +16,13 @@ module Make
       type t
 
       val compare_ty : t -> t -> int
+      val to_string : t -> string
     end)
     (Constr : sig
       type t
 
       val compare : t -> t -> int
+      val to_string : t -> string
     end) : sig
   type ty = Ty.t
   type constr = Constr.t
@@ -43,5 +45,5 @@ module Make
   val normalize : env -> ckind -> (lat * atom list) list
   val leq : env -> ckind -> ckind -> bool
   val round_up : env -> ckind -> lat
+  val atom_terms : env -> constr -> int -> (lat * atom list) list
 end
-

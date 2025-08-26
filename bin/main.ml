@@ -26,7 +26,9 @@ let () =
   let t1 = Unix.gettimeofday () in
   let out4 = Jkinds_lib.Infer4.run_program prog in
   let t2 = Unix.gettimeofday () in
-  let items = [ ("Infer2", out2); ("Infer4", out4) ] in
+  let out5 = Jkinds_lib.Infer5.run_program prog in
+  let t3 = Unix.gettimeofday () in
+  let items = [ ("Infer2", out2); ("Infer4", out4); ("Infer5", out5) ] in
   let groups = ref [] in
   let add_group label text =
     let rec aux acc =
@@ -48,4 +50,5 @@ let () =
   let msf x = x *. 1000.0 in
   let infer2_ms = msf (t1 -. t0) in
   let infer4_ms = msf (t2 -. t1) in
-  Printf.printf "Timing: Infer2: %.3f ms, Infer4: %.3f ms\n" infer2_ms infer4_ms
+  let infer5_ms = msf (t3 -. t2) in
+  Printf.printf "Timing: Infer2: %.3f ms, Infer4: %.3f ms, Infer5: %.3f ms\n" infer2_ms infer4_ms infer5_ms
