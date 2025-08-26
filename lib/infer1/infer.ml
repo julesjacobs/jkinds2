@@ -171,7 +171,8 @@ let least_fixpoint_bindings_with_self_init ?(max_iters = 10)
       in
       let rhs = conc_sol @ current in
       let next0 = substitute_kinds_bindings ~lhs:abs_bs ~rhs in
-      (* Join base (index 0) into all parameter entries before meeting with self. *)
+      (* Join base (index 0) into all parameter entries before meeting with
+         self. *)
       let next =
         List.map
           (fun (n, k) ->

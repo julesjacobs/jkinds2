@@ -39,6 +39,7 @@ end
 (* Classic run wrapper for normalized kinds *)
 module Infer : sig
   include module type of Infer
+
   val run_program : Decl_parser.program -> max_iters:int -> string
 end
 

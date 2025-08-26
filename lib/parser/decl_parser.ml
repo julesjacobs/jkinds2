@@ -96,11 +96,16 @@ let parse_program_exn (s : string) : decl_item list =
     (* Create canonical parameter cvar nodes for 'a1..'aN and ensure all VarR
        occurrences in the body share these precise nodes. *)
     let params =
-      let rec loop i acc = if i = 0 then acc else loop (i - 1) (Type_parser.mk (Type_parser.CVar i) :: acc) in
+      let rec loop i acc =
+        if i = 0 then acc
+        else loop (i - 1) (Type_parser.mk (Type_parser.CVar i) :: acc)
+      in
       loop arity []
     in
     let params_arr = Array.of_list params in
-    let get_param v = if v >= 1 && v <= arity then Some params_arr.(v - 1) else None in
+    let get_param v =
+      if v >= 1 && v <= arity then Some params_arr.(v - 1) else None
+    in
     let rhs_cyclic = Type_parser.to_cyclic_with_vars get_param rhs_mu_raw in
     (* Scope check for 'a vars in simple types only *)
     (match rhs_simple with

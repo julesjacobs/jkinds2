@@ -45,6 +45,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     val leq : t -> t -> bool
     val support : t -> VarSet.t
     val subst : subs:t VarMap.t -> t -> t
+
     val pp :
       ?pp_var:(Var.t -> string) -> ?pp_coeff:(C.t -> string) -> t -> string
   end =
@@ -105,9 +106,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let has_unsolved_tmp_in (p : P.t) : bool =
     let vars = P.support p in
     P.VarSet.exists
-      (fun (u : Var.t) -> match (u.name, u.eliminated) with None, false -> true | _ -> false)
+      (fun (u : Var.t) ->
+        match (u.name, u.eliminated) with None, false -> true | _ -> false)
       vars
-
 
   let new_var =
     let r = ref 0 in
@@ -127,6 +128,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       (* Initialize bound to the variable itself, not top *)
       v.bound <- P.var v;
       v
+
   let var (v : var) : poly = P.var v
   let const (c : lat) : poly = P.const c
   let top : poly = P.top
@@ -149,7 +151,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       pending_asserts := [];
       List.iter
         (fun ((v : Var.t), (p : P.t)) ->
-          if v.eliminated then failwith "assert_leq: variable already eliminated";
+          if v.eliminated then
+            failwith "assert_leq: variable already eliminated";
           if has_unsolved_tmp_in p then
             failwith "assert_leq: contains unsolved temporary variable";
           let p' = normalize_poly p in
@@ -194,16 +197,21 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     List.map (fun (vars, coeff) -> (coeff, var_names vars)) terms
 
   let is_eliminated (v : var) = v.eliminated
+
   let bound (v : var) : poly =
-    process_pending_asserts (); v.bound
+    process_pending_asserts ();
+    v.bound
+
   let name (v : var) : V.t =
     match v.name with Some n -> n | None -> failwith "name: temporary var"
 
   let pp ?pp_var ?pp_coeff (p : poly) : string =
-    let pp_coeff_fn = match pp_coeff with Some f -> f | None -> fun (_:C.t)->"⊤" in
+    let pp_coeff_fn =
+      match pp_coeff with Some f -> f | None -> fun (_ : C.t) -> "⊤"
+    in
     let pp_var_internal (v : Var.t) : string =
       match v.name with
-      | Some n -> (match pp_var with Some f -> f n | None -> "_")
+      | Some n -> ( match pp_var with Some f -> f n | None -> "_")
       | None -> Printf.sprintf "v%d" v.id
     in
     P.pp ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_fn p

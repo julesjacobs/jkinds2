@@ -100,31 +100,41 @@ end = struct
         | None ->
           let base = LSolver.new_var (Var.Atom { constr = c; arg_index = 0 }) in
           let coeffs =
-            List.mapi (fun i _ -> LSolver.new_var (Var.Atom { constr = c; arg_index = i + 1 })) ks
+            List.mapi
+              (fun i _ ->
+                LSolver.new_var (Var.Atom { constr = c; arg_index = i + 1 }))
+              ks
           in
           Hashtbl.add constr_to_coeffs c (base, coeffs);
           (* Recursively compute the kind of the body *)
-          let {args; kind; abstract} = env.lookup c in
-          List.iter (fun ty -> Hashtbl.add ty_to_kind ty (LSolver.var (LSolver.new_var (Var.Ty ty)))) args;
+          let { args; kind; abstract } = env.lookup c in
+          List.iter
+            (fun ty ->
+              Hashtbl.add ty_to_kind ty
+                (LSolver.var (LSolver.new_var (Var.Ty ty))))
+            args;
           (* Compute body kind *)
           let kind' = kind ops in
           (* Extract coeffs' from kind' *)
-          let (base',coeffs',rest) = LSolver.decompose_linear ~universe:(List.map (fun ty -> Var.Ty ty) args) kind' in
+          let base', coeffs', rest =
+            LSolver.decompose_linear
+              ~universe:(List.map (fun ty -> Var.Ty ty) args)
+              kind'
+          in
           assert (rest = []);
-          if abstract then begin
+          if abstract then (
             (* We need to assert that kind' is less than or equal to the base *)
             LSolver.assert_leq base base';
             List.iter2
               (fun coeff (var, coeff') ->
                 LSolver.assert_leq coeff (LSolver.join base' coeff'))
-              coeffs coeffs'
-          end else begin
+              coeffs coeffs')
+          else (
             (* We need to solve for the coeffs *)
             LSolver.solve_lfp base base';
             List.iter2
               (fun coeff (var, coeff') -> LSolver.solve_lfp coeff coeff')
-              coeffs coeffs'
-          end;
+              coeffs coeffs');
           (base, coeffs)
       in
       (* Meet each arg with the corresponding coeff *)
@@ -138,9 +148,8 @@ end = struct
     and ops = { const; join; modality; constr; kind_of } in
     ops
 
-  (* let norm (env : env) (k : ckind) : kind =
-     let ops = make_ops env in
-     k ops *)
+  (* let norm (env : env) (k : ckind) : kind = let ops = make_ops env in k
+     ops *)
 
   let normalize (env : env) (k : ckind) : (lat * atom list) list =
     failwith "unimplemented"
@@ -154,4 +163,3 @@ end = struct
   let round_up (env : env) (k : ckind) : lat = failwith "unimplemented"
   (* LSolver.round_up (norm env k) *)
 end
-

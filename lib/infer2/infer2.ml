@@ -99,25 +99,30 @@ let to_poly_cyclic (root : Type_parser.cyclic) : S.poly =
           | Type_parser.CVar i -> S.var (get_var (VarLabel.TyVar i))
           | Type_parser.CMod_const lv -> const_levels lv
           | Type_parser.CMod_annot (t, lv) ->
-              S.meet (const_levels lv) (translate t)
+            S.meet (const_levels lv) (translate t)
           | Type_parser.CPair (a, b) | Type_parser.CSum (a, b) ->
-              S.join (translate a) (translate b)
+            S.join (translate a) (translate b)
           | Type_parser.CCtor (name, args) ->
-              let base =
-                S.var (get_var (VarLabel.Atom { Modality.ctor = name; index = 0 }))
+            let base =
+              S.var
+                (get_var (VarLabel.Atom { Modality.ctor = name; index = 0 }))
+            in
+            let step acc (i, t) =
+              let vi =
+                S.var
+                  (get_var (VarLabel.Atom { Modality.ctor = name; index = i }))
               in
-              let step acc (i, t) =
-                let vi =
-                  S.var (get_var (VarLabel.Atom { Modality.ctor = name; index = i }))
-                in
-                S.join acc (S.meet vi (translate t))
-              in
-              List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
+              S.join acc (S.meet vi (translate t))
+            in
+            List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
         in
         Hashtbl.remove onstack n;
-        (* If a var was allocated for this node (cycle), solve it; else return rhs. *)
+        (* If a var was allocated for this node (cycle), solve it; else return
+           rhs. *)
         match Hashtbl.find_opt table n with
-        | Some v -> S.solve_lfp v rhs; S.bound v
+        | Some v ->
+          S.solve_lfp v rhs;
+          S.bound v
         | None -> rhs)
   in
   translate root
@@ -253,7 +258,6 @@ let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list
       loop (i + 1) ((i, p') :: acc)
   in
   loop 0 []
-
 
 let run_program (prog : Decl_parser.program) : string =
   solve_linear_for_program prog;

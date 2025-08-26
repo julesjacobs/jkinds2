@@ -1,7 +1,6 @@
 (* A fixpoint-oriented solver for (in)equalities over multivariate lattice
    polynomials with an explicit separation between rigid variables and solver
-   variables.
-*)
+   variables. *)
 
 module type LATTICE = Lattice_intf.LATTICE
 
@@ -42,6 +41,7 @@ module Make (C : LATTICE) (V : ORDERED) : sig
      internal forcing pass and will be eliminated in [normalize]. *)
   val solve_lfp : var -> poly -> unit
   val enqueue_gfp : var -> poly -> unit
+
   (* Enter query phase: solves any pending GFPs and prevents further LFP/GFP. *)
   val enter_query_phase : unit -> unit
 

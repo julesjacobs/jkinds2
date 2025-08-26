@@ -27,7 +27,6 @@ end
 module S = Lattice_solver.Make (C) (VL)
 
 let pp_coeff = C.to_string
-
 let pp_poly p = S.pp ~pp_var:Infer2.pp_varlabel ~pp_coeff p
 
 let%expect_test "two-phase abstract solving (one/two)" =

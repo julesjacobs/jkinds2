@@ -37,10 +37,10 @@ let to_simple (t : mu_raw) : (Type_syntax.t, string) result =
 (* Simple parser wrapper removed; use Type_menhir_driver.parse_mu and then
    to_simple/to_simple_exn from this module. *)
 
-(* Cyclic graph representation where every level is a record with an [id]
-   and a mutable [node] field. A µ-binder allocates a fresh record and the
-   body refers back to that record directly, forming cycles without a
-   dedicated MuLink node. *)
+(* Cyclic graph representation where every level is a record with an [id] and a
+   mutable [node] field. A µ-binder allocates a fresh record and the body refers
+   back to that record directly, forming cycles without a dedicated MuLink
+   node. *)
 type cyclic = { id : int; mutable node : cnode }
 
 and cnode =
@@ -54,7 +54,9 @@ and cnode =
 
 let mk_id : unit -> int =
   let r = ref 0 in
-  fun () -> incr r; !r
+  fun () ->
+    incr r;
+    !r
 
 let mk (n : cnode) : cyclic = { id = mk_id (); node = n }
 
@@ -65,20 +67,19 @@ let to_cyclic_with_vars (get_var : int -> cyclic option) (t : mu_raw) : cyclic =
     | PairR (a, b) -> mk (CPair (go env a, go env b))
     | SumR (a, b) -> mk (CSum (go env a, go env b))
     | CR (name, args) -> mk (CCtor (name, List.map (go env) args))
-    | VarR v -> (
-        match get_var v with Some c -> c | None -> mk (CVar v))
+    | VarR v -> ( match get_var v with Some c -> c | None -> mk (CVar v))
     | ModAnnotR (u, lv) -> mk (CMod_annot (go env u, lv))
     | ModConstR lv -> mk (CMod_const lv)
     | RecvarR bi -> (
-        match List.assoc_opt bi env with
-        | Some rec_node -> rec_node
-        | None -> failwith "unbound 'b index")
+      match List.assoc_opt bi env with
+      | Some rec_node -> rec_node
+      | None -> failwith "unbound 'b index")
     | MuR (bi, body) ->
-        let anchor = { id = mk_id (); node = CUnit } in
-        let env' = (bi, anchor) :: env in
-        let body_c = go env' body in
-        anchor.node <- body_c.node;
-        anchor
+      let anchor = { id = mk_id (); node = CUnit } in
+      let env' = (bi, anchor) :: env in
+      let body_c = go env' body in
+      anchor.node <- body_c.node;
+      anchor
   in
   go [] t
 
@@ -111,7 +112,9 @@ let pp_cyclic (root : cyclic) : string =
       (match n.node with
       | CUnit | CVar _ | CMod_const _ -> ()
       | CMod_annot (t, _) -> walk_child t
-      | CPair (a, b) | CSum (a, b) -> walk_child a; walk_child b
+      | CPair (a, b) | CSum (a, b) ->
+        walk_child a;
+        walk_child b
       | CCtor (_, args) -> List.iter walk_child args);
       Hashtbl.remove onstack n)
   in
@@ -122,7 +125,9 @@ let pp_cyclic (root : cyclic) : string =
   let pp_id_of : (cyclic, int) Hashtbl.t = Hashtbl.create 64 in
   let fresh =
     let r = ref 0 in
-    fun () -> incr r; !r
+    fun () ->
+      incr r;
+      !r
   in
 
   let rec pp (n : cyclic) : string =
@@ -149,7 +154,8 @@ let pp_cyclic (root : cyclic) : string =
     | CUnit -> "unit"
     | CVar v -> Printf.sprintf "'a%d" v
     | CMod_const lv -> Printf.sprintf "[%s]" (levels_to_string lv)
-    | CMod_annot (t, lv) -> Printf.sprintf "%s @@ [%s]" (pp t) (levels_to_string lv)
+    | CMod_annot (t, lv) ->
+      Printf.sprintf "%s @@ [%s]" (pp t) (levels_to_string lv)
     | CPair (a, b) -> Printf.sprintf "(%s * %s)" (pp a) (pp b)
     | CSum (a, b) -> Printf.sprintf "(%s + %s)" (pp a) (pp b)
     | CCtor (name, []) -> name

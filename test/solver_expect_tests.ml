@@ -15,7 +15,6 @@ end
 module S = Lattice_solver.Make (C) (V)
 
 let pp_coeff = C.to_string
-
 let pp_poly p = S.pp ~pp_var:(fun s -> s) ~pp_coeff p
 
 let print_state (vars : (string * S.var) list) : unit =
@@ -243,8 +242,7 @@ let%expect_test "complex joins and propagation scenario" =
     |}];
   (* eliminate a safely with a constant; then eliminate c and b with meet-self
      patterns to avoid inequality violations *)
-  S.solve_lfp a
-    (S.join (S.var a) (S.join (S.var b) (S.const (c 2 0))));
+  S.solve_lfp a (S.join (S.var a) (S.join (S.var b) (S.const (c 2 0))));
   print_state [ ("a", a); ("b", b); ("c", cv); ("d", d); ("e", e); ("f", f) ];
   [%expect
     {|
@@ -350,8 +348,7 @@ let%expect_test "dependencies2" =
     |}];
   S.solve_lfp x (S.var z);
   print_state [ ("x", x); ("y", y); ("z", z) ];
-  [%expect
-    {|
+  [%expect {|
     x = [2,0] ⊓ z
     y = [2,0] ⊓ z
     z ≤ [2,0] ⊓ z

@@ -1,5 +1,3 @@
-
-
 let read_file path =
   let ic = open_in path in
   let len = in_channel_length ic in
@@ -15,12 +13,18 @@ let () =
     exit 2);
   let file = Sys.argv.(1) in
   let max_iters =
-    let rec loop i acc = if i + 1 < argc && Sys.argv.(i) = "--max-iters" then int_of_string Sys.argv.(i + 1) else if i + 1 < argc then loop (i + 1) acc else acc in
+    let rec loop i acc =
+      if i + 1 < argc && Sys.argv.(i) = "--max-iters" then
+        int_of_string Sys.argv.(i + 1)
+      else if i + 1 < argc then loop (i + 1) acc
+      else acc
+    in
     loop 2 10
   in
   let content = read_file file in
   let prog = Jkinds_lib.Decl_parser.parse_program_exn content in
-  let _unused = max_iters in (* keep flag accepted to avoid breaking scripts *)
+  let _unused = max_iters in
+  (* keep flag accepted to avoid breaking scripts *)
   let t0 = Unix.gettimeofday () in
   let out2 = Jkinds_lib.Infer2.run_program prog in
   let t1 = Unix.gettimeofday () in
@@ -45,10 +49,10 @@ let () =
     (fun (text, labels) ->
       let header = String.concat " & " labels ^ " normalized kinds:" in
       Printf.printf "%s\n%s\n\n" header text)
-    (List.rev !groups)
-  ;
+    (List.rev !groups);
   let msf x = x *. 1000.0 in
   let infer2_ms = msf (t1 -. t0) in
   let infer4_ms = msf (t2 -. t1) in
   let infer5_ms = msf (t3 -. t2) in
-  Printf.printf "Timing: Infer2: %.3f ms, Infer4: %.3f ms, Infer5: %.3f ms\n" infer2_ms infer4_ms infer5_ms
+  Printf.printf "Timing: Infer2: %.3f ms, Infer4: %.3f ms, Infer5: %.3f ms\n"
+    infer2_ms infer4_ms infer5_ms

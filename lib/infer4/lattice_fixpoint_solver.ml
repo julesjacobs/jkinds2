@@ -4,7 +4,6 @@ module type ORDERED = sig
   type t
 
   val compare : t -> t -> int
-
   val to_string : t -> string
 end
 
@@ -12,18 +11,12 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   type lat = C.t
 
   module rec Var : sig
-    type t =
-      | Rigid of V.t
-      | Var of var_state
-
+    type t = Rigid of V.t | Var of var_state
     and var_state = { id : int; mutable sol : P.t option }
 
     val compare : t -> t -> int
   end = struct
-    type t =
-      | Rigid of V.t
-      | Var of var_state
-
+    type t = Rigid of V.t | Var of var_state
     and var_state = { id : int; mutable sol : P.t option }
 
     let tag = function Rigid _ -> 0 | Var _ -> 1
@@ -51,6 +44,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     val leq : t -> t -> bool
     val support : t -> VarSet.t
     val subst : subs:t VarMap.t -> t -> t
+
     val pp :
       ?pp_var:(Var.t -> string) -> ?pp_coeff:(C.t -> string) -> t -> string
   end =
@@ -63,40 +57,46 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let trace_enabled =
     match Sys.getenv_opt "JKINDS_TRACE" with
     | Some s ->
-        let s = String.lowercase_ascii (String.trim s) in
-        not (s = "" || s = "0" || s = "false" || s = "no")
+      let s = String.lowercase_ascii (String.trim s) in
+      not (s = "" || s = "0" || s = "false" || s = "no")
     | None -> false
 
-  let log fmt = if trace_enabled then Printf.eprintf (fmt ^^ "\n") else Printf.ifprintf stderr fmt
+  let log fmt =
+    if trace_enabled then Printf.eprintf (fmt ^^ "\n")
+    else Printf.ifprintf stderr fmt
 
   let next_id = ref 0
+
   (* logging pretty-printer hooks *)
   let log_pp_var : (V.t -> string) option ref = ref None
   let log_pp_coeff : (C.t -> string) option ref = ref None
+
   let set_log_printers ?pp_var ?pp_coeff () : unit =
     (match pp_var with Some f -> log_pp_var := Some f | None -> ());
-    (match pp_coeff with Some f -> log_pp_coeff := Some f | None -> ())
+    match pp_coeff with Some f -> log_pp_coeff := Some f | None -> ()
 
   let pp_log (p : poly) : string =
     let pp_var_internal = function
-      | Var.Rigid n -> (match !log_pp_var with Some f -> f n | None -> V.to_string n)
+      | Var.Rigid n -> (
+        match !log_pp_var with Some f -> f n | None -> V.to_string n)
       | Var.Var s -> Printf.sprintf "v#%d" s.id
     in
-    let pp_coeff_internal = match !log_pp_coeff with Some f -> f | None -> C.to_string in
+    let pp_coeff_internal =
+      match !log_pp_coeff with Some f -> f | None -> C.to_string
+    in
     P.pp ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_internal p
 
   (* Public constructors *)
   let new_var () : var =
     let id = !next_id in
     incr next_id;
-    let v = { Var.id = id; Var.sol = None } in
+    let v = { Var.id; Var.sol = None } in
     log "[fix] new_var v#%d" id;
     v
 
   let var (v : var) : poly = P.var (Var.Var v)
   let rigid (n : V.t) : poly = P.var (Var.Rigid n)
   let const (c : lat) : poly = P.const c
-
   let top : poly = P.top
   let bot : poly = P.bot
   let join (a : poly) (b : poly) : poly = P.join a b
@@ -110,16 +110,17 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         (fun v acc ->
           match v with
           | Var.Rigid _ -> acc
-          | Var.Var s -> 
-              match s.Var.sol with 
-              | Some q -> 
-                let q' = force_poly q in
-                s.Var.sol <- Some q';
-                P.VarMap.add v q' acc 
-              | None -> acc)
+          | Var.Var s -> (
+            match s.Var.sol with
+            | Some q ->
+              let q' = force_poly q in
+              s.Var.sol <- Some q';
+              P.VarMap.add v q' acc
+            | None -> acc))
         vars P.VarMap.empty
     in
     if P.VarMap.is_empty subs then p else P.subst ~subs p
+
   let require_no_unsolved (ctx : string) (p : poly) : unit =
     let vars = P.support p in
     P.VarSet.iter
@@ -132,6 +133,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       vars
 
   type phase = Build | Query
+
   let phase : phase ref = ref Build
   let pending_gfp : (var * poly) list ref = ref []
 
@@ -139,9 +141,10 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let rhs' = force_poly rhs in
     let subs = P.VarMap.(empty |> add (Var.Var v) self_value) in
     let cand = P.subst ~subs rhs' in
-    v.Var.sol <- Some cand; 
-    log "[fix] lfp(v%d, %s, %s) = %s" v.Var.id (pp_log rhs) (pp_log self_value) (pp_log cand)
-    
+    v.Var.sol <- Some cand;
+    log "[fix] lfp(v%d, %s, %s) = %s" v.Var.id (pp_log rhs) (pp_log self_value)
+      (pp_log cand)
+
   let solve_pending_gfps () : unit =
     if !pending_gfp <> [] then (
       log "[fix] solving %d pending GFPs" (List.length !pending_gfp);
@@ -149,7 +152,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       pending_gfp := [];
       List.iter
         (fun (v, rhs) ->
-          (match v.Var.sol with Some _ -> failwith "solve_gfps: variable already solved" | None -> ());
+          (match v.Var.sol with
+          | Some _ -> failwith "solve_gfps: variable already solved"
+          | None -> ());
           solve_fp v rhs P.top)
         items)
 
@@ -160,17 +165,26 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       phase := Query)
 
   let solve_lfp (v : var) (rhs : poly) : unit =
-    (match !phase with Build -> () | _ -> failwith "solve_lfp: after query phase");
-    (match v.Var.sol with Some _ -> failwith "solve_lfp: variable already solved" | None -> ());
+    (match !phase with
+    | Build -> ()
+    | _ -> failwith "solve_lfp: after query phase");
+    (match v.Var.sol with
+    | Some _ -> failwith "solve_lfp: variable already solved"
+    | None -> ());
     solve_fp v rhs P.bot
 
   let enqueue_gfp (v : var) (rhs : poly) : unit =
-    (match !phase with Build -> () | _ -> failwith "enqueue_gfp: after query phase");
-    (match v.Var.sol with Some _ -> failwith "enqueue_gfp: variable already solved" | None -> ());
-    pending_gfp := (v, rhs) :: !pending_gfp
-    ; log "[fix] enqueue_gfp(v%d, %s)" v.Var.id (pp_log rhs)
+    (match !phase with
+    | Build -> ()
+    | _ -> failwith "enqueue_gfp: after query phase");
+    (match v.Var.sol with
+    | Some _ -> failwith "enqueue_gfp: variable already solved"
+    | None -> ());
+    pending_gfp := (v, rhs) :: !pending_gfp;
+    log "[fix] enqueue_gfp(v%d, %s)" v.Var.id (pp_log rhs)
 
-  (* No explicit solve_gfps: queries enter query phase and solve pending GFPs. *)
+  (* No explicit solve_gfps: queries enter query phase and solve pending
+     GFPs. *)
 
   let leq (a : poly) (b : poly) : bool =
     log "[fix] leq(%s, %s)" (pp_log a) (pp_log b);
@@ -202,17 +216,24 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let module VSet = Set.Make (V) in
     let idx_tbl = Hashtbl.create 16 in
     List.iteri (fun i v -> Hashtbl.replace idx_tbl v i) universe;
-    let idx_of (v : V.t) : int = match Hashtbl.find_opt idx_tbl v with Some i -> i | None -> max_int in
-    let universe_set = List.fold_left (fun acc v -> VSet.add v acc) VSet.empty universe in
-    let add_term (acc : (V.t list * poly) list) (key : V.t list) (term_poly : poly)
-        : (V.t list * poly) list =
+    let idx_of (v : V.t) : int =
+      match Hashtbl.find_opt idx_tbl v with Some i -> i | None -> max_int
+    in
+    let universe_set =
+      List.fold_left (fun acc v -> VSet.add v acc) VSet.empty universe
+    in
+    let add_term (acc : (V.t list * poly) list) (key : V.t list)
+        (term_poly : poly) : (V.t list * poly) list =
       let keys_equal (a : V.t list) (b : V.t list) : bool =
-        List.length a = List.length b && List.for_all2 (fun x y -> V.compare x y = 0) a b
+        List.length a = List.length b
+        && List.for_all2 (fun x y -> V.compare x y = 0) a b
       in
       let rec go xs =
         match xs with
         | [] -> [ (key, term_poly) ]
-        | (k, p0) :: rest -> if keys_equal k key then (k, P.join p0 term_poly) :: rest else (k, p0) :: go rest
+        | (k, p0) :: rest ->
+          if keys_equal k key then (k, P.join p0 term_poly) :: rest
+          else (k, p0) :: go rest
       in
       go acc
     in
@@ -228,9 +249,14 @@ module Make (C : LATTICE) (V : ORDERED) = struct
               | _ -> (d, v :: o))
             ([], []) vars_list
         in
-        let designated_sorted = designated_names |> List.sort (fun a b -> Int.compare (idx_of a) (idx_of b)) in
+        let designated_sorted =
+          designated_names
+          |> List.sort (fun a b -> Int.compare (idx_of a) (idx_of b))
+        in
         let term_poly =
-          List.fold_left (fun acc_poly v -> P.meet acc_poly (P.var v)) (P.const coeff) other_vars
+          List.fold_left
+            (fun acc_poly v -> P.meet acc_poly (P.var v))
+            (P.const coeff) other_vars
         in
         add_term acc designated_sorted term_poly)
       [] terms
@@ -248,21 +274,31 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         match key with
         | [] -> base := P.join !base poly
         | [ v ] ->
-          let prev = match Hashtbl.find_opt singles_tbl v with Some x -> x | None -> P.bot in
+          let prev =
+            match Hashtbl.find_opt singles_tbl v with
+            | Some x -> x
+            | None -> P.bot
+          in
           Hashtbl.replace singles_tbl v (P.join prev poly)
         | _ -> mixed := (key, poly) :: !mixed)
       groups;
     let singles =
       universe
-      |> List.filter_map (fun v -> match Hashtbl.find_opt singles_tbl v with None -> None | Some p -> Some (v, p))
+      |> List.filter_map (fun v ->
+             match Hashtbl.find_opt singles_tbl v with
+             | None -> None
+             | Some p -> Some (v, p))
     in
     (!base, singles, List.rev !mixed)
 
   let pp ?pp_var ?pp_coeff (p : poly) : string =
     let p = force_poly p in
-    let pp_coeff_fn = match pp_coeff with Some f -> f | None -> fun (_:C.t)->"⊤" in
+    let pp_coeff_fn =
+      match pp_coeff with Some f -> f | None -> fun (_ : C.t) -> "⊤"
+    in
     let pp_var_internal = function
-      | Var.Rigid n -> (match pp_var with Some f -> f n | None -> V.to_string n)
+      | Var.Rigid n -> (
+        match pp_var with Some f -> f n | None -> V.to_string n)
       | Var.Var s -> Printf.sprintf "v%d" s.Var.id
     in
     P.pp ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_fn p

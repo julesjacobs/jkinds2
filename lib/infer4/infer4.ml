@@ -1,13 +1,11 @@
 (* Infer4: polynomial translation and solving using the new
    lattice_fixpoint_solver with explicit rigid vs solver variables.
 
-   Rigid variables are constructor atoms (C.i) and type variables ('ai).
-   Solver variables are created for:
-     - Each constructor atom (to hold its solved meaning)
-     - Each µ-binder during cyclic translation (LFP-only)
-   Abstract declarations are encoded as: x := x_rigid ∧ bound
-   Concrete declarations are encoded as: x := bound
-*)
+   Rigid variables are constructor atoms (C.i) and type variables ('ai). Solver
+   variables are created for: - Each constructor atom (to hold its solved
+   meaning) - Each µ-binder during cyclic translation (LFP-only) Abstract
+   declarations are encoded as: x := x_rigid ∧ bound Concrete declarations are
+   encoded as: x := bound *)
 
 module RigidName = struct
   type t = Atom of Modality.atom | TyVar of int
@@ -15,9 +13,9 @@ module RigidName = struct
   let compare (a : t) (b : t) : int =
     match (a, b) with
     | Atom a1, Atom a2 -> (
-        match String.compare a1.Modality.ctor a2.Modality.ctor with
-        | 0 -> Int.compare a1.index a2.index
-        | c -> c)
+      match String.compare a1.Modality.ctor a2.Modality.ctor with
+      | 0 -> Int.compare a1.index a2.index
+      | c -> c)
     | TyVar x, TyVar y -> Int.compare x y
     | Atom _, TyVar _ -> -1
     | TyVar _, Atom _ -> 1
@@ -35,7 +33,8 @@ type poly = S.poly
 
 let pp_coeff_axis = Axis_lattice.to_string
 
-let pp_poly (p : S.poly) : string = S.pp ~pp_var:RigidName.to_string ~pp_coeff:pp_coeff_axis p
+let pp_poly (p : S.poly) : string =
+  S.pp ~pp_var:RigidName.to_string ~pp_coeff:pp_coeff_axis p
 
 (* Global atom solver vars (per program run) *)
 module AtomKey = struct
@@ -48,9 +47,10 @@ end
 module AtomMap = Map.Make (AtomKey)
 
 let atom_vars : S.var AtomMap.t ref = ref AtomMap.empty
-module StringSet = Set.Make (String)
-let abstract_ctors : StringSet.t ref = ref StringSet.empty
 
+module StringSet = Set.Make (String)
+
+let abstract_ctors : StringSet.t ref = ref StringSet.empty
 let reset_state () = atom_vars := AtomMap.empty
 
 let get_atom_var (ctor : string) (index : int) : S.var =
@@ -58,12 +58,12 @@ let get_atom_var (ctor : string) (index : int) : S.var =
   match AtomMap.find_opt key !atom_vars with
   | Some v -> v
   | None ->
-      let v = S.new_var () in
-      atom_vars := AtomMap.add key v !atom_vars;
-      v
+    let v = S.new_var () in
+    atom_vars := AtomMap.add key v !atom_vars;
+    v
 
 let rigid_atom (ctor : string) (index : int) : S.poly =
-  S.rigid (RigidName.Atom { Modality.ctor = ctor; index })
+  S.rigid (RigidName.Atom { Modality.ctor; index })
 
 let rigid_tyvar (i : int) : S.poly = S.rigid (RigidName.TyVar i)
 
@@ -72,24 +72,24 @@ let const_levels (levels : int array) : S.poly =
 
 (* Translation to polynomials (rigid variables only) *)
 let is_abstract (name : string) : bool = StringSet.mem name !abstract_ctors
-
 let atom_poly (name : string) (i : int) : S.poly = S.var (get_atom_var name i)
 
 let rec to_poly (t : Type_syntax.t) : S.poly =
   match t with
   | Type_syntax.Unit -> S.const Axis_lattice.bot
-  | Type_syntax.Pair (a, b) | Type_syntax.Sum (a, b) -> S.join (to_poly a) (to_poly b)
+  | Type_syntax.Pair (a, b) | Type_syntax.Sum (a, b) ->
+    S.join (to_poly a) (to_poly b)
   | Type_syntax.Mod_annot (t', lv) -> S.meet (const_levels lv) (to_poly t')
   | Type_syntax.Mod_const lv -> const_levels lv
   | Type_syntax.Var v -> rigid_tyvar v
   | Type_syntax.C (name, args) ->
-      let base = atom_poly name 0 in
-      let step (acc : S.poly) (arg : Type_syntax.t) (i : int) : S.poly =
-        let vi = atom_poly name i in
-        S.join acc (S.meet vi (to_poly arg))
-      in
-      List.mapi (fun i t -> (i + 1, t)) args
-      |> List.fold_left (fun acc (i, t) -> step acc t i) base
+    let base = atom_poly name 0 in
+    let step (acc : S.poly) (arg : Type_syntax.t) (i : int) : S.poly =
+      let vi = atom_poly name i in
+      S.join acc (S.meet vi (to_poly arg))
+    in
+    List.mapi (fun i t -> (i + 1, t)) args
+    |> List.fold_left (fun acc (i, t) -> step acc t i) base
 
 (* Cyclic translation with LFP solver vars for µ-binders *)
 let to_poly_cyclic (root : Type_parser.cyclic) : S.poly =
@@ -111,19 +111,23 @@ let to_poly_cyclic (root : Type_parser.cyclic) : S.poly =
           | Type_parser.CUnit -> S.const Axis_lattice.bot
           | Type_parser.CVar i -> rigid_tyvar i
           | Type_parser.CMod_const lv -> const_levels lv
-          | Type_parser.CMod_annot (t, lv) -> S.meet (const_levels lv) (translate t)
-          | Type_parser.CPair (a, b) | Type_parser.CSum (a, b) -> S.join (translate a) (translate b)
+          | Type_parser.CMod_annot (t, lv) ->
+            S.meet (const_levels lv) (translate t)
+          | Type_parser.CPair (a, b) | Type_parser.CSum (a, b) ->
+            S.join (translate a) (translate b)
           | Type_parser.CCtor (name, args) ->
-              let base = atom_poly name 0 in
-              let step acc (i, t) =
-                let vi = atom_poly name i in
-                S.join acc (S.meet vi (translate t))
-              in
-              List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
+            let base = atom_poly name 0 in
+            let step acc (i, t) =
+              let vi = atom_poly name i in
+              S.join acc (S.meet vi (translate t))
+            in
+            List.mapi (fun i t -> (i + 1, t)) args |> List.fold_left step base
         in
         Hashtbl.remove onstack n;
         match Hashtbl.find_opt table n with
-        | Some v -> S.solve_lfp v rhs; S.var v
+        | Some v ->
+          S.solve_lfp v rhs;
+          S.var v
         | None -> rhs)
   in
   translate root
@@ -132,26 +136,37 @@ let to_poly_mu_raw (m : Type_parser.mu_raw) : S.poly =
   let cyc = Type_parser.to_cyclic m in
   to_poly_cyclic cyc
 
-let to_poly_decl_rhs (it : Decl_parser.decl_item) : S.poly = to_poly_mu_raw it.rhs_mu_raw
+let to_poly_decl_rhs (it : Decl_parser.decl_item) : S.poly =
+  to_poly_mu_raw it.rhs_mu_raw
 
 (* Linear decomposition helpers *)
 let decompose_by_tyvars ~(arity : int) (p : S.poly) :
     S.poly * S.poly array * (RigidName.t list * S.poly) list =
   let universe =
-    let rec loop i acc = if i > arity then List.rev acc else loop (i + 1) (RigidName.TyVar i :: acc) in
+    let rec loop i acc =
+      if i > arity then List.rev acc else loop (i + 1) (RigidName.TyVar i :: acc)
+    in
     loop 1 []
   in
   let base, singles, mixed = S.decompose_linear ~universe p in
   let coeffs = Array.init arity (fun _ -> S.bot) in
   List.iter
-    (fun (v, poly) -> match v with RigidName.TyVar i when i >= 1 && i <= arity -> coeffs.(i - 1) <- S.join coeffs.(i - 1) poly | _ -> ())
+    (fun (v, poly) ->
+      match v with
+      | RigidName.TyVar i when i >= 1 && i <= arity ->
+        coeffs.(i - 1) <- S.join coeffs.(i - 1) poly
+      | _ -> ())
     singles;
   (base, coeffs, mixed)
 
 let pp_varlabel : RigidName.t -> string = RigidName.to_string
 
 (* Solving program: build per-atom equations and solve LFPs *)
-type linear_decomp = { it : Decl_parser.decl_item; base : S.poly; coeffs : S.poly array }
+type linear_decomp = {
+  it : Decl_parser.decl_item;
+  base : S.poly;
+  coeffs : S.poly array;
+}
 
 let compute_linear_decomps (prog : Decl_parser.program) : linear_decomp list =
   let decomp_of_it (it : Decl_parser.decl_item) : linear_decomp =
@@ -161,11 +176,15 @@ let compute_linear_decomps (prog : Decl_parser.program) : linear_decomp list =
        let parts =
          mixed
          |> List.map (fun (k, poly) ->
-                let key = "{" ^ (k |> List.map pp_varlabel |> String.concat ", ") ^ "}" in
+                let key =
+                  "{" ^ (k |> List.map pp_varlabel |> String.concat ", ") ^ "}"
+                in
                 Printf.sprintf "%s: %s" key (pp_poly poly))
          |> String.concat "; "
        in
-       let msg = Printf.sprintf "infer4: non-linear terms for %s: %s" it.name parts in
+       let msg =
+         Printf.sprintf "infer4: non-linear terms for %s: %s" it.name parts
+       in
        failwith msg);
     { it; base; coeffs }
   in
@@ -175,25 +194,32 @@ let solve_linear_for_program (prog : Decl_parser.program) : unit =
   reset_state ();
   (* Determine declared and used constructors to mark implicit abstracts *)
   let declared =
-    List.fold_left (fun acc (it : Decl_parser.decl_item) -> StringSet.add it.name acc) StringSet.empty prog
+    List.fold_left
+      (fun acc (it : Decl_parser.decl_item) -> StringSet.add it.name acc)
+      StringSet.empty prog
   in
-  let rec collect_used (acc : StringSet.t) (m : Type_parser.mu_raw) : StringSet.t =
+  let rec collect_used (acc : StringSet.t) (m : Type_parser.mu_raw) :
+      StringSet.t =
     match m with
     | Type_parser.UnitR | VarR _ | ModConstR _ -> acc
     | ModAnnotR (t, _) -> collect_used acc t
     | PairR (a, b) | SumR (a, b) -> collect_used (collect_used acc a) b
-    | CR (name, args) -> List.fold_left collect_used (StringSet.add name acc) args
+    | CR (name, args) ->
+      List.fold_left collect_used (StringSet.add name acc) args
     | MuR (_, t) -> collect_used acc t
     | RecvarR _ -> acc
   in
   let used =
-    List.fold_left (fun acc (it : Decl_parser.decl_item) -> collect_used acc it.rhs_mu_raw) StringSet.empty prog
+    List.fold_left
+      (fun acc (it : Decl_parser.decl_item) -> collect_used acc it.rhs_mu_raw)
+      StringSet.empty prog
   in
   let implicit_abstracts = StringSet.diff used declared in
   (* Initialize which constructors are abstract for rigid/solver choice *)
   abstract_ctors :=
     List.fold_left
-      (fun acc (it : Decl_parser.decl_item) -> if it.abstract then StringSet.add it.name acc else acc)
+      (fun acc (it : Decl_parser.decl_item) ->
+        if it.abstract then StringSet.add it.name acc else acc)
       implicit_abstracts prog;
   let decs = compute_linear_decomps prog in
   (* Phase 1: concrete definitions as equalities (LFP) *)
@@ -240,7 +266,8 @@ let atom_bound_poly ~(ctor : string) ~(index : int) : S.poly =
   let v = get_atom_var ctor index in
   S.var v
 
-let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list =
+let normalized_kind_for_decl (it : Decl_parser.decl_item) : (int * S.poly) list
+    =
   let rec loop i acc =
     if i > it.arity then List.rev acc
     else

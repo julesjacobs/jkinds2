@@ -41,8 +41,7 @@ let env_of_program (prog : program) : env =
     match List.assoc_opt name table with
     | None -> failwith ("infer3: unknown constructor " ^ name)
     | Some it ->
-      let args = it.params
-      in
+      let args = it.params in
       let kind = kind_of it.rhs_cyclic in
       let decl : JK.constr_decl = { args; kind; abstract = it.abstract } in
       decl

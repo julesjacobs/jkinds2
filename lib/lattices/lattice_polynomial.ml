@@ -223,37 +223,43 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let ceil (p : t) : C.t = eval (fun _ -> C.top) p
   let floor (p : t) : C.t = eval (fun _ -> C.bot) p
 
-  (* Pretty printer with deterministic ordering.
-     - Prints ⊥ for empty polynomial.
-     - Prints ⊤ for constant-top.
-     - Omits unnecessary meets with ⊤ and joins with ⊥ (the latter never
-       appear in canonical form). *)
-  let pp ?(pp_var = fun _ -> "_") ?(pp_coeff = fun _ -> "<c>") (p : t) : string =
+  (* Pretty printer with deterministic ordering. - Prints ⊥ for empty
+     polynomial. - Prints ⊤ for constant-top. - Omits unnecessary meets with ⊤
+     and joins with ⊥ (the latter never appear in canonical form). *)
+  let pp ?(pp_var = fun _ -> "_") ?(pp_coeff = fun _ -> "<c>") (p : t) : string
+      =
     if SetMap.is_empty p then "⊥"
     else
       let terms = to_list p in
       let n_terms = List.length terms in
       let term_body (s : vars) (c : coeff) : string * bool =
         (* returns (body, has_meet) *)
-        let vs = VarSet.elements s |> List.map pp_var |> List.sort String.compare in
+        let vs =
+          VarSet.elements s |> List.map pp_var |> List.sort String.compare
+        in
         let is_top = C.equal c C.top in
         match (vs, is_top) with
         | [], true -> ("⊤", false)
         | [], false -> (pp_coeff c, false)
         | _ :: _, true -> (String.concat " ⊓ " vs, List.length vs > 1)
         | _ :: _, false ->
-            let body = pp_coeff c ^ " ⊓ " ^ String.concat " ⊓ " vs in
-            (body, true)
+          let body = pp_coeff c ^ " ⊓ " ^ String.concat " ⊓ " vs in
+          (body, true)
       in
       let items =
-        terms |> List.map (fun (s, c) -> let body, has_meet = term_body s c in (body, has_meet))
+        terms
+        |> List.map (fun (s, c) ->
+               let body, has_meet = term_body s c in
+               (body, has_meet))
         |> List.sort (fun (a, _) (b, _) -> String.compare a b)
       in
       items
-      |> List.map (fun (body, has_meet) -> if n_terms > 1 && has_meet then "(" ^ body ^ ")" else body)
+      |> List.map (fun (body, has_meet) ->
+             if n_terms > 1 && has_meet then "(" ^ body ^ ")" else body)
       |> String.concat " ⊔ "
 
-  let to_string (p : t) : string = pp ~pp_var:(fun _ -> "_") ~pp_coeff:C.to_string p
+  let to_string (p : t) : string =
+    pp ~pp_var:(fun _ -> "_") ~pp_coeff:C.to_string p
 
   (* Backward-compat alias to emphasize approximation semantics. *)
   let co_sub = co_sub_approx
