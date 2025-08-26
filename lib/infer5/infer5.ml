@@ -33,7 +33,7 @@ let kind_of (c : Type_parser.cyclic) : JK.ckind =
   | CCtor (name, args) ->
     let arg_kinds = List.map (fun t -> ops.kind_of t) args in
     ops.constr name arg_kinds
-  | CVar _ -> failwith ("infer5: should not reach variable " ^ TyM.to_string c)
+  | CVar _ -> ops.rigid c
 
 let env_of_program (prog : program) : env =
   let table =
@@ -78,6 +78,10 @@ let pp_terms (ts : (lat * atom list) list) : string =
 let run_program (prog : Decl_parser.program) : string =
   let env = env_of_program prog in
   let solver = JK.make_solver env in
+  (* let normalize_constr name arity : (lat * atom list) list list = let k =
+     JK.normalize solver (fun ops -> ops.constr name (List.init arity (fun i ->
+     ops.rigid (CVar i)))) in let base, args, rest = JK.decompose_linear kind in
+     assert (rest = []); (base, args) *)
   let base_terms name : (lat * atom list) list =
     JK.normalize solver (fun ops -> ops.constr name [])
   in

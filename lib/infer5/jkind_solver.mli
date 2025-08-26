@@ -36,6 +36,7 @@ module Make
     modality : lat -> kind -> kind;
     constr : constr -> kind list -> kind;
     kind_of : ty -> kind;
+    rigid : ty -> kind;
   }
 
   type ckind = ops -> kind
