@@ -26,6 +26,7 @@ and cnode =
   | CMod_const of int array
 
 val to_cyclic : mu_raw -> cyclic
+val to_cyclic_with_vars : (int -> cyclic option) -> mu_raw -> cyclic
 val pp_cyclic : cyclic -> string
 
 val mk : cnode -> cyclic

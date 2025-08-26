@@ -6,6 +6,7 @@ type decl_item = {
   name : string;
   arity : int;
   abstract : bool;
+  params : Type_parser.cyclic list;
   rhs_mu_raw : Type_parser.mu_raw;
   rhs_simple : Type_syntax.t option;
   rhs_cyclic : Type_parser.cyclic;
@@ -92,7 +93,15 @@ let parse_program_exn (s : string) : decl_item list =
       | Ok t -> Some t
       | Error _ -> None
     in
-    let rhs_cyclic = Type_parser.to_cyclic rhs_mu_raw in
+    (* Create canonical parameter cvar nodes for 'a1..'aN and ensure all VarR
+       occurrences in the body share these precise nodes. *)
+    let params =
+      let rec loop i acc = if i = 0 then acc else loop (i - 1) (Type_parser.mk (Type_parser.CVar i) :: acc) in
+      loop arity []
+    in
+    let params_arr = Array.of_list params in
+    let get_param v = if v >= 1 && v <= arity then Some params_arr.(v - 1) else None in
+    let rhs_cyclic = Type_parser.to_cyclic_with_vars get_param rhs_mu_raw in
     (* Scope check for 'a vars in simple types only *)
     (match rhs_simple with
     | Some t ->
@@ -112,7 +121,7 @@ let parse_program_exn (s : string) : decl_item list =
       in
       check_vars t
     | None -> ());
-    { name; arity; abstract; rhs_mu_raw; rhs_simple; rhs_cyclic }
+    { name; arity; abstract; params; rhs_mu_raw; rhs_simple; rhs_cyclic }
   in
   let items = List.map parse_line lines in
   (* Check duplicates *)

@@ -58,14 +58,15 @@ let mk_id : unit -> int =
 
 let mk (n : cnode) : cyclic = { id = mk_id (); node = n }
 
-let to_cyclic (t : mu_raw) : cyclic =
+let to_cyclic_with_vars (get_var : int -> cyclic option) (t : mu_raw) : cyclic =
   let rec go env t : cyclic =
     match t with
     | UnitR -> mk CUnit
     | PairR (a, b) -> mk (CPair (go env a, go env b))
     | SumR (a, b) -> mk (CSum (go env a, go env b))
     | CR (name, args) -> mk (CCtor (name, List.map (go env) args))
-    | VarR v -> mk (CVar v)
+    | VarR v -> (
+        match get_var v with Some c -> c | None -> mk (CVar v))
     | ModAnnotR (u, lv) -> mk (CMod_annot (go env u, lv))
     | ModConstR lv -> mk (CMod_const lv)
     | RecvarR bi -> (
@@ -80,6 +81,8 @@ let to_cyclic (t : mu_raw) : cyclic =
         anchor
   in
   go [] t
+
+let to_cyclic (t : mu_raw) : cyclic = to_cyclic_with_vars (fun _ -> None) t
 
 (* Cyclic parsing wrapper removed; compose Type_menhir_driver.parse_mu and
    to_cyclic instead. *)

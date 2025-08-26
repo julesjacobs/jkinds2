@@ -4,6 +4,7 @@ type decl_item = {
   name : string;
   arity : int;
   abstract : bool;
+  params : Type_parser.cyclic list; (* canonical parameter CVar nodes 'a1..'aN *)
   rhs_mu_raw : Type_parser.mu_raw; (* canonical parsed form *)
   rhs_simple : Type_syntax.t option; (* Some if mu-free; None otherwise *)
   rhs_cyclic : Type_parser.cyclic; (* precomputed cyclic form *)

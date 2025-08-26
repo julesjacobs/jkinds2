@@ -41,11 +41,7 @@ let env_of_program (prog : program) : env =
     match List.assoc_opt name table with
     | None -> failwith ("infer3: unknown constructor " ^ name)
     | Some it ->
-      let args =
-        let rec vars i acc =
-          if i = 0 then acc else vars (i - 1) (Type_parser.mk (Type_parser.CVar i) :: acc)
-        in
-        vars it.arity []
+      let args = it.params
       in
       let kind = kind_of it.rhs_cyclic in
       let decl : JK.constr_decl = { args; kind; abstract = it.abstract } in
