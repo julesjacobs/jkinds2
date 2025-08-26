@@ -172,8 +172,6 @@ end = struct
             coeffs coeffs');
         (base, coeffs)
     and constr c ks =
-      (* Todo: need to explore the constructor definition using lookup to
-         contrain the coeffs and base *)
       let base, coeffs = constr_kind c in
       (* Meet each arg with the corresponding coeff *)
       let ks' =
