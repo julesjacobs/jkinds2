@@ -49,12 +49,12 @@ type DUP('a1) = ('a1 * 'a1) + [1,1]
 type SW('a1,'a2) : DUP('a2) @@ [0,1] + DUP('a1) @@ [1,0]
 
 # 14) Nested applications of abstract constructors
-type ND1('a1) : C(D('a1,'a1)) + 'a1
-type ND2('a1) : (B(C('a1)) @@ [1,0]) + (A(D('a1,'a1)) @@ [0,1])
-type ND3('a1,'a2) : (U3(B('a1), D('a2,'a2)) @@ [1,1]) + (X2(C('a1)) @@ [0,1])
+type ND1('a1) : C(D('a1)) + 'a1
+type ND2('a1) : (B(C('a1)) @@ [1,0]) + (A(D('a1)) @@ [0,1])
+type ND3('a1,'a2) : (U3(B('a1), D('a2)) @@ [1,1]) + (X2(C('a1)) @@ [0,1])
 
 # 15) Nested concretes composed with abstracts
-type CN1('a1) = DUP(C('a1)) * M1(D('a1,'a1))
+type CN1('a1) = DUP(C('a1)) * M1(D('a1))
 type CN2('a1,'a2) = K(A('a1),'a2) + M2(B('a2))
 
 # 16) Deep nesting through S/T/U chain
@@ -65,10 +65,10 @@ type AnnNest('a1) : ((B(C('a1)) @@ [1,0]) @@ [0,1]) + ('a1 @@ [1,1])
 
 # 18) Cross-nested mutual recursion
 type RecNest1('a1) : RecNest2(C('a1)) + 'a1
-type RecNest2('a1) : RecNest1(D('a1,'a1)) @@ [0,1]
+type RecNest2('a1) : RecNest1(D('a1)) @@ [0,1]
 
 # 19) Mixed two-parameter nesting with join against abstract
-type MixNest('a1,'a2) : U3(B('a1), D('a2,'a2)) + (Z1(C('a1),'a2) @@ [1,0])
+type MixNest('a1,'a2) : U3(B('a1), D('a2)) + (Z1(C('a1),'a2) @@ [1,0])
 
 # 20) Zero-arity mutual recursion
 type A0() : B0() @@ [1,0]
@@ -94,8 +94,7 @@ type PCY('a1) = 'a1 + (PCZ(PCX('a1)) @@ [0,1])
 type PCZ('a1) = 'a1
 
 # 25) Parameter-swapping polymorphic recursion (abstract)
-# Fix: PRH is arity-2; pass both args, swapping via PRG and threading 'a2.
-type PRG('a1,'a2) : (PRH(PRG('a2,'a1), 'a2) @@ [1,0]) + 'a1
+type PRG('a1,'a2) : (PRH(PRG('a2,'a1)) @@ [1,0]) + 'a1
 type PRH('a1,'a2) : (PRG(PRH('a1,'a2),'a1) @@ [0,1]) + 'a2
 
 # 26) Concrete–abstract mutual recursion (simple, 1-arity)
@@ -114,3 +113,5 @@ type CC0() = CA0()
 type CAX('a1) : CBX('a1) + ('a1 @@ [0,1])
 type CBX('a1) = CCX(CAX('a1)) + 'a1
 type CCX('a1) : CAX('a1) @@ [1,0]
+
+

@@ -2,8 +2,3 @@
  (public_name jkinds)
  (name main)
  (libraries jkinds_lib unix))
-
-(executable
- (public_name check_arity)
- (name check_arity)
- (libraries jkinds_lib))

@@ -1,5 +1,0 @@
-type A('a1) : 'a1
-type My('a1) = [0,1] * 'a1
-
-type CNmix('a1,'a2) = A('a1) + My('a2)
-
