@@ -69,8 +69,7 @@ let run_program (prog : Decl_parser.program) : string =
                loop 1 (Printf.sprintf "0 ↦ %s" (pp base_poly) :: acc)
              else
                let ci = List.nth coeffs (i - 1) in
-               let diff = JKPoly.co_sub_approx ci base_poly in
-               loop (i + 1) (Printf.sprintf "%d ↦ %s" i (pp diff) :: acc)
+               loop (i + 1) (Printf.sprintf "%d ↦ %s" i (pp ci) :: acc)
            in
            loop 0 [] |> String.concat ", "
          in

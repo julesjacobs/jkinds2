@@ -203,7 +203,12 @@ end = struct
           (fun coeff -> LSolver.normalize_poly (LSolver.var coeff))
           coeffs
       in
-      (base_poly, coeffs_poly)
+      let coeffs_minus_base =
+        List.map
+          (fun p -> LSolver.RigidPoly.co_sub_approx p base_poly)
+          coeffs_poly
+      in
+      (base_poly, coeffs_minus_base)
     in
     { ops; constr_kind_poly }
 
