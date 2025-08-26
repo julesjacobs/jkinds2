@@ -1,0 +1,5 @@
+# Concrete-abstract mixed recursion with parameter swaps
+type CA('a1) : CC('a1) @@ [0,1] + 'a1
+type CC('a1) = CA('a1) + ('a1 @@ [1,0])
+type CA2('a1,'a2) : CC2('a2,'a1) @@ [1,0] + ('a1 @@ [0,1])
+type CC2('a1,'a2) = CA2('a1,'a2) + ('a2 @@ [1,0])

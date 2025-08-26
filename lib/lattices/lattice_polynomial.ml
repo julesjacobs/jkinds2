@@ -63,6 +63,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   (* Turn arbitrary terms (possibly with duplicate sets) into a map where
      duplicates are joined. *)
   let of_terms (ts : term list) : t =
+    bump "of_terms";
     List.fold_left
       (fun acc (s, c) ->
         if is_bot c then acc
@@ -77,6 +78,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   (* Canonicalization: Given a (non-canonical) map m, compute coeff_hat[S] =
      c[S] \ bigvee_{T ⊂ S} coeff_hat[T]. *)
   let canonicalize (m : t) : t =
+    bump "canonicalize";
     (* Gather non-bot entries and sort by increasing |S| then lex. *)
     let items =
       SetMap.bindings m

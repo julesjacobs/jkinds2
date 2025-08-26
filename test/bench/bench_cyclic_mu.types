@@ -1,0 +1,4 @@
+# Cyclic mu binders with shallow and nested mus
+type L('a1) : mu 'b1. ('a1 + 'b1)
+type NL('a1) : mu 'b1. ((mu 'b2. ('b1 + 'b2)) + 'a1)
+type LM('a1) : (mu 'b8. (mu 'b7. (mu 'b6. (mu 'b5. (mu 'b4. (mu 'b3. (mu 'b2. (mu 'b1. ('b1 + ('b2 + ('b3 + ('b4 + ('b5 + ('b6 + ('b7 + ('b8 + 'a1))))))))))))))))
