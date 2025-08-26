@@ -5,7 +5,7 @@ module Make
     (Ty : sig
       type t
 
-      val compare_ty : t -> t -> int
+      val compare : t -> t -> int
     end)
     (Constr : sig
       type t
@@ -48,7 +48,7 @@ end = struct
         match Constr.compare a.constr b.constr with
         | 0 -> Int.compare a.arg_index b.arg_index
         | c -> c)
-      | Ty a, Ty b -> Ty.compare_ty a b
+      | Ty a, Ty b -> Ty.compare a b
       | Atom _, Ty _ -> -1
       | Ty _, Atom _ -> 1
   end

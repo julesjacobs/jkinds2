@@ -15,7 +15,7 @@ module Make
     (Ty : sig
       type t
 
-      val compare_ty : t -> t -> int
+      val compare : t -> t -> int
       val to_string : t -> string
     end)
     (Constr : sig

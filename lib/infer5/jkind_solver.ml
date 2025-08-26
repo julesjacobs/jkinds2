@@ -3,7 +3,7 @@ module Make
     (Ty : sig
       type t
 
-      val compare_ty : t -> t -> int
+      val compare : t -> t -> int
       val to_string : t -> string
     end)
     (Constr : sig
@@ -52,9 +52,6 @@ end = struct
   type lat = Lat.t
   type atom = { constr : constr; arg_index : int }
 
-  (* Touch compare_ty to avoid unused warning in strict test builds. *)
-  let _ : ty -> ty -> int = Ty.compare_ty
-
   module RigidName = struct
     type t = Atom of atom | Ty of ty
 
@@ -64,7 +61,7 @@ end = struct
         match Constr.compare a1.constr a2.constr with
         | 0 -> Int.compare a1.arg_index a2.arg_index
         | c -> c)
-      | Ty x, Ty y -> Stdlib.compare x y
+      | Ty x, Ty y -> Ty.compare x y
       | Atom _, Ty _ -> -1
       | Ty _, Atom _ -> 1
 

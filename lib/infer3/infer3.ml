@@ -3,7 +3,7 @@ open Decl_parser
 module TyM = struct
   type t = Type_parser.cyclic
 
-  let compare_ty : t -> t -> int = Stdlib.compare
+  let compare : t -> t -> int = Stdlib.compare
 end
 
 module ConstrM = struct

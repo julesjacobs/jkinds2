@@ -3,7 +3,7 @@ open Decl_parser
 module TyM = struct
   type t = Type_parser.cyclic
 
-  let compare_ty t1 t2 = Int.compare t1.Type_parser.id t2.Type_parser.id
+  let compare t1 t2 = Int.compare t1.Type_parser.id t2.Type_parser.id
   let to_string (t : t) : string = Type_parser.pp_cyclic t
 end
 
