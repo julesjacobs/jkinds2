@@ -20,6 +20,7 @@
   jkind_solver
   decl_parser
   lattice_intf
+  global_counters
   product_lattice
   lattice_polynomial
   lattice_solver

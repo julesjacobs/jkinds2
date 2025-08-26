@@ -54,16 +54,15 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   type poly = P.t
 
   (* tracing support *)
-  let trace_enabled =
+  (* let trace_enabled =
     match Sys.getenv_opt "JKINDS_TRACE" with
     | Some s ->
       let s = String.lowercase_ascii (String.trim s) in
       not (s = "" || s = "0" || s = "false" || s = "no")
-    | None -> false
+    | None -> false *)
 
-  let log fmt =
-    if trace_enabled then Printf.eprintf (fmt ^^ "\n")
-    else Printf.ifprintf stderr fmt
+  (* let log fmt = if trace_enabled then Printf.eprintf (fmt ^^ "\n") else
+     Printf.ifprintf stderr fmt *)
 
   let next_id = ref 0
 
@@ -75,23 +74,18 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     (match pp_var with Some f -> log_pp_var := Some f | None -> ());
     match pp_coeff with Some f -> log_pp_coeff := Some f | None -> ()
 
-  let pp_log (p : poly) : string =
-    let pp_var_internal = function
-      | Var.Rigid n -> (
-        match !log_pp_var with Some f -> f n | None -> V.to_string n)
-      | Var.Var s -> Printf.sprintf "v#%d" s.id
-    in
-    let pp_coeff_internal =
-      match !log_pp_coeff with Some f -> f | None -> C.to_string
-    in
-    P.pp ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_internal p
+  (* let pp_log (p : poly) : string = let pp_var_internal = function | Var.Rigid
+     n -> ( match !log_pp_var with Some f -> f n | None -> V.to_string n) |
+     Var.Var s -> Printf.sprintf "v#%d" s.id in let pp_coeff_internal = match
+     !log_pp_coeff with Some f -> f | None -> C.to_string in P.pp
+     ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_internal p *)
 
   (* Public constructors *)
   let new_var () : var =
     let id = !next_id in
     incr next_id;
     let v = { Var.id; Var.sol = None } in
-    log "[fix] new_var v#%d" id;
+    (* log "[fix] new_var v#%d" id; *)
     v
 
   let var (v : var) : poly = P.var (Var.Var v)
@@ -104,6 +98,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* Internal: force solved solver variables inside a polynomial *)
   let rec force_poly (p : poly) : poly =
+    Global_counters.inc "LFP.force_poly";
     let vars = P.support p in
     let subs =
       P.VarSet.fold
@@ -122,6 +117,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     if P.VarMap.is_empty subs then p else P.subst ~subs p
 
   let require_no_unsolved (ctx : string) (p : poly) : unit =
+    Global_counters.inc "LFP.require_no_unsolved";
     let vars = P.support p in
     P.VarSet.iter
       (function
@@ -135,49 +131,46 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let pending_gfp : (var * poly) list ref = ref []
 
   let solve_fp (v : var) (rhs : poly) (self_value : poly) : unit =
+    Global_counters.inc "LFP.solve_fp";
+    (match v.Var.sol with
+    | Some _ -> failwith "solve_fp: variable already solved"
+    | None -> ());
     let rhs' = force_poly rhs in
     let subs = P.VarMap.(empty |> add (Var.Var v) self_value) in
     let cand = P.subst ~subs rhs' in
-    v.Var.sol <- Some cand;
-    log "[fix] lfp(v%d, %s, %s) = %s" v.Var.id (pp_log rhs) (pp_log self_value)
-      (pp_log cand)
+    v.Var.sol <- Some cand
+  (* log "[fix] lfp(v%d, %s, %s) = %s" v.Var.id (pp_log rhs) (pp_log
+     self_value) *)
+  (* (pp_log cand) *)
 
   let solve_pending_gfps () : unit =
     if !pending_gfp <> [] then (
-      log "[fix] solving %d pending GFPs" (List.length !pending_gfp);
+      (* log "[fix] solving %d pending GFPs" (List.length !pending_gfp); *)
       let items = List.rev !pending_gfp in
       pending_gfp := [];
-      List.iter
-        (fun (v, rhs) ->
-          (match v.Var.sol with
-          | Some _ -> failwith "solve_gfps: variable already solved"
-          | None -> ());
-          solve_fp v rhs P.top)
-        items)
+      List.iter (fun (v, rhs) -> solve_fp v rhs P.top) items)
 
   let enter_query_phase () : unit =
     (* No phase: simply solve any pending GFPs now. *)
-    log "[fix] enter_query_phase";
+    (* log "[fix] enter_query_phase"; *)
     solve_pending_gfps ()
 
   let solve_lfp (v : var) (rhs : poly) : unit =
-    (match v.Var.sol with
-    | Some _ -> failwith "solve_lfp: variable already solved"
-    | None -> ());
+    (* (match v.Var.sol with | Some _ -> failwith "solve_lfp: variable already
+       solved" | None -> ()); *)
     solve_fp v rhs P.bot
 
   let enqueue_gfp (v : var) (rhs : poly) : unit =
-    (match v.Var.sol with
-    | Some _ -> failwith "enqueue_gfp: variable already solved"
-    | None -> ());
-    pending_gfp := (v, rhs) :: !pending_gfp;
-    log "[fix] enqueue_gfp(v%d, %s)" v.Var.id (pp_log rhs)
+    (* (match v.Var.sol with | Some _ -> failwith "enqueue_gfp: variable already
+       solved" | None -> ()); *)
+    pending_gfp := (v, rhs) :: !pending_gfp
+  (* log "[fix] enqueue_gfp(v%d, %s)" v.Var.id (pp_log rhs) *)
 
   (* No explicit solve_gfps: queries enter query phase and solve pending
      GFPs. *)
 
   let leq (a : poly) (b : poly) : bool =
-    log "[fix] leq(%s, %s)" (pp_log a) (pp_log b);
+    (* log "[fix] leq(%s, %s)" (pp_log a) (pp_log b); *)
     enter_query_phase ();
     let a' = force_poly a in
     let b' = force_poly b in
@@ -186,7 +179,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     P.leq a' b'
 
   let normalize (p : poly) : (lat * V.t list) list =
-    log "[fix] normalize(%s)" (pp_log p);
+    (* log "[fix] normalize(%s)" (pp_log p); *)
     enter_query_phase ();
     let p' = force_poly p in
     require_no_unsolved "normalize" p';
@@ -222,7 +215,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* Group polynomial terms by designated rigid variables. *)
   let decompose_by ~(universe : V.t list) (p : poly) : (V.t list * poly) list =
-    log "[fix] decompose_by(|U|=%d, p=%s)" (List.length universe) (pp_log p);
+    (* log "[fix] decompose_by(|U|=%d, p=%s)" (List.length universe) (pp_log p); *)
     (* Do NOT change phase here. Only force already-solved vars. *)
     let p_norm = force_poly p in
     let module VSet = Set.Make (V) in
@@ -275,7 +268,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let decompose_linear ~(universe : V.t list) (p : poly) :
       poly * (V.t * poly) list * (V.t list * poly) list =
-    log "[fix] decompose_linear(|U|=%d, p=%s)" (List.length universe) (pp_log p);
+    (* log "[fix] decompose_linear(|U|=%d, p=%s)" (List.length universe) (pp_log p); *)
     (* Do NOT change phase here. *)
     let groups = decompose_by ~universe p in
     let base = ref P.bot in

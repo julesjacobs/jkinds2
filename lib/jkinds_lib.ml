@@ -4,6 +4,7 @@ module Kind = Kind
 module Infer = Infer
 module Type_parser = Type_parser
 module Decl_parser = Decl_parser
+module Global_counters = Global_counters
 module Product_lattice = Product_lattice
 module Lattice_polynomial = Lattice_polynomial
 module Lattice_solver = Lattice_solver

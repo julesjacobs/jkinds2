@@ -13,6 +13,8 @@ module type ORDERED = sig
 end
 
 module Make (C : LATTICE) (V : ORDERED) = struct
+  let bump (name : string) = Global_counters.inc ("LP." ^ name)
+
   module VarSet = Set.Make (V)
   module VarMap = Map.Make (V)
 
@@ -46,12 +48,17 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* Constant polynomial (empty set is the neutral element for /\ over
      variables). *)
-  let const (c : coeff) : t = singleton VarSet.empty c
+  let const (c : coeff) : t =
+    bump "const";
+    singleton VarSet.empty c
+
   let bot : t = SetMap.empty
   let top : t = const C.top
 
   (* Variable as a polynomial: x = (⊤ /\ x) *)
-  let var (v : V.t) : t = singleton (VarSet.singleton v) C.top
+  let var (v : V.t) : t =
+    bump "var";
+    singleton (VarSet.singleton v) C.top
 
   (* Turn arbitrary terms (possibly with duplicate sets) into a map where
      duplicates are joined. *)
@@ -98,9 +105,12 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     !res
 
   (* of_list: Build from a list of terms and return canonical form *)
-  let of_list ts = canonicalize (of_terms ts)
+  let of_list ts =
+    bump "of_list";
+    canonicalize (of_terms ts)
 
   let to_list (p : t) : term list =
+    bump "to_list";
     (* Sorted by (cardinality, lexicographic) *)
     let with_deg =
       SetMap.bindings p |> List.map (fun (s, c) -> (VarSet.cardinal s, s, c))
@@ -112,9 +122,12 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     List.sort cmp with_deg |> List.map (fun (_, s, c) -> (s, c))
 
   (* Lattice operations on polynomials *)
-  let join (p : t) (q : t) : t = canonicalize (merge_join p q)
+  let join (p : t) (q : t) : t =
+    bump "join";
+    canonicalize (merge_join p q)
 
   let meet (p : t) (q : t) : t =
+    bump "meet";
     (* Distribute: (Σ_S c_S /\ ∧S) /\ (Σ_T d_T /\ ∧T) = Σ_{S,T} (c_S /\ d_T) /\
        ∧(S∪T), then canonicalize. *)
     let acc = ref SetMap.empty in
@@ -137,6 +150,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* Equality and order on canonical polynomials *)
   let equal (p : t) (q : t) : bool =
+    bump "equal";
     (* Both assumed canonical; compare key sets and per-key coefficients via
        lattice-equality. *)
     let rec eq_bindings xs ys =
@@ -149,17 +163,20 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     eq_bindings (SetMap.bindings p) (SetMap.bindings q)
 
   let leq (p : t) (q : t) : bool =
+    bump "leq";
     (* p ≤ q iff join p q = q (in canonical form) *)
     equal (join p q) q
 
   (* Support (variables appearing in any term) *)
   let support (p : t) : VarSet.t =
+    bump "support";
     SetMap.fold (fun s _ acc -> VarSet.union s acc) p VarSet.empty
 
   (* Substitution: replace some variables with polynomials and normalize. For a
      term (S, c), split S into kept K and replaced R. Result = (K, c) /\ (/\_{v
      in R} subs[v]) = fold meet starting from singleton (K,c). *)
   let subst ~(subs : t VarMap.t) (p : t) : t =
+    bump "subst";
     let add_poly acc poly = merge_join acc poly in
     let res = ref SetMap.empty in
     SetMap.iter
@@ -187,6 +204,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     canonicalize !res
 
   let subst1 ~(v : V.t) ~(by : t) (p : t) : t =
+    bump "subst1";
     subst ~subs:(VarMap.add v by VarMap.empty) p
 
   (* q_down s = ⋁_{T ⊆ s} q̂[T] *)
@@ -198,6 +216,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   (* Approximate co-Heyting subtraction: r ≈ least x such that p ≤ q ∨ x. Result
      is canonical, but may be an over-approximation. *)
   let co_sub_approx (p : t) (q : t) : t =
+    bump "co_sub";
     if SetMap.is_empty p then SetMap.empty
     else if SetMap.is_empty q then p (* p \ ⊥ = p *)
     else
@@ -213,6 +232,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* Evaluate a polynomial given a valuation for variables *)
   let eval (rho : V.t -> C.t) (p : t) : C.t =
+    bump "eval";
     SetMap.fold
       (fun s c acc ->
         let var_val = VarSet.fold (fun v acc' -> C.meet acc' (rho v)) s C.top in
@@ -220,14 +240,20 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       p C.bot
 
   (* Evaluate with all variables set to ⊤ (ceil) or ⊥ (floor). *)
-  let ceil (p : t) : C.t = eval (fun _ -> C.top) p
-  let floor (p : t) : C.t = eval (fun _ -> C.bot) p
+  let ceil (p : t) : C.t =
+    bump "ceil";
+    eval (fun _ -> C.top) p
+
+  let floor (p : t) : C.t =
+    bump "floor";
+    eval (fun _ -> C.bot) p
 
   (* Pretty printer with deterministic ordering. - Prints ⊥ for empty
      polynomial. - Prints ⊤ for constant-top. - Omits unnecessary meets with ⊤
      and joins with ⊥ (the latter never appear in canonical form). *)
   let pp ?(pp_var = fun _ -> "_") ?(pp_coeff = fun _ -> "<c>") (p : t) : string
       =
+    bump "pp";
     if SetMap.is_empty p then "⊥"
     else
       let terms = to_list p in
@@ -259,6 +285,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       |> String.concat " ⊔ "
 
   let to_string (p : t) : string =
+    bump "to_string";
     pp ~pp_var:(fun _ -> "_") ~pp_coeff:C.to_string p
 
   (* Backward-compat alias to emphasize approximation semantics. *)

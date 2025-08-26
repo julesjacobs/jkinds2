@@ -3,6 +3,12 @@ module Modality = Modality
 module Kind = Kind
 module Type_parser : module type of Type_parser
 module Decl_parser : module type of Decl_parser
+
+module Global_counters : sig
+  val inc : string -> unit
+  val counters : unit -> (string * int) list
+end
+
 module Product_lattice : module type of Product_lattice
 module Lattice_polynomial : module type of Lattice_polynomial
 module Lattice_solver : module type of Lattice_solver
