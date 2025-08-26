@@ -98,7 +98,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* Internal: force solved solver variables inside a polynomial *)
   let rec force_poly (p : poly) : poly =
-    Global_counters.inc "LFP.force_poly";
     let vars = P.support p in
     let subs =
       P.VarSet.fold
@@ -115,11 +114,10 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         vars P.VarMap.empty
     in
     Global_counters.inc
-      ("LFP.force_poly_subs_size=" ^ string_of_int (P.VarMap.cardinal subs));
+      ("LFP.force_poly_subs_size=" ^ string_of_int (P.VarSet.cardinal vars));
     if P.VarMap.is_empty subs then p else P.subst ~subs p
 
   let require_no_unsolved (ctx : string) (p : poly) : unit =
-    Global_counters.inc "LFP.require_no_unsolved";
     let vars = P.support p in
     P.VarSet.iter
       (function
@@ -133,7 +131,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let pending_gfp : (var * poly) list ref = ref []
 
   let solve_fp (v : var) (rhs : poly) (self_value : poly) : unit =
-    Global_counters.inc "LFP.solve_fp";
     (match v.Var.sol with
     | Some _ -> failwith "solve_fp: variable already solved"
     | None -> ());
