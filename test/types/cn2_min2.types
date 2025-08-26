@@ -1,0 +1,8 @@
+# Simpler repro: remove K, just A('a1) + M2(B('a2))
+
+type A('a1) : 'a1
+type B('a1) : 'a1
+type M2('a1) = [0,1] * 'a1
+
+type CN('a1,'a2) = A('a1) + M2(B('a2))
+
