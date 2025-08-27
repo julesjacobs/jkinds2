@@ -31,12 +31,12 @@ let%expect_test "canonicalization eliminates supersets" =
          (P.meet (P.const (c 2 1)) (P.meet x y)))
   in
   printp p;
-  [%expect {| {a=1, b=1} ⊔ ({a=2, b=0} ⊓ x) |}]
+  [%expect {| [1, 1] ⊔ ([2, 0] ⊓ x) |}]
 
 let%expect_test "distribution of meet over join" =
   let p = P.meet (P.const (c 2 0)) (P.join x y) in
   printp p;
-  [%expect {| ({a=2, b=0} ⊓ x) ⊔ ({a=2, b=0} ⊓ y) |}]
+  [%expect {| ([2, 0] ⊓ x) ⊔ ([2, 0] ⊓ y) |}]
 
 let%expect_test "subst: x := (c11 /\\ z) \\u2228 c20" =
   let p = P.join (P.const (c 0 1)) (P.meet (P.const (c 2 1)) x) in

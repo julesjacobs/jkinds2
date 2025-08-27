@@ -13,6 +13,7 @@
  (modules
   (:standard
    \
+   ldd_expect_tests
    type_parser_expect_tests
    poly_expect_tests
    modality_expect_tests
@@ -72,6 +73,7 @@
   (pps ppx_expect))
  (inline_tests)
  (modules
+  ldd_expect_tests
   poly_expect_tests
   modality_expect_tests
   solver_expect_tests

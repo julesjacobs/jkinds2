@@ -137,23 +137,12 @@ module Make (S : SHAPE) = struct
   let decode (v : t) : int array =
     Array.init num_axes (fun i -> get_axis v ~axis:i)
 
-  let pp ?axis_names (v : t) : string =
-    let b = Buffer.create 64 in
-    Buffer.add_char b '{';
-    for i = 0 to num_axes - 1 do
-      if i > 0 then Buffer.add_string b ", ";
-      let name =
-        match axis_names with
-        | Some a when i < Array.length a -> a.(i)
-        | _ -> string_of_int i
-      in
-      let lev = get_axis v ~axis:i in
-      Buffer.add_string b name;
-      Buffer.add_char b '=';
-      Buffer.add_string b (string_of_int lev)
-    done;
-    Buffer.add_char b '}';
-    Buffer.contents b
+  let pp ?axis_names:_ (v : t) : string =
+    let levels = decode v in
+    let parts =
+      levels |> Array.to_list |> List.map string_of_int |> String.concat ", "
+    in
+    Printf.sprintf "[%s]" parts
 
   let to_string (v : t) : string =
     let levels = decode v in
