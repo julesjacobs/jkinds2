@@ -14,10 +14,11 @@ module Name = struct
   type t = string
 
   let compare = String.compare
+  let to_string s = s
 end
 
 module LS = Lattice_solver.Make (C) (Name)
-module L = Ldd.Make (C)
+module L = Ldd.Make (C) (Name)
 module PStr = Lattice_polynomial.Make (C) (Name)
 
 (* Unused: kept for reference of LS pretty printer *)
@@ -197,7 +198,7 @@ let () =
         ignore sw;
         let rp, rw = rhs in
         LS.solve_lfp vs rp;
-        L.solve_lfp ~var:vl ~rhs_raw:rw;
+        L.solve_lfp vl rw;
         solved_flag := true;
         (* After solving, re-check parity of a few random terms, and add the
            solved var bound as a term *)

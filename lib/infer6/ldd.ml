@@ -13,7 +13,14 @@ module type LATTICE = sig
   val hash : t -> int
 end
 
-module Make (C : LATTICE) = struct
+module type ORDERED = sig
+  type t
+
+  val compare : t -> t -> int
+  val to_string : t -> string
+end
+
+module Make (C : LATTICE) (V : ORDERED) = struct
   (* --------- variables --------- *)
   type node =
     | Leaf of { id : int; c : C.t }
@@ -24,7 +31,7 @@ module Make (C : LATTICE) = struct
     mutable state : var_state; (* type+state of the variable *)
   }
 
-  and var_state = Unsolved | Solved of node | Rigid of string
+  and var_state = Unsolved | Solved of node | Rigid of V.t
 
   module Var = struct
     type t = var
@@ -62,9 +69,9 @@ module Make (C : LATTICE) = struct
       LeafTbl.add leaf_tbl c n;
       n
 
-  let leaf_bot = leaf C.bot
-  let leaf_top = leaf C.top
-  let is_bot_node n = n == leaf_bot
+  let bot = leaf C.bot
+  let top = leaf C.top
+  let is_bot_node n = n == bot
 
   (* --------- unique table for internal nodes --------- *)
   module UKey = struct
@@ -221,8 +228,8 @@ module Make (C : LATTICE) = struct
 
   (* --------- public constructors --------- *)
   let const (c : C.t) = leaf c
-  let var (v : var) = node v leaf_bot leaf_top
-  let rigid (name : string) = var (Var.make_rigid ~name ())
+  let var (v : var) = node v bot top
+  let rigid (name : V.t) = Var.make_rigid ~name ()
   let new_var () = Var.make_var ()
 
   (* --------- restrictions (x ← ⊥ / ⊤) --------- *)
@@ -296,7 +303,7 @@ module Make (C : LATTICE) = struct
       r
 
   (* --------- solve-on-install (per-call; no env) --------- *)
-  let solve_lfp ~(var : var) ~(rhs_raw : node) : unit =
+  let solve_lfp (var : var) (rhs_raw : node) : unit =
     match var.state with
     | Rigid _ -> invalid_arg "solve_lfp: rigid variable"
     | Solved _ -> invalid_arg "solve_lfp: solved variable"
@@ -305,7 +312,7 @@ module Make (C : LATTICE) = struct
       var.state <- Solved (restrict0 var rhs_forced);
       NodeTbl.clear memo_force
 
-  let solve_gfp ~(var : var) ~(rhs_raw : node) : unit =
+  let solve_gfp (var : var) (rhs_raw : node) : unit =
     match var.state with
     | Rigid _ -> invalid_arg "solve_gfp: rigid variable"
     | Solved _ -> invalid_arg "solve_gfp: solved variable"
@@ -323,18 +330,18 @@ module Make (C : LATTICE) = struct
   let solve_pending_gfps () : unit =
     while not (Queue.is_empty gfp_queue) do
       let var, rhs_raw = Queue.pop gfp_queue in
-      solve_gfp ~var ~rhs_raw
+      solve_gfp var rhs_raw
     done
 
   (* Decompose into linear terms *)
-  let decompose_linear (n : node) (vars : var list) =
+  let decompose_linear ~(universe : var list) (n : node) =
     let rec go vs m ns =
       match vs with
       | [] -> (m, ns)
       | v :: vs' ->
         go vs' (restrict0 v m) (restrict1 v m :: List.map (restrict0 v) ns)
     in
-    go vars n []
+    go universe n []
 
   (* --------- optional printer --------- *)
   (* Expose normalizer for testing: applies current solved bindings. *)
@@ -366,8 +373,8 @@ module Make (C : LATTICE) = struct
        Rigid variables are guaranteed unique per path, so no dedup is needed.
      - entries with coeff = bot are omitted. *)
 
-  let to_list (w : node) : (C.t * string list) list =
-    let rec aux (acc : string list) (w : node) : (C.t * string list) list =
+  let to_list (w : node) : (C.t * V.t list) list =
+    let rec aux (acc : V.t list) (w : node) : (C.t * V.t list) list =
       match w with
       | Leaf { c; _ } -> if C.equal c C.bot then [] else [ (c, acc) ]
       | Node n ->
@@ -395,7 +402,7 @@ module Make (C : LATTICE) = struct
       | Node n ->
         let acc_hi =
           match n.v.state with
-          | Rigid name -> name :: acc
+          | Rigid name -> V.to_string name :: acc
           | _ -> (
             match pp_var with
             | Some f -> ( match f n.v with Some s -> s :: acc | None -> acc)
@@ -470,7 +477,7 @@ module Make (C : LATTICE) = struct
       let state_s =
         match v.state with
         | Unsolved -> "Unsolved"
-        | Rigid name -> "Rigid(" ^ name ^ ")"
+        | Rigid name -> "Rigid(" ^ V.to_string name ^ ")"
         | Solved n -> "Solved(#" ^ string_of_int (node_id n) ^ ")"
       in
       Printf.sprintf "v#%d:%s" v.id state_s

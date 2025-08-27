@@ -22,6 +22,7 @@ module Make (_ : SHAPE) : sig
   val meet : t -> t -> t
   val leq : t -> t -> bool
   val equal : t -> t -> bool
+  val hash : t -> int
 
   val co_sub :
     t -> t -> t (* co-Heyting subtraction: least x s.t. a <= b \/ x *)

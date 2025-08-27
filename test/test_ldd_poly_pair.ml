@@ -14,10 +14,13 @@ module V = struct
   type t = string
 
   let compare = String.compare
+
+  (* let hash = Stdlib.Hashtbl.hash *)
+  let to_string s = s
 end
 
 module P = Lattice_polynomial.Make (C) (V)
-module L = Ldd.Make (C)
+module L = Ldd.Make (C) (V)
 
 let pp_poly = P.pp ~pp_var:(fun s -> s) ~pp_coeff:show_c
 let pp_ldd = L.pp_as_polynomial ~pp_coeff:show_c

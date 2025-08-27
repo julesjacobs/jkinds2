@@ -97,6 +97,7 @@ module PolyProps = struct
     let co_sub a b = a && not b
     let equal a b = a = b
     let to_string (b : bool) = if b then "⊤" else "⊥"
+    let hash x = Stdlib.Hashtbl.hash x
   end
 
   module Var = struct

@@ -11,7 +11,14 @@ end
 let axis_names = [| "a"; "b" |]
 let show_c (x : C.t) = C.pp ~axis_names x
 
-module L = Ldd.Make (C)
+module L =
+  Ldd.Make
+    (C)
+    (struct
+      include String
+
+      let to_string s = s
+    end)
 
 let printw w = print_endline (L.pp_as_polynomial ~pp_coeff:show_c w)
 let c a b = C.encode ~levels:[| a; b |]

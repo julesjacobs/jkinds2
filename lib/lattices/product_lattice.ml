@@ -80,6 +80,7 @@ module Make (S : SHAPE) = struct
   let meet (a : t) (b : t) : t = a land b
   let leq (a : t) (b : t) : bool = a land b = a
   let equal (a : t) (b : t) : bool = leq a b && leq b a
+  let hash a = a
 
   let co_sub (a : t) (b : t) : t =
     (* Bit-parallel within groups of equal width; avoid per-axis inspect. *)

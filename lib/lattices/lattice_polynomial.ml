@@ -168,6 +168,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     in
     eq_bindings (SetMap.bindings p) (SetMap.bindings q)
 
+  let hash (p : t) = Stdlib.Hashtbl.hash p
+
   let leq (p : t) (q : t) : bool =
     bump "leq";
     (* p ≤ q iff join p q = q (in canonical form) *)

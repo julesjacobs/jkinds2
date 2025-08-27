@@ -8,5 +8,6 @@ module type LATTICE = sig
   val leq : t -> t -> bool
   val co_sub : t -> t -> t
   val equal : t -> t -> bool
+  val hash : t -> int
   val to_string : t -> string
 end
