@@ -50,3 +50,48 @@ let%expect_test "ldd pp: duplicates aggregate by join on coeffs" =
   let w = L.join (L.meet (L.const (c 1 0)) x) (L.meet (L.const (c 2 0)) x) in
   printw w;
   [%expect {| [2, 0] ⊓ x |}]
+
+let%expect_test "ldd: meet ⊤ with (x ⊓ z) ⊔ y" =
+  (* Repro from randomized parity test: currently LDD drops (x ⊓ z), resulting
+     in y, whereas lattice polynomials keep (x ⊓ z) ⊔ y. *)
+  let x = L.rigid "x" in
+  let y = L.rigid "y" in
+  let z = L.rigid "z" in
+  let rhs = L.join (L.meet x z) y in
+  let r = L.meet (L.const C.top) rhs in
+  printw r;
+  [%expect {| y |}]
+
+let%expect_test
+    "ldd: join x with ([0,1] ⊔ ([2,0] ⊓ x) ⊔ ([2,0] ⊓ y) ⊔ ([2,0] ⊓ z))" =
+  let x = L.rigid "x" in
+  let y = L.rigid "y" in
+  let z = L.rigid "z" in
+  let a = x in
+  let b =
+    L.join
+      (L.const (c 0 1))
+      (L.join
+         (L.meet (L.const (c 2 0)) x)
+         (L.join (L.meet (L.const (c 2 0)) y) (L.meet (L.const (c 2 0)) z)))
+  in
+  let r = L.join a b in
+  printw r;
+  [%expect {| [0, 1] ⊔ ([2, 0] ⊓ x) ⊔ ([2, 0] ⊓ y) ⊔ ([2, 0] ⊓ z) |}]
+
+let%expect_test
+    "ldd: join x with [1, 1] ⊔ ([2, 0] ⊓ x) ⊔ ([2, 0] ⊓ y) ⊔ ([2, 0] ⊓ z)" =
+  let x = L.rigid "x" in
+  let y = L.rigid "y" in
+  let z = L.rigid "z" in
+  let a = x in
+  let b =
+    L.join
+      (L.const (c 1 1))
+      (L.join
+         (L.meet (L.const (c 2 0)) x)
+         (L.join (L.meet (L.const (c 2 0)) y) (L.meet (L.const (c 2 0)) z)))
+  in
+  let r = L.join a b in
+  printw r;
+  [%expect {| [1, 1] ⊔ ([2, 0] ⊓ x) ⊔ ([2, 0] ⊓ y) ⊔ ([2, 0] ⊓ z) |}]

@@ -66,6 +66,11 @@
  (libraries jkinds_lib)
  (modules poly_support test_poly_co_sub_props))
 
+(test
+ (name test_ldd_poly_pair)
+ (libraries jkinds_lib)
+ (modules test_ldd_poly_pair))
+
 (library
  (name expect_lib)
  (libraries jkinds_lib)
