@@ -60,7 +60,7 @@ let%expect_test "ldd: meet ⊤ with (x ⊓ z) ⊔ y" =
   let rhs = L.join (L.meet x z) y in
   let r = L.meet (L.const C.top) rhs in
   printw r;
-  [%expect {| y |}]
+  [%expect {| (x ⊓ z) ⊔ y |}]
 
 let%expect_test "ldd: layered joins reproducer (structure debug)" =
   let x = L.rigid "x" in
@@ -152,3 +152,213 @@ let%expect_test
   let r = L.join a b in
   printw r;
   [%expect {| [1, 1] ⊔ ([2, 0] ⊓ x) ⊔ ([2, 0] ⊓ y) ⊔ ([2, 0] ⊓ z) |}]
+
+let%expect_test "ldd: minimized reproducer with a,b,c; debug structure and join"
+    =
+  (* Variable order a < b < c by construction *)
+  let a = L.rigid "a" in
+  let b = L.rigid "b" in
+  let cv = L.rigid "c" in
+  let c01 = L.const (c 0 1) in
+  let c20 = L.const (c 2 0) in
+  (* arg1 = [0,1] ⊔ ([2,0] ⊓ a) ⊔ ([2,0] ⊓ b) ⊔ ([2,0] ⊓ c) *)
+  let arg1 =
+    L.join c01 (L.join (L.meet c20 a) (L.join (L.meet c20 b) (L.meet c20 cv)))
+  in
+  let arg2 = cv in
+  print_endline "-- arg1.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c arg1);
+  print_endline "-- arg2.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c arg2);
+  let r = L.join arg1 arg2 in
+  print_endline "-- result.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c r);
+  print_endline "-- prints --";
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c arg1);
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c arg2);
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c r);
+  [%expect
+    {|
+    -- arg1.debug --
+    Node#69 v#18:Rigid(a) lo=#68 hi=#5
+      Node#68 v#19:Rigid(b) lo=#67 hi=#5
+        Node#67 v#20:Rigid(c) lo=#44 hi=#5
+          Leaf#44 c=[0, 1]
+          Leaf#5 c=[2, 0]
+        #5 = <ref>
+      #5 = <ref>
+
+    -- arg2.debug --
+    Node#61 v#20:Rigid(c) lo=#0 hi=#1
+      Leaf#0 c=[0, 0]
+      Leaf#1 c=[2, 1]
+
+    -- result.debug --
+    Node#69 v#18:Rigid(a) lo=#68 hi=#5
+      Node#68 v#19:Rigid(b) lo=#67 hi=#5
+        Node#67 v#20:Rigid(c) lo=#44 hi=#5
+          Leaf#44 c=[0, 1]
+          Leaf#5 c=[2, 0]
+        #5 = <ref>
+      #5 = <ref>
+
+    -- prints --
+    [0, 1] ⊔ ([2, 0] ⊓ a) ⊔ ([2, 0] ⊓ b) ⊔ ([2, 0] ⊓ c)
+    c
+    [0, 1] ⊔ ([2, 0] ⊓ a) ⊔ ([2, 0] ⊓ b) ⊔ ([2, 0] ⊓ c) |}]
+
+let%expect_test "ldd: minimized reproducer order a,c,b; debug and join" =
+  (* Variable creation order a < c < b *)
+  let a = L.rigid "a" in
+  let cv = L.rigid "c" in
+  let b = L.rigid "b" in
+  let c01 = L.const (c 0 1) in
+  let c20 = L.const (c 2 0) in
+  let arg1 =
+    L.join c01 (L.join (L.meet c20 a) (L.join (L.meet c20 b) (L.meet c20 cv)))
+  in
+  let arg2 = cv in
+  print_endline "-- arg1.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c arg1);
+  print_endline "-- arg2.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c arg2);
+  let r = L.join arg1 arg2 in
+  print_endline "-- result.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c r);
+  print_endline "-- prints --";
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c arg1);
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c arg2);
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c r);
+  [%expect
+    {|
+    -- arg1.debug --
+    Node#81 v#21:Rigid(a) lo=#80 hi=#5
+      Node#80 v#22:Rigid(c) lo=#79 hi=#5
+        Node#79 v#23:Rigid(b) lo=#44 hi=#5
+          Leaf#44 c=[0, 1]
+          Leaf#5 c=[2, 0]
+        #5 = <ref>
+      #5 = <ref>
+
+    -- arg2.debug --
+    Node#72 v#22:Rigid(c) lo=#0 hi=#1
+      Leaf#0 c=[0, 0]
+      Leaf#1 c=[2, 1]
+
+    -- result.debug --
+    Node#81 v#21:Rigid(a) lo=#80 hi=#5
+      Node#80 v#22:Rigid(c) lo=#79 hi=#5
+        Node#79 v#23:Rigid(b) lo=#44 hi=#5
+          Leaf#44 c=[0, 1]
+          Leaf#5 c=[2, 0]
+        #5 = <ref>
+      #5 = <ref>
+
+    -- prints --
+    [0, 1] ⊔ ([2, 0] ⊓ a) ⊔ ([2, 0] ⊓ b) ⊔ ([2, 0] ⊓ c)
+    c
+    [0, 1] ⊔ ([2, 0] ⊓ a) ⊔ ([2, 0] ⊓ b) ⊔ ([2, 0] ⊓ c) |}]
+
+let%expect_test "ldd: minimized reproducer order b,a,c; debug and join" =
+  (* Variable creation order b < a < c *)
+  let b = L.rigid "b" in
+  let a = L.rigid "a" in
+  let cv = L.rigid "c" in
+  let c01 = L.const (c 0 1) in
+  let c20 = L.const (c 2 0) in
+  let arg1 =
+    L.join c01 (L.join (L.meet c20 a) (L.join (L.meet c20 b) (L.meet c20 cv)))
+  in
+  let arg2 = cv in
+  print_endline "-- arg1.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c arg1);
+  print_endline "-- arg2.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c arg2);
+  let r = L.join arg1 arg2 in
+  print_endline "-- result.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c r);
+  print_endline "-- prints --";
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c arg1);
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c arg2);
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c r);
+  [%expect
+    {|
+    -- arg1.debug --
+    Node#94 v#24:Rigid(b) lo=#93 hi=#5
+      Node#93 v#25:Rigid(a) lo=#92 hi=#5
+        Node#92 v#26:Rigid(c) lo=#44 hi=#5
+          Leaf#44 c=[0, 1]
+          Leaf#5 c=[2, 0]
+        #5 = <ref>
+      #5 = <ref>
+
+    -- arg2.debug --
+    Node#85 v#26:Rigid(c) lo=#0 hi=#1
+      Leaf#0 c=[0, 0]
+      Leaf#1 c=[2, 1]
+
+    -- result.debug --
+    Node#94 v#24:Rigid(b) lo=#93 hi=#5
+      Node#93 v#25:Rigid(a) lo=#92 hi=#5
+        Node#92 v#26:Rigid(c) lo=#44 hi=#5
+          Leaf#44 c=[0, 1]
+          Leaf#5 c=[2, 0]
+        #5 = <ref>
+      #5 = <ref>
+
+    -- prints --
+    [0, 1] ⊔ ([2, 0] ⊓ a) ⊔ ([2, 0] ⊓ b) ⊔ ([2, 0] ⊓ c)
+    c
+    [0, 1] ⊔ ([2, 0] ⊓ a) ⊔ ([2, 0] ⊓ b) ⊔ ([2, 0] ⊓ c) |}]
+
+let%expect_test "ldd: minimized reproducer order c,b,a; debug and join" =
+  (* Variable creation order c < b < a *)
+  let cv = L.rigid "c" in
+  let b = L.rigid "b" in
+  let a = L.rigid "a" in
+  let c01 = L.const (c 0 1) in
+  let c20 = L.const (c 2 0) in
+  let arg1 =
+    L.join c01 (L.join (L.meet c20 a) (L.join (L.meet c20 b) (L.meet c20 cv)))
+  in
+  let arg2 = cv in
+  print_endline "-- arg1.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c arg1);
+  print_endline "-- arg2.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c arg2);
+  let r = L.join arg1 arg2 in
+  print_endline "-- result.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c r);
+  print_endline "-- prints --";
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c arg1);
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c arg2);
+  print_endline (L.pp_as_polynomial ~pp_coeff:show_c r);
+  [%expect
+    {|
+    -- arg1.debug --
+    Node#107 v#27:Rigid(c) lo=#106 hi=#5
+      Node#106 v#28:Rigid(b) lo=#105 hi=#5
+        Node#105 v#29:Rigid(a) lo=#44 hi=#5
+          Leaf#44 c=[0, 1]
+          Leaf#5 c=[2, 0]
+        #5 = <ref>
+      #5 = <ref>
+
+    -- arg2.debug --
+    Node#96 v#27:Rigid(c) lo=#0 hi=#1
+      Leaf#0 c=[0, 0]
+      Leaf#1 c=[2, 1]
+
+    -- result.debug --
+    Node#107 v#27:Rigid(c) lo=#106 hi=#5
+      Node#106 v#28:Rigid(b) lo=#105 hi=#5
+        Node#105 v#29:Rigid(a) lo=#44 hi=#5
+          Leaf#44 c=[0, 1]
+          Leaf#5 c=[2, 0]
+        #5 = <ref>
+      #5 = <ref>
+
+    -- prints --
+    [0, 1] ⊔ ([2, 0] ⊓ a) ⊔ ([2, 0] ⊓ b) ⊔ ([2, 0] ⊓ c)
+    c
+    [0, 1] ⊔ ([2, 0] ⊓ a) ⊔ ([2, 0] ⊓ b) ⊔ ([2, 0] ⊓ c) |}]

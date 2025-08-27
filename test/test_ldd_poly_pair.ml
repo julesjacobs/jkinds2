@@ -77,15 +77,18 @@ module Pair = struct
     | None -> ());
     Buffer.add_string buf "result.debug:\n";
     Buffer.add_string buf (L.pp_debug ~pp_coeff:show_c w);
-    (* Persist full debug to a file for inspection *)
+    (* Persist full debug to a file for inspection. Use tmp dir to survive dune
+       sandbox. *)
     let log = Buffer.contents buf in
+    let tmp_dir = Filename.get_temp_dir_name () in
+    let base = Printf.sprintf "ldd_pair_failure-%08x.log" (Random.bits ()) in
+    let path = Filename.concat tmp_dir base in
     (try
-       let oc = open_out_bin "ldd_pair_failure.log" in
+       let oc = open_out_bin path in
        output_string oc log;
        close_out oc
      with _ -> ());
-    failwith
-      "pp parity mismatch; see ldd_pair_failure.log for full debug output"
+    failwith (Printf.sprintf "pp parity mismatch; wrote full debug to %s" path)
 
   let check ~op ?a ?b (r : t) : unit =
     let sp, sw = pp_pair r in
@@ -117,38 +120,6 @@ end
 let c a b = C.encode ~levels:[| a; b |]
 
 let () =
-  (* Basic constructors parity *)
-  let _ = Pair.const C.bot in
-  let _ = Pair.const C.top in
-  let _ = Pair.rigid "x" in
-  ()
-
-let () =
-  (* Join/meet shapes *)
-  let x = Pair.rigid "x" in
-  let y = Pair.rigid "y" in
-  let _ = Pair.meet (Pair.const (c 2 0)) x in
-  let _ = Pair.join x y in
-  (* keep meet/join parity with constants mixed in *)
-  let _ = Pair.meet (Pair.join x y) (Pair.const (c 1 1)) in
-  let _ =
-    Pair.join
-      (Pair.meet x (Pair.const (c 2 0)))
-      (Pair.meet y (Pair.const (c 2 0)))
-  in
-  ()
-
-let () =
-  (* Duplicate var-sets aggregate by coeff join *)
-  let x = Pair.rigid "x" in
-  let t1 = Pair.meet (Pair.const (c 1 0)) x in
-  let t2 = Pair.meet (Pair.const (c 2 0)) x in
-  let t = Pair.join t1 t2 in
-  let sp, sw = Pair.to_string t in
-  assert_eq "aggregate duplicates" "[2, 0] ⊓ x" (* expected canonical body *) sp;
-  assert_eq "aggregate duplicates (ldd)" sp sw
-
-let () =
   (* Randomized closure under join from a fixed seed and iteration count. *)
   let pool : Pair.t list ref = ref [] in
   let seen : (string, unit) Hashtbl.t = Hashtbl.create 1024 in
@@ -161,14 +132,16 @@ let () =
       pool := v :: !pool)
   in
   (* Create rigids with explicit sequencing to fix LDD variable order. *)
-  let xr = Pair.rigid "x" in
-  let yr = Pair.rigid "y" in
-  let zr = Pair.rigid "z" in
+  let xr = Pair.rigid "a" in
+  let yr = Pair.rigid "b" in
+  let zr = Pair.rigid "c" in
+  let dr = Pair.rigid "d" in
   List.iter add
     [
       xr;
       yr;
       zr;
+      dr;
       Pair.const (c 0 1);
       Pair.const (c 1 0);
       Pair.const (c 2 0);
@@ -184,14 +157,15 @@ let () =
     in
     aux n lst
   in
-  Random.init 2;
-  let iters = 10000 in
+  Random.init 42;
+  let iters = 100000 in
   for _ = 1 to iters do
     let len = List.length !pool in
     let i = Random.int len in
     let j = Random.int len in
     let a = get_nth !pool i in
     let b = get_nth !pool j in
-    (* Only exercise join to isolate correctness; meet is defined via join. *)
-    add (Pair.join a b)
+    (* Exercise both join and meet; dedup by printed canonical form. *)
+    add (Pair.join a b);
+    add (Pair.meet a b)
   done

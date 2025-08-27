@@ -152,7 +152,7 @@ module Make (C : LATTICE) = struct
           else if nh.v.id < nl.v.id then
             node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
           else (* h.id > l.id *)
-            sub_subsets (sub_subsets h nl.lo) nl.hi
+            sub_subsets h nl.lo
       in
       NodePairTbl.add memo_subs h l r;
       r
