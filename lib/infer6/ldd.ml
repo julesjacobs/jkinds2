@@ -226,21 +226,51 @@ module Make (C : LATTICE) = struct
   let new_var () = Var.make_var ()
 
   (* --------- restrictions (x ← ⊥ / ⊤) --------- *)
-  (* TODO: memoize *)
-  let rec restrict0 (x : var) (w : node) : node =
-    match w with
-    | Leaf _ -> w
-    | Node n ->
-      if n.v.id = x.id then restrict0 x n.lo
-      else node n.v (restrict0 x n.lo) (restrict0 x n.hi)
+  module VarNodePairTbl = struct
+    module Tbl = Hashtbl.Make (struct
+      type t = int * int
 
-  (* TODO: memoize *)
+      let equal (a, b) (c, d) = a = c && b = d
+      let hash = Hashtbl.hash
+    end)
+
+    let create () = Tbl.create 1024
+    let find_opt tbl v n = Tbl.find_opt tbl (v.id, node_id n)
+    let add tbl v n r = Tbl.add tbl (v.id, node_id n) r
+    let clear tbl = Tbl.clear tbl
+  end
+
+  let memo_restrict0 = VarNodePairTbl.create ()
+
+  let rec restrict0 (x : var) (w : node) : node =
+    match VarNodePairTbl.find_opt memo_restrict0 x w with
+    | Some r -> r
+    | None ->
+      let r =
+        match w with
+        | Leaf _ -> w
+        | Node n ->
+          if n.v.id = x.id then restrict0 x n.lo
+          else node n.v (restrict0 x n.lo) (restrict0 x n.hi)
+      in
+      VarNodePairTbl.add memo_restrict0 x w r;
+      r
+
+  let memo_restrict1 = VarNodePairTbl.create ()
+
   let rec restrict1 (x : var) (w : node) : node =
-    match w with
-    | Leaf _ -> w
-    | Node n ->
-      if n.v.id = x.id then join n.lo n.hi
-      else node n.v (restrict1 x n.lo) (restrict1 x n.hi)
+    match VarNodePairTbl.find_opt memo_restrict1 x w with
+    | Some r -> r
+    | None ->
+      let r =
+        match w with
+        | Leaf _ -> w
+        | Node n ->
+          if n.v.id = x.id then join n.lo n.hi
+          else node n.v (restrict1 x n.lo) (restrict1 x n.hi)
+      in
+      VarNodePairTbl.add memo_restrict1 x w r;
+      r
 
   (* --------- force (per-call memo; no env object) --------- *)
   let memo_force = NodeTbl.create ()
