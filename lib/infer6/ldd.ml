@@ -326,6 +326,16 @@ module Make (C : LATTICE) = struct
       solve_gfp ~var ~rhs_raw
     done
 
+  (* Decompose into linear terms *)
+  let decompose_linear (n : node) (vars : var list) =
+    let rec go vs m ns =
+      match vs with
+      | [] -> (m, ns)
+      | v :: vs' ->
+        go vs' (restrict0 v m) (restrict1 v m :: List.map (restrict0 v) ns)
+    in
+    go vars n []
+
   (* --------- optional printer --------- *)
   (* Expose normalizer for testing: applies current solved bindings. *)
   let normalize (w : node) : node = force w
