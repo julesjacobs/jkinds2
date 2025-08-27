@@ -314,7 +314,22 @@ module Make (C : LATTICE) = struct
       var.state <- Solved (restrict1 var rhs_forced);
       NodeTbl.clear memo_force
 
+  (* Enqued gfps *)
+  let gfp_queue = Queue.create ()
+
+  let enqueue_gfp (var : var) (rhs_raw : node) : unit =
+    Queue.push (var, rhs_raw) gfp_queue
+
+  let solve_pending_gfps () : unit =
+    while not (Queue.is_empty gfp_queue) do
+      let var, rhs_raw = Queue.pop gfp_queue in
+      solve_gfp ~var ~rhs_raw
+    done
+
   (* --------- optional printer --------- *)
+  (* Expose normalizer for testing: applies current solved bindings. *)
+  let normalize (w : node) : node = force w
+
   let to_string (pp_var : var -> string) =
     let rec aux pref = function
       | Leaf { c; _ } ->
@@ -362,7 +377,30 @@ module Make (C : LATTICE) = struct
      - Deterministic term ordering (sort by rendered body string)
      - Parentheses around meets when there are multiple terms
      - Constants: ⊥ when empty; ⊤ when constant-top. *)
-  let pp_as_polynomial ?(pp_coeff = C.to_string) (w : node) : string =
+  (* Extract terms with optional naming function for non-rigid vars. *)
+  let to_named_terms ?pp_var (w : node) : (C.t * string list) list =
+    let rec aux (acc : string list) (w : node) : (C.t * string list) list =
+      match w with
+      | Leaf { c; _ } -> if C.equal c C.bot then [] else [ (c, acc) ]
+      | Node n ->
+        let acc_hi =
+          match n.v.state with
+          | Rigid name -> name :: acc
+          | _ -> (
+            match pp_var with
+            | Some f -> ( match f n.v with Some s -> s :: acc | None -> acc)
+            | None -> acc)
+        in
+        let lo_list = aux acc n.lo in
+        let hi_list = aux acc_hi n.hi in
+        lo_list @ hi_list
+    in
+    aux [] w
+
+  (* Pretty-print in polynomial style. If [pp_var] is provided, it is used to
+     name non-rigid variables when encountered on hi-edges (e.g., unsolved vars
+     for debugging/tests). *)
+  let pp_as_polynomial ?(pp_coeff = C.to_string) ?pp_var (w : node) : string =
     (* Aggregate duplicate rigid var-sets by join on coefficients. *)
     let tbl : (string list, C.t) Hashtbl.t = Hashtbl.create 16 in
     let add_entry (c, names) =
@@ -371,7 +409,7 @@ module Make (C : LATTICE) = struct
       | None -> Hashtbl.add tbl vs c
       | Some prev -> Hashtbl.replace tbl vs (C.join prev c)
     in
-    List.iter add_entry (to_list w);
+    List.iter add_entry (to_named_terms ?pp_var w);
     let terms =
       Hashtbl.fold
         (fun vs c acc -> if C.equal c C.bot then acc else (vs, c) :: acc)

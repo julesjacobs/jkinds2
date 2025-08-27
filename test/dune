@@ -71,6 +71,11 @@
  (libraries jkinds_lib)
  (modules test_ldd_poly_pair))
 
+(test
+ (name test_ldd_solver_pair)
+ (libraries jkinds_lib)
+ (modules test_ldd_solver_pair))
+
 (library
  (name expect_lib)
  (libraries jkinds_lib)
