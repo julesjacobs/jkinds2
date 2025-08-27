@@ -13,6 +13,7 @@
   infer3
   infer4
   infer5
+  ldd
   infer6
   type_parser
   type_menhir

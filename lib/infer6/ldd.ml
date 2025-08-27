@@ -1,0 +1,288 @@
+(* Lattice-valued ZDDs *)
+
+module type LATTICE = sig
+  type t
+
+  val bot : t
+  val top : t
+  val join : t -> t -> t
+  val meet : t -> t -> t
+  val co_sub : t -> t -> t (* residual: join a (co_sub b a) = join a b *)
+  val to_string : t -> string (* optional, for debug/printing *)
+  val equal : t -> t -> bool
+  val hash : t -> int
+end
+
+module Make (C : LATTICE) = struct
+  (* --------- variables --------- *)
+  type node =
+    | Leaf of { id : int; c : C.t }
+    | Node of { id : int; v : var; lo : node; hi : node }
+
+  and var = {
+    id : int; (* ZDD order: smaller id = higher *)
+    mutable state : var_state; (* type+state of the variable *)
+  }
+
+  and var_state = Unsolved | Solved of node | Rigid of string
+
+  module Var = struct
+    type t = var
+
+    let var_id = ref (-1)
+
+    let make state =
+      incr var_id;
+      { id = !var_id; state }
+
+    let make_var () = make Unsolved
+    let make_rigid ~name () = make (Rigid name)
+    let id v = v.id
+  end
+
+  (* --------- stable node ids --------- *)
+  let next_node_id = ref (-1)
+
+  let fresh_id () =
+    incr next_node_id;
+    !next_node_id
+
+  let node_id = function Leaf n -> n.id | Node n -> n.id
+
+  (* --------- leaf interning (ensures one pointer per equal coeff) --------- *)
+  module LeafTbl = Hashtbl.Make (C)
+
+  let leaf_tbl : node LeafTbl.t = LeafTbl.create 97
+
+  let leaf (c : C.t) : node =
+    match LeafTbl.find_opt leaf_tbl c with
+    | Some n -> n
+    | None ->
+      let n = Leaf { id = fresh_id (); c } in
+      LeafTbl.add leaf_tbl c n;
+      n
+
+  let leaf_bot = leaf C.bot
+  let leaf_top = leaf C.top
+  let is_bot_node n = n == leaf_bot
+
+  (* --------- unique table for internal nodes --------- *)
+  module UKey = struct
+    type t = int * int * int (* v.id, lo.id, hi.id *)
+
+    let equal (a, b, c) (a', b', c') = a = a' && b = b' && c = c'
+    let hash = Hashtbl.hash
+  end
+
+  module Unique = Hashtbl.Make (UKey)
+
+  let uniq_tbl : node Unique.t = Unique.create 0
+
+  (* --------- persistent memos --------- *)
+  module NodeTbl = struct
+    module Tbl = Hashtbl.Make (struct
+      type t = int
+
+      let equal = ( = )
+      let hash = Hashtbl.hash
+    end)
+
+    let create () = Tbl.create 0
+    let find_opt tbl n = Tbl.find_opt tbl (node_id n)
+    let add tbl n r = Tbl.add tbl (node_id n) r
+    let clear tbl = Tbl.clear tbl
+  end
+
+  module NodePairTbl = struct
+    module Tbl = Hashtbl.Make (struct
+      type t = int * int
+
+      let equal (a, b) (c, d) = a = c && b = d
+      let hash = Hashtbl.hash
+    end)
+
+    let create () = Tbl.create 0
+    let find_opt tbl n m = Tbl.find_opt tbl (node_id n, node_id m)
+    let add tbl n m r = Tbl.add tbl (node_id n, node_id m) r
+    let clear tbl = Tbl.clear tbl
+  end
+
+  (* Construct a node and hash-cons it. Must be in canonical form: hi = hi -
+     low. *)
+  let node_raw (v : var) (lo : node) (hi : node) : node =
+    if is_bot_node hi then lo
+    else
+      let key = (v.id, node_id lo, node_id hi) in
+      match Unique.find_opt uniq_tbl key with
+      | Some n -> n
+      | None ->
+        let n = Node { id = fresh_id (); v; lo; hi } in
+        Unique.add uniq_tbl key n;
+        n
+
+  (* Subtract subsets h - l *)
+  let memo_subs = NodePairTbl.create ()
+
+  let rec sub_subsets (h : node) (l : node) : node =
+    (* Value at empty set *)
+    let rec down0 = function
+      | Leaf { c; _ } -> c
+      | Node { lo; _ } -> down0 lo
+    in
+    match NodePairTbl.find_opt memo_subs h l with
+    | Some r -> r
+    | None ->
+      let r =
+        match (h, l) with
+        | Leaf x, _ -> leaf (C.co_sub x.c (down0 l))
+        | Node nh, Leaf _ ->
+          node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
+        | Node nh, Node nl ->
+          if nh.v.id = nl.v.id then
+            let lo' = sub_subsets nh.lo nl.lo in
+            let hi' = sub_subsets (sub_subsets nh.hi nl.lo) nl.hi in
+            node_raw nh.v lo' hi'
+          else if nh.v.id < nl.v.id then
+            node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
+          else (* h.id > l.id *)
+            sub_subsets (sub_subsets h nl.lo) nl.hi
+      in
+      NodePairTbl.add memo_subs h l r;
+      r
+
+  let rec node (v : var) (lo : node) (hi : node) : node =
+    (* Don't need to memo this because sub_subsets and node_raw are memoized *)
+    let hi' = sub_subsets hi lo in
+    node_raw v lo hi'
+
+  and memo_join = NodePairTbl.create ()
+
+  and join (a : node) (b : node) =
+    match NodePairTbl.find_opt memo_join a b with
+    | Some r -> r
+    | None ->
+      let r =
+        match (a, b) with
+        | Leaf x, Leaf y -> leaf (C.join x.c y.c)
+        | Node na, Node nb ->
+          if na.v.id = nb.v.id then
+            node na.v (join na.lo nb.lo) (join na.hi nb.hi)
+          else if na.v.id < nb.v.id then node na.v (join na.lo b) (join na.hi b)
+          else node nb.v (join a nb.lo) (join a nb.hi)
+        | Leaf _, Node nb -> node nb.v (join a nb.lo) (join a nb.hi)
+        | Node na, Leaf _ -> node na.v (join na.lo b) (join na.hi b)
+      in
+      NodePairTbl.add memo_join a b r;
+      r
+
+  let memo_meet = NodePairTbl.create ()
+
+  let rec meet (a : node) (b : node) =
+    match NodePairTbl.find_opt memo_meet a b with
+    | Some r -> r
+    | None ->
+      let r =
+        match (a, b) with
+        | Leaf x, Leaf y -> leaf (C.meet x.c y.c)
+        | Leaf _, Node nb ->
+          node nb.v (meet a nb.lo) (meet a nb.hi)
+          (* maps meet x across leaves *)
+        | Node na, Leaf _ -> node na.v (meet na.lo b) (meet na.hi b)
+        | Node na, Node nb ->
+          if na.v.id = nb.v.id then
+            let lo = meet na.lo nb.lo in
+            let hi =
+              join (meet na.hi nb.lo)
+                (join (meet na.lo nb.hi) (meet na.hi nb.hi))
+            in
+            node na.v lo hi
+          else if na.v.id < nb.v.id then node na.v (meet na.lo b) (meet na.hi b)
+          else node nb.v (meet a nb.lo) (meet a nb.hi)
+      in
+      NodePairTbl.add memo_meet a b r;
+      r
+
+  (* --------- public constructors --------- *)
+  let const (c : C.t) = leaf c
+  let var (v : var) = node v leaf_bot leaf_top
+  let rigid (name : string) = var (Var.make_rigid ~name ())
+  let new_var () = Var.make_var ()
+
+  (* --------- restrictions (x ← ⊥ / ⊤) --------- *)
+  (* TODO: memoize *)
+  let rec restrict0 (x : var) (w : node) : node =
+    match w with
+    | Leaf _ -> w
+    | Node n ->
+      if n.v.id = x.id then restrict0 x n.lo
+      else node n.v (restrict0 x n.lo) (restrict0 x n.hi)
+
+  (* TODO: memoize *)
+  let rec restrict1 (x : var) (w : node) : node =
+    match w with
+    | Leaf _ -> w
+    | Node n ->
+      if n.v.id = x.id then join n.lo n.hi
+      else node n.v (restrict1 x n.lo) (restrict1 x n.hi)
+
+  (* --------- force (per-call memo; no env object) --------- *)
+  let memo_force = NodeTbl.create ()
+
+  let rec force (w : node) : node =
+    match NodeTbl.find_opt memo_force w with
+    | Some r -> r
+    | None ->
+      let r =
+        match w with
+        | Leaf _ -> w
+        | Node n -> (
+          let lo' = force n.lo
+          and hi' = force n.hi in
+          match n.v.state with
+          | Rigid _ -> node n.v lo' hi'
+          | Solved d ->
+            let d' = force d in
+            join lo' (meet hi' d')
+          | Unsolved -> node n.v lo' hi')
+      in
+      NodeTbl.add memo_force w r;
+      r
+
+  (* --------- solve-on-install (per-call; no env) --------- *)
+  let solve_lfp ~(var : var) ~(rhs_raw : node) : unit =
+    match var.state with
+    | Rigid _ -> invalid_arg "solve_lfp: rigid variable"
+    | Solved _ -> invalid_arg "solve_lfp: solved variable"
+    | Unsolved ->
+      let rhs_forced = force rhs_raw in
+      var.state <- Solved (restrict0 var rhs_forced);
+      NodeTbl.clear memo_force
+
+  let solve_gfp ~(var : var) ~(rhs_raw : node) : unit =
+    match var.state with
+    | Rigid _ -> invalid_arg "solve_gfp: rigid variable"
+    | Solved _ -> invalid_arg "solve_gfp: solved variable"
+    | Unsolved ->
+      let rhs_forced = force rhs_raw in
+      var.state <- Solved (restrict1 var rhs_forced);
+      NodeTbl.clear memo_force
+
+  (* --------- optional printer --------- *)
+  let to_string (pp_var : var -> string) =
+    let rec aux pref = function
+      | Leaf { c; _ } ->
+        if C.equal c C.bot then "⊥"
+        else if C.equal c C.top then if pref = "" then "⊤" else pref
+        else if pref = "" then C.to_string c
+        else C.to_string c ^ " ⊓ " ^ pref
+      | Node n ->
+        let p =
+          let s = pp_var n.v in
+          if pref = "" then s else pref ^ " ⊓ " ^ s
+        in
+        let a = aux pref n.lo
+        and b = aux p n.hi in
+        if a = "⊥" then b else if b = "⊥" then a else a ^ " ⊔ " ^ b
+    in
+    aux ""
+end
