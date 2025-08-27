@@ -75,10 +75,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
           if is_bot c' then SetMap.remove s acc else SetMap.add s c' acc)
       SetMap.empty ts
 
+  let size_of (p : t) : int =
+    bump "size_of";
+    SetMap.fold (fun k _ acc -> acc + VarSet.cardinal k) p 0
+
   (* Canonicalization: Given a (non-canonical) map m, compute coeff_hat[S] =
      c[S] \ bigvee_{T ⊂ S} coeff_hat[T]. *)
   let canonicalize (m : t) : t =
-    bump "canonicalize";
     (* Gather non-bot entries and sort by increasing |S| then lex. *)
     let items =
       SetMap.bindings m
@@ -104,6 +107,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         let c_hat = C.co_sub c lower in
         if not (is_bot c_hat) then res := SetMap.add s c_hat !res)
       sorted;
+    bump ("canonicalize.sizeof=" ^ string_of_int (size_of !res));
     !res
 
   (* of_list: Build from a list of terms and return canonical form *)

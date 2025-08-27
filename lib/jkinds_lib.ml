@@ -12,4 +12,5 @@ module Axis_lattice = Axis_lattice
 module Infer2 = Infer2
 module Infer4 = Infer4
 module Infer5 = Infer5
+module Infer6 = Infer6
 module Type_menhir_driver = Type_menhir_driver

@@ -175,6 +175,53 @@ def gen_dense_cross_types(n_types: int = 200, arity: int = 2) -> str:
 
     return "".join(lines)
 
+def gen_dense_cross_types_simple(n_types: int = 200, arity: int = 2) -> str:
+    """Generate many small-arity types that all cross-reference each other
+    with sums, products, modality annotations, and nesting.
+
+    The graph is dense (each type references several others) but each RHS is
+    intentionally small to keep overall size manageable.
+    """
+    assert arity in (2, 3)
+    lines = [w(f"# Dense simple cross-referencing set: {n_types} types, arity {arity}")]
+    params = ",".join(f"'a{i}" for i in range(1, arity + 1))
+
+    def pname(i: int) -> str:
+        return f"DX{i}"
+
+    def args(order: tuple[int, ...] | None = None) -> str:
+        if order is None:
+            order = tuple(range(1, arity + 1))
+        return ",".join(f"'a{i}" for i in order)
+
+    for i in range(n_types):
+        j1 = (i + 1) % n_types
+        j2 = (i + 7) % n_types
+        j3 = (i * 5 + 3) % n_types
+        # Alternate abstract and concrete to vary constraints
+        op = ":" if (i % 3 != 0) else "="
+
+        # Build 3–4 small terms mixing patterns
+        t1 = f"{pname(j1)}({args(tuple(range(arity, 0, -1)))}) @@ [1,0]"
+        if arity == 2:
+            t2 = f"({pname(j2)}({args()}) * 'a1)"
+            t3 = f"{pname(j3)}({args()}) + {pname(j1)}({args()})"
+            t4 = "'a2 @@ [0,1]"
+        else:  # arity == 3
+            t2 = f"({pname(j2)}({args()}) * 'a1)"
+            t3 = f"{pname(j3)}({args()}) + {pname(j1)}({args()})"
+            t4 = "('a2 @@ [0,1]) + ('a3 @@ [1,0])"
+
+        # Occasionally wrap with an extra modality
+        if i % 4 == 0:
+            t2 = f"({t2} @@ [0,1])"
+
+        rhs_terms = [t1, t2, t3, t4]
+        rhs = " + ".join(rhs_terms)
+        lines.append(w(f"type {pname(i)}({params}) {op} {rhs}"))
+
+    return "".join(lines)
+
 def main() -> None:
     ensure_dir()
 
@@ -189,6 +236,7 @@ def main() -> None:
         "bench_param_permutations.types": gen_param_permutations(),
         "bench_abstract_concrete_mix.types": gen_abstract_concrete_mix(),
         "bench_dense_cross.types": gen_dense_cross_types(35, 2),
+        "bench_dense_cross_simple.types": gen_dense_cross_types_simple(35, 2),
     }
 
     for name, body in files.items():

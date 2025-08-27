@@ -113,8 +113,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
             | None -> acc))
         vars P.VarMap.empty
     in
-    Global_counters.inc
-      ("LFP.force_poly_subs_size=" ^ string_of_int (P.VarSet.cardinal vars));
+    (* Global_counters.inc *)
+    (* ("LFP.force_poly_subs_size=" ^ string_of_int (P.VarSet.cardinal
+       vars)); *)
     if P.VarMap.is_empty subs then p else P.subst ~subs p
 
   let require_no_unsolved (ctx : string) (p : poly) : unit =

@@ -35,7 +35,7 @@ let () =
   let _unused = max_iters in
   (* keep flag accepted to avoid breaking scripts *)
   match bench_runs with
-  | Some n ->
+  | Some n -> (
     let t0 = Unix.gettimeofday () in
     for _i = 1 to n do
       ignore (Jkinds_lib.Infer5.run_program prog)
@@ -48,7 +48,15 @@ let () =
     (* Print global counters, sorted by name *)
     let items = Jkinds_lib.Global_counters.counters () in
     let items = List.sort (fun (a, _) (b, _) -> String.compare a b) items in
-    List.iter (fun (k, v) -> Printf.printf "%s: %d\n" k v) items
+    List.iter (fun (k, v) -> Printf.printf "%s: %d\n" k v) items;
+    (* Print result of program *)
+    Printf.printf "--------------------------------\n\n";
+    let result5 = Jkinds_lib.Infer5.run_program prog in
+    Printf.printf "Infer5 result: %s\n" result5;
+    try
+      let result6 = Jkinds_lib.Infer6.run_program prog in
+      Printf.printf "Infer6 result: %s\n" result6
+    with _ -> ())
   | None ->
     let t0 = Unix.gettimeofday () in
     let out2 = Jkinds_lib.Infer2.run_program prog in
@@ -57,7 +65,11 @@ let () =
     let t2 = Unix.gettimeofday () in
     let out5 = Jkinds_lib.Infer5.run_program prog in
     let t3 = Unix.gettimeofday () in
-    let items = [ ("Infer2", out2); ("Infer4", out4); ("Infer5", out5) ] in
+    let out6 = Jkinds_lib.Infer6.run_program prog in
+    let t4 = Unix.gettimeofday () in
+    let items =
+      [ ("Infer2", out2); ("Infer4", out4); ("Infer5", out5); ("Infer6", out6) ]
+    in
     let groups = ref [] in
     let add_group label text =
       let rec aux acc =
@@ -78,5 +90,8 @@ let () =
     let infer2_ms = msf (t1 -. t0) in
     let infer4_ms = msf (t2 -. t1) in
     let infer5_ms = msf (t3 -. t2) in
-    Printf.printf "Timing: Infer2: %.3f ms, Infer4: %.3f ms, Infer5: %.3f ms\n"
-      infer2_ms infer4_ms infer5_ms
+    let infer6_ms = msf (t4 -. t3) in
+    Printf.printf
+      "Timing: Infer2: %.3f ms, Infer4: %.3f ms, Infer5: %.3f ms, Infer6: %.3f \
+       ms\n"
+      infer2_ms infer4_ms infer5_ms infer6_ms
