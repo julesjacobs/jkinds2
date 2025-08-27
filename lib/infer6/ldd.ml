@@ -173,11 +173,21 @@ module Make (C : LATTICE) = struct
         | Leaf x, Leaf y -> leaf (C.join x.c y.c)
         | Node na, Node nb ->
           if na.v.id = nb.v.id then
-            node na.v (join na.lo nb.lo) (join na.hi nb.hi)
-          else if na.v.id < nb.v.id then node na.v (join na.lo b) (join na.hi b)
-          else node nb.v (join a nb.lo) (join a nb.hi)
-        | Leaf _, Node nb -> node nb.v (join a nb.lo) (join a nb.hi)
-        | Node na, Leaf _ -> node na.v (join na.lo b) (join na.hi b)
+            (* node na.v (join na.lo nb.lo) (join na.hi nb.hi) *)
+            node_raw na.v (join na.lo nb.lo)
+              (join (sub_subsets na.hi nb.lo) (sub_subsets nb.hi na.lo))
+          else if na.v.id < nb.v.id then
+            (* node na.v (join na.lo b) (join na.hi b) *)
+            node_raw na.v (join na.lo b) (sub_subsets na.hi b)
+          else
+            (* node nb.v (join a nb.lo) (join a nb.hi) *)
+            node_raw nb.v (join a nb.lo) (sub_subsets nb.hi a)
+        | Leaf _, Node nb ->
+          (* node nb.v (join a nb.lo) (join a nb.hi) *)
+          node_raw nb.v (join a nb.lo) (sub_subsets nb.hi a)
+        | Node na, Leaf _ ->
+          (* node na.v (join na.lo b) (join na.hi b) *)
+          node_raw na.v (join na.lo b) (sub_subsets na.hi b)
       in
       NodePairTbl.add memo_join a b r;
       r
