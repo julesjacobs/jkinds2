@@ -62,6 +62,63 @@ let%expect_test "ldd: meet ⊤ with (x ⊓ z) ⊔ y" =
   printw r;
   [%expect {| y |}]
 
+let%expect_test "ldd: layered joins reproducer (structure debug)" =
+  let x = L.rigid "x" in
+  let y = L.rigid "y" in
+  let z = L.rigid "z" in
+  let c11 = L.const (c 1 1) in
+  let c20 = L.const (c 2 0) in
+  (* Build inner x-layer: [1,1] ⊔ ([2,0] ⊓ x) *)
+  let w_x = L.join c11 (L.meet c20 x) in
+  (* Add y layer: join ([2,0] ⊓ y) on top of x-layer *)
+  let w_y = L.join (L.meet c20 y) w_x in
+  (* Add z layer: join ([2,0] ⊓ z) on top of y-layer *)
+  let w_z = L.join (L.meet c20 z) w_y in
+  (* Final join with x; observed to drop z in randomized run *)
+  let r = L.join x w_z in
+  print_endline "-- w_x.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c w_x);
+  print_endline "-- w_y.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c w_y);
+  print_endline "-- w_z.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c w_z);
+  print_endline "-- r.debug --";
+  print_endline (L.pp_debug ~pp_coeff:show_c r);
+  printw r;
+  [%expect
+    {|
+-- w_x.debug --
+Node#28 v#9:Rigid(x) lo=#10 hi=#5
+  Leaf#10 c=[1, 1]
+  Leaf#5 c=[2, 0]
+
+-- w_y.debug --
+Node#31 v#9:Rigid(x) lo=#30 hi=#5
+  Node#30 v#10:Rigid(y) lo=#10 hi=#5
+    Leaf#10 c=[1, 1]
+    Leaf#5 c=[2, 0]
+  #5 = <ref>
+
+-- w_z.debug --
+Node#35 v#9:Rigid(x) lo=#34 hi=#5
+  Node#34 v#10:Rigid(y) lo=#33 hi=#5
+    Node#33 v#11:Rigid(z) lo=#10 hi=#5
+      Leaf#10 c=[1, 1]
+      Leaf#5 c=[2, 0]
+    #5 = <ref>
+  #5 = <ref>
+
+-- r.debug --
+Node#35 v#9:Rigid(x) lo=#34 hi=#5
+  Node#34 v#10:Rigid(y) lo=#33 hi=#5
+    Node#33 v#11:Rigid(z) lo=#10 hi=#5
+      Leaf#10 c=[1, 1]
+      Leaf#5 c=[2, 0]
+    #5 = <ref>
+  #5 = <ref>
+
+[1, 1] ⊔ ([2, 0] ⊓ x) ⊔ ([2, 0] ⊓ y) ⊔ ([2, 0] ⊓ z) |}]
+
 let%expect_test
     "ldd: join x with ([0,1] ⊔ ([2,0] ⊓ x) ⊔ ([2,0] ⊓ y) ⊔ ([2,0] ⊓ z))" =
   let x = L.rigid "x" in

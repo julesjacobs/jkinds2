@@ -76,7 +76,7 @@ module Make (C : LATTICE) = struct
 
   module Unique = Hashtbl.Make (UKey)
 
-  let uniq_tbl : node Unique.t = Unique.create 0
+  let uniq_tbl : node Unique.t = Unique.create 1024
 
   (* --------- persistent memos --------- *)
   module NodeTbl = struct
@@ -87,7 +87,7 @@ module Make (C : LATTICE) = struct
       let hash = Hashtbl.hash
     end)
 
-    let create () = Tbl.create 0
+    let create () = Tbl.create 1024
     let find_opt tbl n = Tbl.find_opt tbl (node_id n)
     let add tbl n r = Tbl.add tbl (node_id n) r
     let clear tbl = Tbl.clear tbl
@@ -101,15 +101,22 @@ module Make (C : LATTICE) = struct
       let hash = Hashtbl.hash
     end)
 
-    let create () = Tbl.create 0
+    let create () = Tbl.create 1024
     let find_opt tbl n m = Tbl.find_opt tbl (node_id n, node_id m)
     let add tbl n m r = Tbl.add tbl (node_id n, node_id m) r
     let clear tbl = Tbl.clear tbl
   end
 
+  (* For asserting that var ids are strictly increasing down the tree. *)
+  let var_index (n : node) : int =
+    match n with Leaf _ -> 999999999 | Node n -> n.v.id
+
   (* Construct a node and hash-cons it. Must be in canonical form: hi = hi -
      low. *)
   let node_raw (v : var) (lo : node) (hi : node) : node =
+    assert (v.id < var_index lo);
+    assert (v.id < var_index hi);
+
     if is_bot_node hi then lo
     else
       let key = (v.id, node_id lo, node_id hi) in
@@ -352,4 +359,52 @@ module Make (C : LATTICE) = struct
       |> List.map (fun (body, has_meet) ->
              if n_terms > 1 && has_meet then "(" ^ body ^ ")" else body)
       |> String.concat " ⊔ "
+
+  (* --------- invariants (for tests/debug) --------- *)
+  (* Check that along every path, variable ids are strictly increasing
+     (smaller id = higher node). Returns true if order is respected. *)
+  let check_var_order (w : node) : bool =
+    let rec aux last_id = function
+      | Leaf _ -> true
+      | Node n ->
+        let ok_here = last_id < n.v.id in
+        ok_here && aux n.v.id n.lo && aux n.v.id n.hi
+    in
+    aux (-1) w
+
+  (* --------- structural debug printer --------- *)
+  (* Prints full DAG structure with node ids, var ids/states, and shared-node
+     references. Useful to diagnose memoization/path effects. *)
+  let pp_debug ?(pp_coeff = C.to_string) (w : node) : string =
+    let b = Buffer.create 1024 in
+    let seen = Hashtbl.create 97 in
+    let pp_var_info (v : var) : string =
+      let state_s =
+        match v.state with
+        | Unsolved -> "Unsolved"
+        | Rigid name -> "Rigid(" ^ name ^ ")"
+        | Solved n -> "Solved(#" ^ string_of_int (node_id n) ^ ")"
+      in
+      Printf.sprintf "v#%d:%s" v.id state_s
+    in
+    let rec go indent (n : node) : unit =
+      let id = node_id n in
+      if Hashtbl.mem seen id then
+        Buffer.add_string b (Printf.sprintf "%s#%d = <ref>\n" indent id)
+      else (
+        Hashtbl.add seen id true;
+        match n with
+        | Leaf { id; c } ->
+          Buffer.add_string b
+            (Printf.sprintf "%sLeaf#%d c=%s\n" indent id (pp_coeff c))
+        | Node { id; v; lo; hi } ->
+          Buffer.add_string b
+            (Printf.sprintf "%sNode#%d %s lo=#%d hi=#%d\n" indent id
+               (pp_var_info v) (node_id lo) (node_id hi));
+          let indent' = indent ^ "  " in
+          go indent' lo;
+          go indent' hi)
+    in
+    go "" w;
+    Buffer.contents b
 end

@@ -57,7 +57,35 @@ module Pair = struct
       else Buffer.add_string buf (Printf.sprintf "arg2: %s\n" sbp));
     Buffer.add_string buf (Printf.sprintf "result(poly): %s\n" sp);
     Buffer.add_string buf (Printf.sprintf "result(ldd):  %s\n" sw);
-    failwith (Buffer.contents buf)
+    Buffer.add_string buf
+      (Printf.sprintf "order(arg1): %b\n"
+         (match a with Some (_ap, aw) -> L.check_var_order aw | None -> true));
+    Buffer.add_string buf
+      (Printf.sprintf "order(arg2): %b\n"
+         (match b with Some (_bp, bw) -> L.check_var_order bw | None -> true));
+    Buffer.add_string buf
+      (Printf.sprintf "order(result): %b\n" (L.check_var_order w));
+    (match a with
+    | Some (_ap, aw) ->
+      Buffer.add_string buf "arg1.debug:\n";
+      Buffer.add_string buf (L.pp_debug ~pp_coeff:show_c aw)
+    | None -> ());
+    (match b with
+    | Some (_bp, bw) ->
+      Buffer.add_string buf "arg2.debug:\n";
+      Buffer.add_string buf (L.pp_debug ~pp_coeff:show_c bw)
+    | None -> ());
+    Buffer.add_string buf "result.debug:\n";
+    Buffer.add_string buf (L.pp_debug ~pp_coeff:show_c w);
+    (* Persist full debug to a file for inspection *)
+    let log = Buffer.contents buf in
+    (try
+       let oc = open_out_bin "ldd_pair_failure.log" in
+       output_string oc log;
+       close_out oc
+     with _ -> ());
+    failwith
+      "pp parity mismatch; see ldd_pair_failure.log for full debug output"
 
   let check ~op ?a ?b (r : t) : unit =
     let sp, sw = pp_pair r in
@@ -132,11 +160,15 @@ let () =
       Hashtbl.add seen sp ();
       pool := v :: !pool)
   in
+  (* Create rigids with explicit sequencing to fix LDD variable order. *)
+  let xr = Pair.rigid "x" in
+  let yr = Pair.rigid "y" in
+  let zr = Pair.rigid "z" in
   List.iter add
     [
-      Pair.rigid "x";
-      Pair.rigid "y";
-      Pair.rigid "z";
+      xr;
+      yr;
+      zr;
       Pair.const (c 0 1);
       Pair.const (c 1 0);
       Pair.const (c 2 0);
@@ -153,7 +185,7 @@ let () =
     aux n lst
   in
   Random.init 2;
-  let iters = 0 in
+  let iters = 10000 in
   for _ = 1 to iters do
     let len = List.length !pool in
     let i = Random.int len in
