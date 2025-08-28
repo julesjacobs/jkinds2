@@ -22,12 +22,14 @@ module VL = struct
     | Infer2.VarLabel.TyRec _, Infer2.VarLabel.Atom _ -> 1
     | Infer2.VarLabel.TyVar _, Infer2.VarLabel.TyRec _ -> -1
     | Infer2.VarLabel.TyRec _, Infer2.VarLabel.TyVar _ -> 1
+
+  let to_string _ = "<todo5>"
 end
 
 module S = Lattice_solver.Make (C) (VL)
 
 let pp_coeff = C.to_string
-let pp_poly p = S.pp ~pp_var:Infer2.pp_varlabel ~pp_coeff p
+let pp_poly p = S.pp p
 
 let%expect_test "two-phase abstract solving (one/two)" =
   (* Setup atom vars *)
@@ -40,8 +42,8 @@ let%expect_test "two-phase abstract solving (one/two)" =
   (* Given from linear decomposition: one.base = ([0,1] ⊓ two.0), two.base =
      one.0 *)
   let m01 = C.encode ~levels:[| 0; 1 |] in
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff one0);
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff two0);
+  print_endline (S.pp_state_line one0);
+  print_endline (S.pp_state_line two0);
   [%expect {|
     one.0 ≤ one.0
     two.0 ≤ two.0
@@ -51,8 +53,8 @@ let%expect_test "two-phase abstract solving (one/two)" =
   (* Abstract phase: assert leq C.0 ≤ base(C), meet-self happens in
      assert_leq. *)
   S.assert_leq one0 base_one;
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff one0);
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff two0);
+  print_endline (S.pp_state_line one0);
+  print_endline (S.pp_state_line two0);
   [%expect {|
     one.0 ≤ [0,1] ⊓ one.0 ⊓ two.0
     two.0 ≤ two.0
@@ -70,8 +72,8 @@ let%expect_test "two-phase abstract solving (one/two)" =
     => all bot
   *)
   S.solve_lfp two0 base_two;
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff one0);
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff two0);
+  print_endline (S.pp_state_line one0);
+  print_endline (S.pp_state_line two0);
   [%expect {|
     one.0 ≤ ⊥
     two.0 = ⊥
@@ -88,8 +90,8 @@ let%expect_test "two-phase abstract solving (one/two) lfp first" =
   (* Given from linear decomposition: one.base = ([0,1] ⊓ two.0), two.base =
      one.0 *)
   let m01 = C.encode ~levels:[| 0; 1 |] in
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff one0);
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff two0);
+  print_endline (S.pp_state_line one0);
+  print_endline (S.pp_state_line two0);
   [%expect {|
     one.0 ≤ one.0
     two.0 ≤ two.0
@@ -99,15 +101,15 @@ let%expect_test "two-phase abstract solving (one/two) lfp first" =
   (* Abstract phase: assert leq C.0 ≤ base(C), meet-self happens in
      assert_leq. *)
   S.solve_lfp two0 base_two;
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff one0);
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff two0);
+  print_endline (S.pp_state_line one0);
+  print_endline (S.pp_state_line two0);
   [%expect {|
     one.0 ≤ one.0
     two.0 = one.0
     |}];
   S.assert_leq one0 base_one;
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff one0);
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff two0);
+  print_endline (S.pp_state_line one0);
+  print_endline (S.pp_state_line two0);
   [%expect {|
     one.0 ≤ [0,1] ⊓ one.0
     two.0 = [0,1] ⊓ one.0

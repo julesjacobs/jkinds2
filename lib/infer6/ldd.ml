@@ -293,11 +293,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
           let lo' = force n.lo
           and hi' = force n.hi in
           match n.v.state with
-          | Rigid _ -> node n.v lo' hi'
           | Solved d ->
             let d' = force d in
             join lo' (meet hi' d')
-          | Unsolved -> node n.v lo' hi')
+          | Rigid _ | Unsolved ->
+            (* Todo: optimize this in the common case *)
+            let d' = var n.v in
+            join lo' (meet hi' d'))
       in
       NodeTbl.add memo_force w r;
       r
@@ -341,7 +343,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       | v :: vs' ->
         go vs' (restrict0 v m) (restrict1 v m :: List.map (restrict0 v) ns)
     in
-    go universe n []
+    let base, linears = go universe n [] in
+    (base, List.rev linears)
 
   (* --------- optional printer --------- *)
   (* Expose normalizer for testing: applies current solved bindings. *)
@@ -395,7 +398,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
      - Parentheses around meets when there are multiple terms
      - Constants: ⊥ when empty; ⊤ when constant-top. *)
   (* Extract terms with optional naming function for non-rigid vars. *)
-  let to_named_terms ?pp_var (w : node) : (C.t * string list) list =
+  let to_named_terms (w : node) : (C.t * string list) list =
     let rec aux (acc : string list) (w : node) : (C.t * string list) list =
       match w with
       | Leaf { c; _ } -> if C.equal c C.bot then [] else [ (c, acc) ]
@@ -403,21 +406,20 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         let acc_hi =
           match n.v.state with
           | Rigid name -> V.to_string name :: acc
-          | _ -> (
-            match pp_var with
-            | Some f -> ( match f n.v with Some s -> s :: acc | None -> acc)
-            | None -> acc)
+          | Unsolved -> "<unsolved-var>" :: acc
+          | Solved _ -> failwith "solved vars should not appear after force"
         in
         let lo_list = aux acc n.lo in
         let hi_list = aux acc_hi n.hi in
         lo_list @ hi_list
     in
-    aux [] w
+    aux [] (force w)
 
   (* Pretty-print in polynomial style. If [pp_var] is provided, it is used to
      name non-rigid variables when encountered on hi-edges (e.g., unsolved vars
      for debugging/tests). *)
-  let pp_as_polynomial ?(pp_coeff = C.to_string) ?pp_var (w : node) : string =
+  let pp (w : node) : string =
+    let pp_coeff = C.to_string in
     (* Aggregate duplicate rigid var-sets by join on coefficients. *)
     let tbl : (string list, C.t) Hashtbl.t = Hashtbl.create 16 in
     let add_entry (c, names) =
@@ -426,7 +428,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       | None -> Hashtbl.add tbl vs c
       | Some prev -> Hashtbl.replace tbl vs (C.join prev c)
     in
-    List.iter add_entry (to_named_terms ?pp_var w);
+    List.iter add_entry (to_named_terms w);
     let terms =
       Hashtbl.fold
         (fun vs c acc -> if C.equal c C.bot then acc else (vs, c) :: acc)
@@ -470,7 +472,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   (* --------- structural debug printer --------- *)
   (* Prints full DAG structure with node ids, var ids/states, and shared-node
      references. Useful to diagnose memoization/path effects. *)
-  let pp_debug ?(pp_coeff = C.to_string) (w : node) : string =
+  let pp_debug (w : node) : string =
+    let pp_coeff = C.to_string in
     let b = Buffer.create 1024 in
     let seen = Hashtbl.create 97 in
     let pp_var_info (v : var) : string =

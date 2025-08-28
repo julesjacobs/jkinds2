@@ -32,9 +32,7 @@ module S = Lattice_fixpoint_solver.Make (Axis_lattice) (RigidName)
 type poly = S.poly
 
 let pp_coeff_axis = Axis_lattice.to_string
-
-let pp_poly (p : S.poly) : string =
-  S.pp ~pp_var:RigidName.to_string ~pp_coeff:pp_coeff_axis p
+let pp_poly (p : S.poly) : string = S.pp p
 
 (* Global atom solver vars (per program run) *)
 module AtomKey = struct
@@ -283,7 +281,7 @@ let pp_entry (ctor : string) (i : int) : string =
     let p_poly = to_pppoly p in
     let base_poly = to_pppoly base in
     let diff = PpPoly.co_sub_approx p_poly base_poly in
-    PpPoly.pp ~pp_var:RigidName.to_string ~pp_coeff:pp_coeff_axis diff
+    PpPoly.pp diff
 
 let run_program (prog : Decl_parser.program) : string =
   solve_linear_for_program prog;

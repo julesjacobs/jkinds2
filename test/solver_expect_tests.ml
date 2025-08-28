@@ -10,12 +10,13 @@ module V = struct
   type t = string
 
   let compare = String.compare
+  let to_string s = s
 end
 
 module S = Lattice_solver.Make (C) (V)
 
 let pp_coeff = C.to_string
-let pp_poly p = S.pp ~pp_var:(fun s -> s) ~pp_coeff p
+let pp_poly p = S.pp p
 
 let print_state (vars : (string * S.var) list) : unit =
   vars

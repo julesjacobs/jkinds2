@@ -51,6 +51,8 @@ end = struct
       | Ty a, Ty b -> Ty.compare a b
       | Atom _, Ty _ -> -1
       | Ty _, Atom _ -> 1
+
+    let to_string _ = "<todo7>"
   end
 
   module LSolver = Lattice_solver.Make (Lat) (Var)

@@ -22,6 +22,8 @@ module VL = struct
     | Infer2.VarLabel.TyRec _, Infer2.VarLabel.Atom _ -> 1
     | Infer2.VarLabel.TyVar _, Infer2.VarLabel.TyRec _ -> -1
     | Infer2.VarLabel.TyRec _, Infer2.VarLabel.TyVar _ -> 1
+
+  let to_string _ = "<todo7>"
 end
 
 module S = Lattice_solver.Make (C) (VL)
@@ -51,5 +53,5 @@ let%expect_test "abstract F/H constraints show extra F.0 disjunct in F.1" =
     S.join (S.meet (S.const c01) (S.var h0)) (S.meet (S.const c01) (S.var h1))
   in
   S.assert_leq f1 f1_rhs;
-  print_endline (S.pp_state_line ~pp_var:Infer2.pp_varlabel ~pp_coeff f1);
+  print_endline (S.pp_state_line f1);
   [%expect {| F.1 ≤ ([0,1] ⊓ F.0 ⊓ F.1 ⊓ H.0) ⊔ ([0,1] ⊓ F.1 ⊓ H.1) |}]

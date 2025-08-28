@@ -4,6 +4,7 @@ module type ORDERED = sig
   type t
 
   val compare : t -> t -> int
+  val to_string : t -> string
 end
 
 module Make (C : LATTICE) (V : ORDERED) : sig
@@ -34,5 +35,5 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   val eval : (V.t -> C.t) -> t -> C.t
   val ceil : t -> C.t
   val floor : t -> C.t
-  val pp : ?pp_var:(V.t -> string) -> ?pp_coeff:(coeff -> string) -> t -> string
+  val pp : t -> string
 end

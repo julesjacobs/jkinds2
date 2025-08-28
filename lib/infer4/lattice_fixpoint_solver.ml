@@ -15,6 +15,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     and var_state = { id : int; mutable sol : P.t option }
 
     val compare : t -> t -> int
+    val to_string : t -> string
   end = struct
     type t = Rigid of V.t | Var of var_state
     and var_state = { id : int; mutable sol : P.t option }
@@ -26,6 +27,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       | Rigid a, Rigid b -> V.compare a b
       | Var a, Var b -> Stdlib.compare a b
       | _ -> Int.compare (tag a) (tag b)
+
+    let to_string _ = "<todo4>"
   end
 
   and P : sig
@@ -44,9 +47,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     val leq : t -> t -> bool
     val support : t -> VarSet.t
     val subst : subs:t VarMap.t -> t -> t
-
-    val pp :
-      ?pp_var:(Var.t -> string) -> ?pp_coeff:(C.t -> string) -> t -> string
+    val pp : t -> string
   end =
     Lattice_polynomial.Make (C) (Var)
 
@@ -65,20 +66,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
      Printf.ifprintf stderr fmt *)
 
   let next_id = ref 0
-
-  (* logging pretty-printer hooks *)
-  let log_pp_var : (V.t -> string) option ref = ref None
-  let log_pp_coeff : (C.t -> string) option ref = ref None
-
-  let set_log_printers ?pp_var ?pp_coeff () : unit =
-    (match pp_var with Some f -> log_pp_var := Some f | None -> ());
-    match pp_coeff with Some f -> log_pp_coeff := Some f | None -> ()
-
-  (* let pp_log (p : poly) : string = let pp_var_internal = function | Var.Rigid
-     n -> ( match !log_pp_var with Some f -> f n | None -> V.to_string n) |
-     Var.Var s -> Printf.sprintf "v#%d" s.id in let pp_coeff_internal = match
-     !log_pp_coeff with Some f -> f | None -> C.to_string in P.pp
-     ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_internal p *)
 
   (* Public constructors *)
   let new_var () : var =
@@ -299,15 +286,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     in
     (!base, singles, List.rev !mixed)
 
-  let pp ?pp_var ?pp_coeff (p : poly) : string =
+  let pp (p : poly) : string =
     let p = force_poly p in
-    let pp_coeff_fn =
-      match pp_coeff with Some f -> f | None -> fun (_ : C.t) -> "⊤"
-    in
-    let pp_var_internal = function
-      | Var.Rigid n -> (
-        match pp_var with Some f -> f n | None -> V.to_string n)
-      | Var.Var s -> Printf.sprintf "v%d" s.Var.id
-    in
-    P.pp ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_fn p
+    P.pp p
 end

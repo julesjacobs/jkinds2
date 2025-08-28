@@ -104,6 +104,7 @@ module PolyProps = struct
     type t = int
 
     let compare = Int.compare
+    let to_string i = Int.to_string i
   end
 
   module P = Lattice_polynomial.Make (BoolLat) (Var)

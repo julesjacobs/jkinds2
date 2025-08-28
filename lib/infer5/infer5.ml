@@ -59,10 +59,7 @@ let run_program (prog : Decl_parser.program) : string =
   |> List.map (fun (it : Decl_parser.decl_item) ->
          let base_poly, coeffs = JK.constr_kind_poly solver it.name in
          let body =
-           let pp p =
-             JKPoly.pp ~pp_var:JK.RigidName.to_string
-               ~pp_coeff:Axis_lattice.to_string p
-           in
+           let pp p = JKPoly.pp p in
            let rec loop i acc =
              if i > it.arity then List.rev acc
              else if i = 0 then

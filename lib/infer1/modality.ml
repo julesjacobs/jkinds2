@@ -12,6 +12,8 @@ module AtomOrd = struct
     match String.compare a.ctor b.ctor with
     | 0 -> Int.compare a.index b.index
     | c -> c
+
+  let to_string _x = "<todo>"
 end
 
 module P = Lattice_polynomial.Make (Coeff) (AtomOrd)

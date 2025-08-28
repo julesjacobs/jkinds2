@@ -46,6 +46,7 @@ module Make
   val normalize : solver -> ckind -> (lat * atom list) list
   val leq : solver -> ckind -> ckind -> bool
   val round_up : solver -> ckind -> lat
+  val pp : poly -> string
 end = struct
   type ty = Ty.t
   type constr = Constr.t
@@ -204,7 +205,7 @@ end = struct
   let normalize (solver : solver) (k : ckind) : (lat * atom list) list =
     let p = k solver.ops in
     LSolver.solve_pending_gfps ();
-    let terms = LSolver.normalize p in
+    let terms = LSolver.to_list p in
     let conv_atom = function
       | RigidName.Atom a -> Some { constr = a.constr; arg_index = a.arg_index }
       | RigidName.Ty _ -> None
@@ -213,8 +214,8 @@ end = struct
     List.map (fun (coeff, vars) -> (coeff, conv_vars vars)) terms
 
   let leq (solver : solver) (k1 : ckind) (k2 : ckind) : bool =
-    let k1' = k1 solver.ops in
-    let k2' = k2 solver.ops in
+    let _k1' = k1 solver.ops in
+    let _k2' = k2 solver.ops in
     (* LSolver.leq k1' k2' *)
     true
 
@@ -225,4 +226,8 @@ end = struct
     | (c, _) :: rest ->
       List.fold_left (fun acc (c', _) -> Lat.join acc c') c rest
   (* LSolver.round_up (norm env k) *)
+
+  let pp p =
+    LSolver.solve_pending_gfps ();
+    LSolver.pp p
 end

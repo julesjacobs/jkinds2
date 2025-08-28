@@ -4,6 +4,7 @@ module type ORDERED = sig
   type t
 
   val compare : t -> t -> int
+  val to_string : t -> string
 end
 
 module Make (C : LATTICE) (V : ORDERED) = struct
@@ -17,6 +18,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     }
 
     val compare : t -> t -> int
+    val to_string : t -> string
   end = struct
     type t = {
       name : V.t option;
@@ -27,6 +29,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     }
 
     let compare a b = Int.compare a.id b.id
+    let to_string _x = "<todo2>"
   end
 
   and P : sig
@@ -45,9 +48,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     val leq : t -> t -> bool
     val support : t -> VarSet.t
     val subst : subs:t VarMap.t -> t -> t
-
-    val pp :
-      ?pp_var:(Var.t -> string) -> ?pp_coeff:(C.t -> string) -> t -> string
+    val pp : t -> string
   end =
     Lattice_polynomial.Make (C) (Var)
 
@@ -205,27 +206,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let name (v : var) : V.t =
     match v.name with Some n -> n | None -> failwith "name: temporary var"
 
-  let pp ?pp_var ?pp_coeff (p : poly) : string =
-    let pp_coeff_fn =
-      match pp_coeff with Some f -> f | None -> fun (_ : C.t) -> "⊤"
-    in
-    let pp_var_internal (v : Var.t) : string =
-      match v.name with
-      | Some n -> ( match pp_var with Some f -> f n | None -> "_")
-      | None -> Printf.sprintf "v%d" v.id
-    in
-    P.pp ~pp_var:pp_var_internal ~pp_coeff:pp_coeff_fn p
+  let pp (p : poly) : string = P.pp p
 
-  let pp_state_line ?pp_var ?pp_coeff (v : var) : string =
+  let pp_state_line (v : var) : string =
     process_pending_asserts ();
-    let lhs =
-      match (v.name, pp_var) with
-      | Some n, Some f -> f n
-      | Some _, None -> Printf.sprintf "v%d" v.id
-      | None, _ -> Printf.sprintf "v%d" v.id
-    in
+    let lhs = "<implement this later>" in
     let rel = if v.eliminated then "=" else "≤" in
-    let rhs = pp ?pp_var ?pp_coeff v.bound in
+    let rhs = pp v.bound in
     Printf.sprintf "%s %s %s" lhs rel rhs
 
   (* Group polynomial terms by the designated variables they mention. The key is
@@ -319,4 +306,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
              | Some p -> Some (v, p))
     in
     (!base, singles, List.rev !mixed)
+
+  (* let to_string _ = "<todo3>" *)
 end

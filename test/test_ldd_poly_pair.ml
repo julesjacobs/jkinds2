@@ -22,8 +22,8 @@ end
 module P = Lattice_polynomial.Make (C) (V)
 module L = Ldd.Make (C) (V)
 
-let pp_poly = P.pp ~pp_var:(fun s -> s) ~pp_coeff:show_c
-let pp_ldd = L.pp_as_polynomial ~pp_coeff:show_c
+let pp_poly = P.pp
+let pp_ldd = L.pp
 
 let assert_eq msg a b =
   if a <> b then
@@ -71,15 +71,15 @@ module Pair = struct
     (match a with
     | Some (_ap, aw) ->
       Buffer.add_string buf "arg1.debug:\n";
-      Buffer.add_string buf (L.pp_debug ~pp_coeff:show_c aw)
+      Buffer.add_string buf (L.pp_debug aw)
     | None -> ());
     (match b with
     | Some (_bp, bw) ->
       Buffer.add_string buf "arg2.debug:\n";
-      Buffer.add_string buf (L.pp_debug ~pp_coeff:show_c bw)
+      Buffer.add_string buf (L.pp_debug bw)
     | None -> ());
     Buffer.add_string buf "result.debug:\n";
-    Buffer.add_string buf (L.pp_debug ~pp_coeff:show_c w);
+    Buffer.add_string buf (L.pp_debug w);
     (* Persist full debug to a file for inspection. Use tmp dir to survive dune
        sandbox. *)
     let log = Buffer.contents buf in
@@ -103,7 +103,7 @@ module Pair = struct
     r
 
   let rigid (name : string) : t =
-    let r = (P.var name, L.rigid name) in
+    let r = (P.var name, L.var (L.rigid name)) in
     check ~op:(Printf.sprintf "rigid %s" name) r;
     r
 

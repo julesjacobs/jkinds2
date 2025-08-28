@@ -71,11 +71,5 @@ module Make (C : LATTICE) (V : ORDERED) : sig
     poly * (V.t * poly) list * (V.t list * poly) list
 
   (* Pretty-print a polynomial with customizable printers. *)
-  val pp :
-    ?pp_var:(V.t -> string) -> ?pp_coeff:(lat -> string) -> poly -> string
-
-  (* Configure pretty-printers used only for internal tracing/logging. If not
-     set, logs print rigid vars as "_" and coefficients via C.to_string. *)
-  val set_log_printers :
-    ?pp_var:(V.t -> string) -> ?pp_coeff:(lat -> string) -> unit -> unit
+  val pp : poly -> string
 end

@@ -141,7 +141,7 @@ module Make (S : SHAPE) = struct
   let pp ?axis_names:_ (v : t) : string =
     let levels = decode v in
     let parts =
-      levels |> Array.to_list |> List.map string_of_int |> String.concat ", "
+      levels |> Array.to_list |> List.map string_of_int |> String.concat ","
     in
     Printf.sprintf "[%s]" parts
 

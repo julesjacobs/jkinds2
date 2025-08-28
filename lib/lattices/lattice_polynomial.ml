@@ -10,6 +10,7 @@ module type ORDERED = sig
   type t
 
   val compare : t -> t -> int
+  val to_string : t -> string
 end
 
 module Make (C : LATTICE) (V : ORDERED) = struct
@@ -259,9 +260,10 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   (* Pretty printer with deterministic ordering. - Prints ⊥ for empty
      polynomial. - Prints ⊤ for constant-top. - Omits unnecessary meets with ⊤
      and joins with ⊥ (the latter never appear in canonical form). *)
-  let pp ?(pp_var = fun _ -> "_") ?(pp_coeff = fun _ -> "<c>") (p : t) : string
-      =
+  let pp (p : t) : string =
     bump "pp";
+    let pp_coeff = C.to_string in
+    let pp_var = V.to_string in
     if SetMap.is_empty p then "⊥"
     else
       let terms = to_list p in
@@ -294,7 +296,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let to_string (p : t) : string =
     bump "to_string";
-    pp ~pp_var:(fun _ -> "_") ~pp_coeff:C.to_string p
+    pp p
 
   (* Backward-compat alias to emphasize approximation semantics. *)
   let co_sub = co_sub_approx

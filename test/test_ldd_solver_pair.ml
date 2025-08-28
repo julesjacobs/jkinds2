@@ -22,7 +22,7 @@ module L = Ldd.Make (C) (Name)
 module PStr = Lattice_polynomial.Make (C) (Name)
 
 (* Unused: kept for reference of LS pretty printer *)
-let _pp_ls = LS.pp ~pp_var:(fun s -> s) ~pp_coeff:show_c
+let _pp_ls = LS.pp
 let var_names : (L.var, string) Hashtbl.t = Hashtbl.create 97
 
 let assert_eq msg a b =
@@ -67,11 +67,7 @@ module Pair = struct
 
   let to_string ((p, w) : t) : string * string =
     let sp = render_terms (LS.normalize p) in
-    let sw_terms =
-      L.to_named_terms
-        ~pp_var:(fun v -> Hashtbl.find_opt var_names v)
-        (L.normalize w)
-    in
+    let sw_terms = L.to_named_terms (L.normalize w) in
     let sw = render_terms sw_terms in
     (sp, sw)
 
@@ -86,7 +82,7 @@ module Pair = struct
 
   let rigid name =
     let v = LS.new_var name in
-    let r = (LS.var v, L.rigid name) in
+    let r = (LS.var v, L.var (L.rigid name)) in
     check "rigid" r;
     r
 

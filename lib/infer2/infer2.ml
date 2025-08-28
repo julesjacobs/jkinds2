@@ -135,9 +135,7 @@ let to_poly_decl_rhs (it : Decl_parser.decl_item) : S.poly =
   (* Always compile from the canonical mu_raw form to ensure parity. *)
   to_poly_mu_raw it.rhs_mu_raw
 
-let pp_poly (p : S.poly) : string =
-  let pp_coeff = Axis_lattice.to_string in
-  S.pp ~pp_var:VarLabel.to_string ~pp_coeff p
+let pp_poly (p : S.poly) : string = S.pp p
 
 (* Decompose a polynomial by type variables 'a1..'aarity. Returns base (key=[]),
    coefficients array of length [arity] where index i corresponds to 'a{i+1},
@@ -162,10 +160,7 @@ let decompose_by_tyvars ~(arity : int) (p : S.poly) :
   (base, coeffs, mixed)
 
 let pp_varlabel : VarLabel.t -> string = VarLabel.to_string
-
-let pp_state_line (v : S.var) : string =
-  let pp_coeff = Axis_lattice.to_string in
-  S.pp_state_line ~pp_var:pp_varlabel ~pp_coeff v
+let pp_state_line (v : S.var) : string = S.pp_state_line v
 
 let get_atom_var ~(ctor : string) ~(index : int) : S.var =
   get_var (VarLabel.Atom { Modality.ctor; index })
@@ -256,7 +251,7 @@ let pp_entry (ctor : string) (i : int) : string =
     let p_poly = to_pppoly p in
     let base_poly = to_pppoly base in
     let diff = PpPoly.co_sub_approx p_poly base_poly in
-    PpPoly.pp ~pp_var:VarLabel.to_string ~pp_coeff:Axis_lattice.to_string diff
+    PpPoly.pp diff
 
 let run_program (prog : Decl_parser.program) : string =
   solve_linear_for_program prog;

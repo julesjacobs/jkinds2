@@ -58,4 +58,5 @@ module Make
   val normalize : solver -> ckind -> (lat * atom list) list
   val leq : solver -> ckind -> ckind -> bool
   val round_up : solver -> ckind -> lat
+  val pp : poly -> string
 end

@@ -17,13 +17,14 @@ module Poly = struct
     type t = string
 
     let compare = String.compare
+    let to_string s = s
   end
 
   module P = Lattice_polynomial.Make (C) (V)
 
   let axis_names = [| "a"; "b" |]
   let pp_coeff (x : C.t) = C.pp ~axis_names x
-  let pp_poly p = P.pp ~pp_var:(fun s -> s) ~pp_coeff p
+  let pp_poly p = P.pp p
   let encode a b = C.encode ~levels:[| a; b |]
 
   (* Common variable set builders *)
