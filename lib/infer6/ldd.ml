@@ -244,7 +244,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* --------- public constructors --------- *)
   let const (c : C.t) = leaf c
-  let var (v : var) = node v bot top
+  let mk_var (v : var) = node v bot top
   let rigid (name : V.t) = Var.make_rigid ~name ()
   let new_var () = Var.make_var ()
 
@@ -314,11 +314,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
             join lo' (meet hi' d')
           | Rigid _ | Unsolved ->
             (* Todo: optimize this in the common case *)
-            let d' = var n.v in
+            let d' = mk_var n.v in
             join lo' (meet hi' d'))
       in
       NodeTbl.add memo_force w r;
       r
+
+  and var (v : var) = force (mk_var v)
 
   (* --------- solve-on-install (per-call; no env) --------- *)
   let solve_lfp (var : var) (rhs_raw : node) : unit =
@@ -364,7 +366,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* --------- optional printer --------- *)
   (* Expose normalizer for testing: applies current solved bindings. *)
-  let normalize (w : node) : node = force w
+  let normalize (w : node) : node =
+    NodeTbl.clear memo_force;
+    force w
 
   let to_string (pp_var : var -> string) =
     let rec aux pref = function

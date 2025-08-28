@@ -48,6 +48,7 @@ module Make
   val round_up : solver -> ckind -> lat
   val pp : poly -> string
   val pp_debug : poly -> string
+  val pp_debug_forced : poly -> string
 end = struct
   type ty = Ty.t
   type constr = Constr.t
@@ -188,14 +189,18 @@ end = struct
       k'
     and ops = { const; join; modality; constr; kind_of; rigid } in
     let constr_kind_poly c =
-      LSolver.solve_pending_gfps ();
       let base, coeffs = constr_kind c in
+      LSolver.solve_pending_gfps ();
       let base_poly = LSolver.normalize (LSolver.var base) in
       let coeffs_poly =
         List.map (fun coeff -> LSolver.normalize (LSolver.var coeff)) coeffs
       in
       let coeffs_minus_base =
-        List.map (fun p -> LSolver.sub_subsets p base_poly) coeffs_poly
+        List.map
+          (fun p ->
+            LSolver.sub_subsets (LSolver.normalize p)
+              (LSolver.normalize base_poly))
+          coeffs_poly
       in
       (base_poly, coeffs_minus_base)
     in
@@ -238,5 +243,11 @@ end = struct
 
   let pp_debug (p : poly) : string =
     LSolver.solve_pending_gfps ();
+    (* Intentionally do not force here: we want to see Solved states if any. *)
     LSolver.pp_debug p
+
+  let pp_debug_forced (p : poly) : string =
+    LSolver.solve_pending_gfps ();
+    let p' = LSolver.normalize p in
+    LSolver.pp_debug p'
 end

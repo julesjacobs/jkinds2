@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-28 03:11:26 UTC
+Generated: 2025-08-28 03:45:19 UTC
 
 ## abstracts.types
 
@@ -53,7 +53,7 @@ H: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ H.1}
 F: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ [0,1] ⊓ F.1 ⊓ H.1}
 G: {0 ↦ ⊤, 1 ↦ ⊥}
 
-Timing: Infer2: 0.280 ms, Infer4: 0.215 ms, Infer5: 0.319 ms, Infer6: 0.274 ms
+Timing: Infer2: 0.373 ms, Infer4: 0.369 ms, Infer5: 0.442 ms, Infer6: 0.309 ms
 ```
 
 ## benjamin.types
@@ -77,7 +77,7 @@ foo1: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ t1.1 ⊓ t2.1}
 foo2: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ t1.1 ⊓ t2.1}
 bar: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ ⊤}
 
-Timing: Infer2: 0.144 ms, Infer4: 0.119 ms, Infer5: 0.145 ms, Infer6: 0.097 ms
+Timing: Infer2: 0.146 ms, Infer4: 0.125 ms, Infer5: 0.141 ms, Infer6: 0.107 ms
 ```
 
 ## btree.types
@@ -96,7 +96,7 @@ leaf: {0 ↦ leaf.0, 1 ↦ leaf.1}
 node: {0 ↦ node.0, 1 ↦ node.1, 2 ↦ node.2}
 btree: {0 ↦ leaf.0 ⊔ node.0, 1 ↦ leaf.1}
 
-Timing: Infer2: 0.079 ms, Infer4: 0.061 ms, Infer5: 0.080 ms, Infer6: 0.049 ms
+Timing: Infer2: 0.080 ms, Infer4: 0.060 ms, Infer5: 0.080 ms, Infer6: 0.062 ms
 ```
 
 ## cn_chain.types
@@ -117,7 +117,7 @@ B: {0 ↦ ⊥, 1 ↦ B.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN3: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.089 ms, Infer4: 0.062 ms, Infer5: 0.062 ms, Infer6: 0.038 ms
+Timing: Infer2: 0.087 ms, Infer4: 0.065 ms, Infer5: 0.062 ms, Infer6: 0.055 ms
 ```
 
 ## cn_mix.types
@@ -136,7 +136,7 @@ A: {0 ↦ ⊥, 1 ↦ A.1}
 My: {0 ↦ [0,1], 1 ↦ [2,0]}
 CNmix: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0]}
 
-Timing: Infer2: 0.063 ms, Infer4: 0.043 ms, Infer5: 0.042 ms, Infer6: 0.028 ms
+Timing: Infer2: 0.056 ms, Infer4: 0.043 ms, Infer5: 0.041 ms, Infer6: 0.034 ms
 ```
 
 ## cn_novar.types
@@ -155,7 +155,7 @@ A: {0 ↦ ⊥, 1 ↦ A.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN0: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
 
-Timing: Infer2: 0.050 ms, Infer4: 0.038 ms, Infer5: 0.034 ms, Infer6: 0.027 ms
+Timing: Infer2: 0.057 ms, Infer4: 0.046 ms, Infer5: 0.039 ms, Infer6: 0.038 ms
 ```
 
 ## cn_simple.types
@@ -169,7 +169,7 @@ Program output:
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.011 ms, Infer4: 0.009 ms, Infer5: 0.007 ms, Infer6: 0.005 ms
+Timing: Infer2: 0.012 ms, Infer4: 0.008 ms, Infer5: 0.006 ms, Infer6: 0.007 ms
 ```
 
 ## cn2_min1.types
@@ -201,7 +201,7 @@ CN2A: {0 ↦ ⊥, 1 ↦ A.1, 2 ↦ B.1}
 CN2B: {0 ↦ [0,1], 1 ↦ ⊥, 2 ↦ [2,0] ⊓ B.1}
 CN2: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.185 ms, Infer4: 0.147 ms, Infer5: 0.132 ms, Infer6: 0.084 ms
+Timing: Infer2: 0.213 ms, Infer4: 0.154 ms, Infer5: 0.142 ms, Infer6: 0.102 ms
 ```
 
 ## cn2_min2.types
@@ -224,7 +224,7 @@ B: {0 ↦ ⊥, 1 ↦ B.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.076 ms, Infer4: 0.058 ms, Infer5: 0.058 ms, Infer6: 0.040 ms
+Timing: Infer2: 0.077 ms, Infer4: 0.059 ms, Infer5: 0.058 ms, Infer6: 0.044 ms
 ```
 
 ## cn2.types
@@ -252,7 +252,7 @@ K: {0 ↦ ⊥, 1 ↦ ⊤, 2 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN2: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
 
-Timing: Infer2: 0.167 ms, Infer4: 0.121 ms, Infer5: 0.133 ms, Infer6: 0.102 ms
+Timing: Infer2: 0.163 ms, Infer4: 0.121 ms, Infer5: 0.135 ms, Infer6: 0.109 ms
 ```
 
 ## cyclic.types
@@ -272,7 +272,7 @@ L: {0 ↦ ⊥, 1 ↦ L.1}
 Nested: {0 ↦ ⊥, 1 ↦ Nested.1}
 Annot: {0 ↦ ⊥, 1 ↦ [1,0] ⊓ Annot.1}
 
-Timing: Infer2: 0.050 ms, Infer4: 0.037 ms, Infer5: 0.034 ms, Infer6: 0.042 ms
+Timing: Infer2: 0.063 ms, Infer4: 0.049 ms, Infer5: 0.036 ms, Infer6: 0.035 ms
 ```
 
 ## discrepancy_hunt.types
@@ -398,64 +398,7 @@ type CCX('a1) : CAX('a1) @@ [1,0]
 
 Program output:
 ```
-Infer6 normalized kinds:
-A: {0 ↦ ⊥, 1 ↦ A.1}
-B: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
-C: {0 ↦ ⊥, 1 ↦ A.1 ⊓ C.1}
-D: {0 ↦ [0,1] ⊓ D.0 ⊓ E.0, 1 ↦ ([0,1] ⊓ D.0 ⊓ D.1 ⊓ E.0) ⊔ ([0,1] ⊓ D.1 ⊓ E.2) ⊔ ([1,0] ⊓ D.1), 2 ↦ ([0,1] ⊓ D.0 ⊓ D.2 ⊓ E.0) ⊔ ([0,1] ⊓ D.1 ⊓ D.2 ⊓ E.1 ⊓ E.2)}
-E: {0 ↦ [0,1] ⊓ D.0 ⊓ E.0, 1 ↦ [0,1] ⊓ D.1 ⊓ E.1 ⊓ E.2, 2 ↦ [0,1] ⊓ E.2}
-R: {0 ↦ [1,0] ⊓ R.0, 1 ↦ [1,1] ⊓ R.1}
-K: {0 ↦ ⊥, 1 ↦ ⊤, 2 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
-U1: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ U1.1, 2 ↦ ⊥}
-U2: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ U1.1 ⊓ U2.1 ⊓ U3.1}
-U3: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ U1.1 ⊓ U3.1, 2 ↦ ⊥}
-M1: {0 ↦ [1,1], 1 ↦ [2,0]}
-M2: {0 ↦ [0,1], 1 ↦ [2,0]}
-AC: {0 ↦ [0,1] ⊓ AC.0, 1 ↦ [1,1] ⊓ AC.1}
-PH: {0 ↦ ⊥, 1 ↦ PH.1, 2 ↦ ⊥}
-X1: {0 ↦ [0,1] ⊓ X2.0, 1 ↦ ⊤}
-X2: {0 ↦ [0,1] ⊓ X2.0, 1 ↦ [0,1] ⊓ X2.1}
-S: {0 ↦ ([0,1] ⊓ S.0 ⊓ U.0) ⊔ ([1,0] ⊓ S.0 ⊓ T.0), 1 ↦ ([0,1] ⊓ S.0 ⊓ S.1 ⊓ U.0) ⊔ ([0,1] ⊓ S.1 ⊓ U.1) ⊔ ([1,0] ⊓ S.0 ⊓ S.1 ⊓ T.0) ⊔ ([1,0] ⊓ S.1 ⊓ T.1)}
-T: {0 ↦ ([0,1] ⊓ S.0 ⊓ T.0 ⊓ U.0) ⊔ ([1,0] ⊓ S.0 ⊓ T.0), 1 ↦ ([0,1] ⊓ S.0 ⊓ T.1 ⊓ U.0) ⊔ ([0,1] ⊓ S.1 ⊓ T.1 ⊓ U.1) ⊔ ([1,0] ⊓ S.1 ⊓ T.1)}
-U: {0 ↦ [0,1] ⊓ S.0 ⊓ U.0, 1 ↦ [0,1] ⊓ S.1 ⊓ U.1}
-Z1: {0 ↦ [0,1] ⊓ Z1.0, 1 ↦ [1,1] ⊓ Z1.1, 2 ↦ [1,1] ⊓ Z1.2}
-DUP: {0 ↦ [1,1], 1 ↦ [2,0]}
-SW: {0 ↦ [1,1] ⊓ SW.0, 1 ↦ [1,1] ⊓ SW.1, 2 ↦ [1,1] ⊓ SW.2}
-ND1: {0 ↦ [0,1] ⊓ A.1 ⊓ C.1 ⊓ D.0 ⊓ E.0 ⊓ ND1.0, 1 ↦ ND1.1}
-ND2: {0 ↦ [0,1] ⊓ A.1 ⊓ D.0 ⊓ E.0 ⊓ ND2.0, 1 ↦ ([0,1] ⊓ A.1 ⊓ D.0 ⊓ E.0 ⊓ ND2.1) ⊔ ([0,1] ⊓ A.1 ⊓ D.1 ⊓ E.2 ⊓ ND2.1)}
-ND3: {0 ↦ [0,1] ⊓ ND3.0 ⊓ X2.0, 1 ↦ ([0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1 ⊓ ND3.1 ⊓ U1.1 ⊓ U3.1) ⊔ ([0,1] ⊓ A.1 ⊓ C.1 ⊓ ND3.1 ⊓ X2.1) ⊔ ([0,1] ⊓ ND3.1 ⊓ X2.0), 2 ↦ [0,1] ⊓ ND3.2 ⊓ X2.0}
-CN1: {0 ↦ [1,1], 1 ↦ [2,0] ⊓ A.1 ⊓ C.1}
-CN2: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
-NestSTU: {0 ↦ ([0,1] ⊓ NestSTU.0 ⊓ S.0 ⊓ T.0 ⊓ U.0) ⊔ ([0,1] ⊓ NestSTU.0 ⊓ S.0 ⊓ T.1 ⊓ U.0) ⊔ ([1,0] ⊓ NestSTU.0 ⊓ S.0 ⊓ T.0), 1 ↦ ([0,1] ⊓ NestSTU.1 ⊓ S.0 ⊓ T.0 ⊓ U.0) ⊔ ([0,1] ⊓ NestSTU.1 ⊓ S.0 ⊓ T.1 ⊓ U.0) ⊔ ([0,1] ⊓ NestSTU.1 ⊓ S.1 ⊓ T.1 ⊓ U.1) ⊔ ([1,0] ⊓ NestSTU.1 ⊓ S.0 ⊓ T.0)}
-AnnNest: {0 ↦ ⊥, 1 ↦ [1,1] ⊓ AnnNest.1}
-RecNest1: {0 ↦ [0,1] ⊓ RecNest1.0 ⊓ RecNest2.0, 1 ↦ RecNest1.1}
-RecNest2: {0 ↦ ([0,1] ⊓ D.0 ⊓ E.0 ⊓ RecNest1.1 ⊓ RecNest2.0) ⊔ ([0,1] ⊓ RecNest1.0 ⊓ RecNest2.0), 1 ↦ ([0,1] ⊓ D.0 ⊓ E.0 ⊓ RecNest1.1 ⊓ RecNest2.1) ⊔ ([0,1] ⊓ D.1 ⊓ E.2 ⊓ RecNest1.1 ⊓ RecNest2.1)}
-MixNest: {0 ↦ ⊥, 1 ↦ ([0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1 ⊓ MixNest.1 ⊓ U1.1 ⊓ U3.1) ⊔ ([1,0] ⊓ A.1 ⊓ C.1 ⊓ MixNest.1 ⊓ Z1.1), 2 ↦ [1,0] ⊓ MixNest.2 ⊓ Z1.2}
-A0: {0 ↦ [1,0] ⊓ A0.0 ⊓ B0.0}
-B0: {0 ↦ [1,0] ⊓ A0.0 ⊓ B0.0}
-Z3: {0 ↦ [0,1] ⊓ Z3.0, 1 ↦ [0,1] ⊓ Z3.1, 2 ↦ ([0,1] ⊓ Z3.0 ⊓ Z3.2) ⊔ ([0,1] ⊓ Z3.1 ⊓ Z3.2 ⊓ Z3.3) ⊔ ([1,0] ⊓ Z3.2), 3 ↦ ([0,1] ⊓ Z3.0 ⊓ Z3.3) ⊔ ([0,1] ⊓ Z3.1 ⊓ Z3.3)}
-C3: {0 ↦ [0,1] ⊓ Z3.0, 1 ↦ [0,1] ⊓ Z3.1 ⊓ Z3.3, 2 ↦ [0,1] ⊓ Z3.1, 3 ↦ ([0,1] ⊓ Z3.1 ⊓ Z3.2 ⊓ Z3.3) ⊔ ([1,0] ⊓ Z3.2)}
-DupSelf: {0 ↦ ([0,1] ⊓ DupSelf.0 ⊓ S.0 ⊓ U.0) ⊔ ([1,0] ⊓ DupSelf.0 ⊓ S.0 ⊓ T.0), 1 ↦ ([0,1] ⊓ DupSelf.1 ⊓ S.0 ⊓ U.0) ⊔ ([0,1] ⊓ DupSelf.1 ⊓ S.1 ⊓ U.1) ⊔ ([1,0] ⊓ DupSelf.1 ⊓ S.0 ⊓ T.0) ⊔ ([1,0] ⊓ DupSelf.1 ⊓ S.1 ⊓ T.1)}
-PRF: {0 ↦ [0,1] ⊓ PRC.1 ⊓ PRD.1 ⊓ PRF.0, 1 ↦ ([0,1] ⊓ PRC.1 ⊓ PRD.1 ⊓ PRF.1) ⊔ ([1,0] ⊓ PRF.1)}
-PRE: {0 ↦ ([0,1] ⊓ PRC.1 ⊓ PRD.1 ⊓ PRE.0 ⊓ PRF.0) ⊔ ([0,1] ⊓ PRC.1 ⊓ PRD.1 ⊓ PRE.0 ⊓ PRF.1), 1 ↦ PRE.1}
-PRC: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ PRC.1}
-PRD: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ PRC.1 ⊓ PRD.1}
-PCX: {0 ↦ ⊥, 1 ↦ [1,0]}
-PCY: {0 ↦ ⊥, 1 ↦ ⊤}
-PCZ: {0 ↦ ⊥, 1 ↦ ⊤}
-PRG: {0 ↦ ⊥, 1 ↦ PRG.1, 2 ↦ [1,0] ⊓ PRG.2 ⊓ PRH.2}
-PRH: {0 ↦ [0,1] ⊓ PRG.1 ⊓ PRH.0, 1 ↦ [0,1] ⊓ PRG.1 ⊓ PRH.1, 2 ↦ PRH.2}
-CA: {0 ↦ [0,1] ⊓ CA.0, 1 ↦ CA.1}
-CC: {0 ↦ [0,1] ⊓ CA.0, 1 ↦ CA.1 ⊔ [1,0]}
-CA2: {0 ↦ [1,0] ⊓ CA2.0, 1 ↦ [1,1] ⊓ CA2.1, 2 ↦ ([1,0] ⊓ CA2.0 ⊓ CA2.2) ⊔ ([1,0] ⊓ CA2.1 ⊓ CA2.2)}
-CC2: {0 ↦ [1,0] ⊓ CA2.0, 1 ↦ [1,1] ⊓ CA2.1, 2 ↦ [1,0]}
-CA0: {0 ↦ [0,1] ⊓ CA0.0}
-CC0: {0 ↦ [0,1] ⊓ CA0.0}
-CAX: {0 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.0) ⊔ ([1,0] ⊓ CAX.0 ⊓ CCX.1), 1 ↦ CAX.1}
-CBX: {0 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.0) ⊔ ([1,0] ⊓ CAX.0 ⊓ CCX.1), 1 ↦ ⊤}
-CCX: {0 ↦ [1,0] ⊓ CAX.0 ⊓ CCX.0, 1 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.1) ⊔ ([1,0] ⊓ CAX.1 ⊓ CCX.1)}
-
-Infer2 & Infer4 & Infer5 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
 C: {0 ↦ ⊥, 1 ↦ A.1 ⊓ C.1}
@@ -512,7 +455,7 @@ CAX: {0 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.0) ⊔ ([1,0] ⊓ CAX.0 ⊓ CCX.1), 1 ↦ C
 CBX: {0 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.0) ⊔ ([1,0] ⊓ CAX.0 ⊓ CCX.1), 1 ↦ ⊤}
 CCX: {0 ↦ [1,0] ⊓ CAX.0 ⊓ CCX.0, 1 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.1) ⊔ ([1,0] ⊓ CAX.1 ⊓ CCX.1)}
 
-Timing: Infer2: 1.762 ms, Infer4: 1.593 ms, Infer5: 1.628 ms, Infer6: 2.353 ms
+Timing: Infer2: 1.717 ms, Infer4: 1.433 ms, Infer5: 1.700 ms, Infer6: 2.276 ms
 ```
 
 ## easy.types
@@ -526,7 +469,7 @@ Program output:
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.013 ms, Infer4: 0.009 ms, Infer5: 0.008 ms, Infer6: 0.007 ms
+Timing: Infer2: 0.015 ms, Infer4: 0.010 ms, Infer5: 0.010 ms, Infer6: 0.010 ms
 ```
 
 ## experiments.types
@@ -545,7 +488,7 @@ list: {0 ↦ ⊥, 1 ↦ list.1}
 rose: {0 ↦ ⊥, 1 ↦ list.1}
 lily: {0 ↦ ⊥, 1 ↦ ⊥}
 
-Timing: Infer2: 0.076 ms, Infer4: 0.053 ms, Infer5: 0.060 ms, Infer6: 0.041 ms
+Timing: Infer2: 0.068 ms, Infer4: 0.050 ms, Infer5: 0.059 ms, Infer6: 0.043 ms
 ```
 
 ## experiments2.types
@@ -564,7 +507,7 @@ list: {0 ↦ [0,1] ⊓ list.0, 1 ↦ list.1}
 rose: {0 ↦ [0,1] ⊓ list.0, 1 ↦ list.1}
 lily: {0 ↦ [0,1] ⊓ list.0, 1 ↦ ⊥}
 
-Timing: Infer2: 0.075 ms, Infer4: 0.051 ms, Infer5: 0.082 ms, Infer6: 0.062 ms
+Timing: Infer2: 0.077 ms, Infer4: 0.054 ms, Infer5: 0.071 ms, Infer6: 0.065 ms
 ```
 
 ## fh.types
@@ -601,24 +544,7 @@ type C2('a1) = F('a1) + 'a1 @@ [1,0]
 
 Program output:
 ```
-Infer6 normalized kinds:
-H: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ H.1}
-F: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ [0,1] ⊓ F.1 ⊓ H.1}
-H2: {0 ↦ [0,1] ⊓ F2.0 ⊓ H2.0, 1 ↦ H2.1, 2 ↦ ([0,1] ⊓ F2.0 ⊓ H2.0 ⊓ H2.2) ⊔ ([0,1] ⊓ F2.1 ⊓ H2.1 ⊓ H2.2)}
-F2: {0 ↦ [0,1] ⊓ F2.0 ⊓ H2.0, 1 ↦ [0,1] ⊓ F2.1 ⊓ H2.1, 2 ↦ ([0,1] ⊓ F2.1 ⊓ F2.2 ⊓ H2.1 ⊓ H2.2) ⊔ ([1,0] ⊓ F2.2)}
-X: {0 ↦ ([0,1] ⊓ X.0 ⊓ Y.0 ⊓ Z.0) ⊔ ([1,0] ⊓ X.0 ⊓ Y.0), 1 ↦ ([0,1] ⊓ X.0 ⊓ X.1 ⊓ Y.0 ⊓ Z.0) ⊔ ([0,1] ⊓ X.1 ⊓ Y.1 ⊓ Z.1) ⊔ ([1,0] ⊓ X.0 ⊓ X.1 ⊓ Y.0) ⊔ ([1,0] ⊓ X.1 ⊓ Y.1)}
-Y: {0 ↦ ([0,1] ⊓ X.0 ⊓ Y.0 ⊓ Z.0) ⊔ ([1,0] ⊓ X.0 ⊓ Y.0), 1 ↦ Y.1}
-Z: {0 ↦ [0,1] ⊓ X.0 ⊓ Y.0 ⊓ Z.0, 1 ↦ [0,1] ⊓ Y.1 ⊓ Z.1}
-P: {0 ↦ [1,0] ⊓ P.0 ⊓ Q.0, 1 ↦ ([1,0] ⊓ P.0 ⊓ P.1 ⊓ Q.0) ⊔ ([1,1] ⊓ P.1 ⊓ Q.1), 2 ↦ ([0,1] ⊓ P.2) ⊔ ([1,0] ⊓ P.0 ⊓ P.2 ⊓ Q.0)}
-Q: {0 ↦ [1,0] ⊓ P.0 ⊓ Q.0, 1 ↦ Q.1}
-M: {0 ↦ [0,1] ⊓ M.0, 1 ↦ M.1}
-U: {0 ↦ ([0,1] ⊓ U.0 ⊓ W.0) ⊔ ([1,0] ⊓ U.0 ⊓ V.0), 1 ↦ ([0,1] ⊓ U.0 ⊓ U.1 ⊓ W.0) ⊔ ([1,0] ⊓ U.0 ⊓ U.1 ⊓ V.0) ⊔ ([1,0] ⊓ U.1 ⊓ V.1), 2 ↦ ([0,1] ⊓ U.0 ⊓ U.2 ⊓ W.0) ⊔ ([0,1] ⊓ U.2 ⊓ W.1) ⊔ ([1,0] ⊓ U.0 ⊓ U.2 ⊓ V.0)}
-V: {0 ↦ [1,0] ⊓ U.0 ⊓ V.0, 1 ↦ [1,0] ⊓ U.1 ⊓ V.1}
-W: {0 ↦ [0,1] ⊓ U.0 ⊓ W.0, 1 ↦ [0,1] ⊓ U.2 ⊓ W.1}
-C1: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ ⊤}
-C2: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1) ⊔ [1,0]}
-
-Infer2 & Infer4 & Infer5 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 H: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ H.1}
 F: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ [0,1] ⊓ F.1 ⊓ H.1}
 H2: {0 ↦ [0,1] ⊓ F2.0 ⊓ H2.0, 1 ↦ H2.1, 2 ↦ [0,1] ⊓ F2.1 ⊓ H2.1 ⊓ H2.2}
@@ -635,7 +561,7 @@ W: {0 ↦ [0,1] ⊓ U.0 ⊓ W.0, 1 ↦ [0,1] ⊓ U.2 ⊓ W.1}
 C1: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ ⊤}
 C2: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1) ⊔ [1,0]}
 
-Timing: Infer2: 0.445 ms, Infer4: 0.360 ms, Infer5: 0.320 ms, Infer6: 0.392 ms
+Timing: Infer2: 0.500 ms, Infer4: 0.387 ms, Infer5: 0.319 ms, Infer6: 0.471 ms
 ```
 
 ## hunt.types
@@ -652,7 +578,7 @@ Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ [0,1], 1 ↦ [2,0]}
 B: {0 ↦ [0,1], 1 ↦ [2,0], 2 ↦ [2,0]}
 
-Timing: Infer2: 0.039 ms, Infer4: 0.032 ms, Infer5: 0.031 ms, Infer6: 0.022 ms
+Timing: Infer2: 0.038 ms, Infer4: 0.032 ms, Infer5: 0.029 ms, Infer6: 0.023 ms
 ```
 
 ## list_sum_pair.types
@@ -666,7 +592,7 @@ Program output:
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.022 ms, Infer4: 0.015 ms, Infer5: 0.015 ms, Infer6: 0.014 ms
+Timing: Infer2: 0.021 ms, Infer4: 0.014 ms, Infer5: 0.014 ms, Infer6: 0.017 ms
 ```
 
 ## modalities.types
@@ -743,7 +669,7 @@ list2_outer: {0 ↦ ([1,0] ⊓ cons.0) ⊔ ([1,0] ⊓ nil.0), 1 ↦ [1,0] ⊓ co
 modal_plus: {0 ↦ [1,0], 1 ↦ ⊤}
 modal_pair: {0 ↦ [1,0], 1 ↦ ⊤}
 
-Timing: Infer2: 0.396 ms, Infer4: 0.345 ms, Infer5: 0.352 ms, Infer6: 0.236 ms
+Timing: Infer2: 0.414 ms, Infer4: 0.344 ms, Infer5: 0.326 ms, Infer6: 0.294 ms
 ```
 
 ## modals.types
@@ -759,7 +685,7 @@ Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 foo: {0 ↦ [1,1]}
 bar: {0 ↦ [1,0]}
 
-Timing: Infer2: 0.023 ms, Infer4: 0.012 ms, Infer5: 0.013 ms, Infer6: 0.010 ms
+Timing: Infer2: 0.028 ms, Infer4: 0.012 ms, Infer5: 0.013 ms, Infer6: 0.012 ms
 ```
 
 ## mutual.types
@@ -778,7 +704,7 @@ cons: {0 ↦ cons.0, 1 ↦ cons.1}
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
 
-Timing: Infer2: 0.085 ms, Infer4: 0.055 ms, Infer5: 0.045 ms, Infer6: 0.035 ms
+Timing: Infer2: 0.084 ms, Infer4: 0.055 ms, Infer5: 0.058 ms, Infer6: 0.049 ms
 ```
 
 ## portable.types
@@ -801,7 +727,7 @@ lily: {0 ↦ portable.0, 1 ↦ portable.1}
 tulip: {0 ↦ portable.0, 1 ↦ ⊤}
 orchid: {0 ↦ portable.0, 1 ↦ portable.1}
 
-Timing: Infer2: 0.125 ms, Infer4: 0.098 ms, Infer5: 0.122 ms, Infer6: 0.083 ms
+Timing: Infer2: 0.124 ms, Infer4: 0.100 ms, Infer5: 0.117 ms, Infer6: 0.091 ms
 ```
 
 ## ref.types
@@ -819,7 +745,7 @@ portended: {0 ↦ portended.0, 1 ↦ portended.1}
 ref: {0 ↦ ref.0, 1 ↦ ref.1}
 foo: {0 ↦ portended.0 ⊔ (portended.1 ⊓ ref.0), 1 ↦ portended.1 ⊓ ref.1}
 
-Timing: Infer2: 0.059 ms, Infer4: 0.041 ms, Infer5: 0.042 ms, Infer6: 0.035 ms
+Timing: Infer2: 0.058 ms, Infer4: 0.040 ms, Infer5: 0.042 ms, Infer6: 0.040 ms
 ```
 
 ## rose_sum_pair.types
@@ -837,7 +763,7 @@ list: {0 ↦ ⊥, 1 ↦ ⊤}
 rose: {0 ↦ ⊥, 1 ↦ ⊥}
 lily: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.066 ms, Infer4: 0.053 ms, Infer5: 0.059 ms, Infer6: 0.040 ms
+Timing: Infer2: 0.068 ms, Infer4: 0.054 ms, Infer5: 0.060 ms, Infer6: 0.041 ms
 ```
 
 ## simple_example.types
@@ -877,5 +803,5 @@ list: {0 ↦ cons.0, 1 ↦ cons.1}
 ctx: {0 ↦ down.0, 1 ↦ down.1}
 zipper: {0 ↦ cons.0 ⊔ down.0, 1 ↦ cons.1 ⊔ down.1}
 
-Timing: Infer2: 0.124 ms, Infer4: 0.093 ms, Infer5: 0.109 ms, Infer6: 0.081 ms
+Timing: Infer2: 0.139 ms, Infer4: 0.095 ms, Infer5: 0.114 ms, Infer6: 0.097 ms
 ```

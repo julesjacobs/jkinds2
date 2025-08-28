@@ -76,7 +76,10 @@ let debug_constr (prog : Decl_parser.program) ~(constr : string) : string =
   let solver = JK.make_solver env in
   let base, coeffs = JK.constr_kind_poly solver constr in
   let b = JK.pp_debug base in
-  let parts = ref [ "-- base.debug --\n" ^ b ] in
+  let b_forced = JK.pp_debug_forced base in
+  let parts =
+    ref [ "-- base.debug --\n" ^ b; "\n-- base.forced.debug --\n" ^ b_forced ]
+  in
   List.iteri
     (fun i c ->
       parts :=
@@ -84,6 +87,8 @@ let debug_constr (prog : Decl_parser.program) ~(constr : string) : string =
         @ [
             Printf.sprintf "\n-- %s.%d.debug --\n%s" constr (i + 1)
               (JK.pp_debug c);
+            Printf.sprintf "\n-- %s.%d.forced.debug --\n%s" constr (i + 1)
+              (JK.pp_debug_forced c);
           ])
     coeffs;
   String.concat "\n" !parts

@@ -60,4 +60,5 @@ module Make
   val round_up : solver -> ckind -> lat
   val pp : poly -> string
   val pp_debug : poly -> string
+  val pp_debug_forced : poly -> string
 end
