@@ -60,7 +60,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         rigid_tbl := VMap.add name v !rigid_tbl;
         v
 
-    let id v = v.id
+    (* no external use for Var.id; access field directly internally *)
   end
 
   (* --------- stable node ids --------- *)
@@ -142,7 +142,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let create () = Tbl.create initial_hashtbl_size
     let find_opt tbl n m = Tbl.find_opt tbl (PairKey.of_nodes n m)
     let add tbl n m r = Tbl.add tbl (PairKey.of_nodes n m) r
-    let clear = Tbl.clear
+    (* no external use; keep API minimal *)
+    (* let clear = Tbl.clear *)
   end
 
   (* For asserting that var ids are strictly increasing down the tree. *)
@@ -304,7 +305,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let create () = Tbl.create 1024
     let find_opt tbl v n = Tbl.find_opt tbl (v.id, node_id n)
     let add tbl v n r = Tbl.add tbl (v.id, node_id n) r
-    let clear tbl = Tbl.clear tbl
+    (* let clear tbl = Tbl.clear tbl *)
   end
 
   let memo_restrict0 = VarNodePairTbl.create ()
@@ -433,23 +434,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   (* Expose normalizer for testing: applies current solved bindings. *)
   let normalize (w : node) : node = force w
 
-  let to_string (pp_var : var -> string) =
-    let rec aux pref = function
-      | Leaf { c; _ } ->
-        if C.equal c C.bot then "⊥"
-        else if C.equal c C.top then if pref = "" then "⊤" else pref
-        else if pref = "" then C.to_string c
-        else C.to_string c ^ " ⊓ " ^ pref
-      | Node n ->
-        let p =
-          let s = pp_var n.v in
-          if pref = "" then s else pref ^ " ⊓ " ^ s
-        in
-        let a = aux pref n.lo
-        and b = aux p n.hi in
-        if a = "⊥" then b else if b = "⊥" then a else a ^ " ⊔ " ^ b
-    in
-    aux ""
+  (* deprecated: old printer retained in history *)
 
   (* --------- enumeration to list --------- *)
   (* Turns an LDD into a list of (coeff * rigid_vars).
