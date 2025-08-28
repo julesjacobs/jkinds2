@@ -28,7 +28,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       | Var a, Var b -> Stdlib.compare a b
       | _ -> Int.compare (tag a) (tag b)
 
-    let to_string _ = "<todo4>"
+    let to_string = function
+      | Rigid n -> V.to_string n
+      | Var s -> Printf.sprintf "v%d" s.id
   end
 
   and P : sig

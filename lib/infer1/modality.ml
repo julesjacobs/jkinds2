@@ -13,7 +13,7 @@ module AtomOrd = struct
     | 0 -> Int.compare a.index b.index
     | c -> c
 
-  let to_string _x = "<todo>"
+  let to_string (x : t) = Printf.sprintf "%s.%d" x.ctor x.index
 end
 
 module P = Lattice_polynomial.Make (Coeff) (AtomOrd)

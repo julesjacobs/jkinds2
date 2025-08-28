@@ -29,7 +29,11 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     }
 
     let compare a b = Int.compare a.id b.id
-    let to_string _x = "<todo2>"
+
+    let to_string (x : t) =
+      match x.name with
+      | Some n -> V.to_string n
+      | None -> Printf.sprintf "v%d" x.id
   end
 
   and P : sig
@@ -210,7 +214,11 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let pp_state_line (v : var) : string =
     process_pending_asserts ();
-    let lhs = "<implement this later>" in
+    let lhs =
+      match v.name with
+      | Some n -> V.to_string n
+      | None -> Printf.sprintf "v%d" v.id
+    in
     let rel = if v.eliminated then "=" else "≤" in
     let rhs = pp v.bound in
     Printf.sprintf "%s %s %s" lhs rel rhs
