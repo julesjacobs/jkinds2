@@ -88,6 +88,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let bot = leaf C.bot
   let top = leaf C.top
   let is_bot_node n = n == bot
+  let is_top_node n = n == top
 
   (* --------- unique table for internal nodes --------- *)
   module UKey = struct
@@ -107,7 +108,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       type t = int
 
       let equal = ( = )
-      let hash = Hashtbl.hash
+      let hash n = Hashtbl.hash n
     end)
 
     let create () = Tbl.create 1024
@@ -156,7 +157,10 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let rec sub_subsets (h : node) (l : node) : node =
     if node_id h = node_id l then bot
-    else
+    else if is_bot_node l then h
+    else if is_top_node l then bot
+    (* No need to test if h is top or bot because that path is fast anyway *)
+      else
       (* Value at empty set *)
       let rec down0 = function
         | Leaf { c; _ } -> c
@@ -193,6 +197,10 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   and join (a : node) (b : node) =
     if node_id a = node_id b then a
+    else if is_bot_node a then b
+    else if is_bot_node b then a
+    else if is_top_node a then top
+    else if is_top_node b then top
     else if node_id a > node_id b then join b a
     else
       match NodePairTbl.find_opt memo_join a b with
@@ -227,6 +235,10 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let rec meet (a : node) (b : node) =
     if node_id a = node_id b then a
+    else if is_bot_node a then bot
+    else if is_bot_node b then bot
+    else if is_top_node a then b
+    else if is_top_node b then a
     else if node_id a > node_id b then meet b a
     else
       match NodePairTbl.find_opt memo_meet a b with
@@ -236,19 +248,22 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         let r =
           match (a, b) with
           | Leaf x, Leaf y -> leaf (C.meet x.c y.c)
-          | Leaf _, Node nb ->
-            node nb.v (meet a nb.lo) (meet a nb.hi)
-            (* maps meet x across leaves *)
-          | Node na, Leaf _ -> node na.v (meet na.lo b) (meet na.hi b)
+          | (Leaf _ as x), Node na | Node na, (Leaf _ as x) ->
+            node na.v (meet na.lo x) (meet na.hi x)
           | Node na, Node nb ->
             if na.v.id = nb.v.id then
               let lo = meet na.lo nb.lo in
-              let hi =
+              (* let hi =
                 join (meet na.hi nb.lo)
-                  (join (meet na.lo nb.hi) (meet na.hi nb.hi))
-              in
+                  (join (meet na.lo nb.hi) (meet na.hi nb.hi)) *)
+              (* let left = sub_subsets (join na.hi na.lo) lo in
+              let right = sub_subsets (join nb.hi nb.lo) lo in
+              let hi = meet left right in *)
+              let hi = meet (join na.hi na.lo) (join nb.hi nb.lo) in
               node na.v lo hi
             else if na.v.id < nb.v.id then
+              (* let lo = meet na.lo b in let hi = meet na.hi b in node_raw na.v
+                 lo (sub_subsets hi na.lo) *)
               node na.v (meet na.lo b) (meet na.hi b)
             else node nb.v (meet a nb.lo) (meet a nb.hi)
         in
