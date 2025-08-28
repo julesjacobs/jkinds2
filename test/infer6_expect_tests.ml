@@ -9,8 +9,12 @@ let%expect_test "infer6 vs infer2/4/5 on cyclic kinds" =
   in
   let prog = Decl_parser.parse_program_exn src in
   let out6 = Infer6.run_program prog in
+  let out7 = Infer7.run_program prog in
   print_endline "Infer6 normalized kinds:";
   print_endline out6;
+  print_endline "Infer7 normalized kinds:";
+  print_endline out7;
+  assert (out6 = out7);
   let out2 = Infer2.run_program prog in
   let out4 = Infer4.run_program prog in
   let out5 = Infer5.run_program prog in
@@ -20,6 +24,10 @@ let%expect_test "infer6 vs infer2/4/5 on cyclic kinds" =
   [%expect
     {|
     Infer6 normalized kinds:
+    L: {0 ↦ ⊥, 1 ↦ L.1}
+    Nested: {0 ↦ ⊥, 1 ↦ Nested.1}
+    Annot: {0 ↦ ⊥, 1 ↦ [1,0] ⊓ Annot.1}
+    Infer7 normalized kinds:
     L: {0 ↦ ⊥, 1 ↦ L.1}
     Nested: {0 ↦ ⊥, 1 ↦ Nested.1}
     Annot: {0 ↦ ⊥, 1 ↦ [1,0] ⊓ Annot.1}

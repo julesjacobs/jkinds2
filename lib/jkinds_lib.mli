@@ -14,6 +14,7 @@ module Lattice_polynomial : module type of Lattice_polynomial
 module Lattice_solver : module type of Lattice_solver
 module Axis_lattice : module type of Axis_lattice
 module Ldd : module type of Ldd
+module Wdd : module type of Wdd
 module Type_menhir_driver : module type of Type_menhir_driver
 
 (* Expose minimal cyclic parse/desugar API from Type_parser *)
@@ -75,6 +76,11 @@ module Infer5 : sig
 end
 
 module Infer6 : sig
+  val run_program : Decl_parser.program -> string
+  val debug_constr : Decl_parser.program -> constr:string -> string
+end
+
+module Infer7 : sig
   val run_program : Decl_parser.program -> string
   val debug_constr : Decl_parser.program -> constr:string -> string
 end

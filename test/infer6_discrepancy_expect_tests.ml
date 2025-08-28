@@ -16,6 +16,8 @@ let%expect_test "Infer6 vs others on D/E and LDD debug dump" =
   print_endline (Infer5.run_program prog);
   print_endline "-- Infer6 --";
   print_endline (Infer6.run_program prog);
+  print_endline "-- Infer7 --";
+  print_endline (Infer7.run_program prog);
   print_endline "-- Infer6 D debug --";
   print_endline (Infer6.debug_constr prog ~constr:"D");
   [%expect
@@ -30,6 +32,9 @@ let%expect_test "Infer6 vs others on D/E and LDD debug dump" =
     D: {0 ↦ [0,1] ⊓ D.0 ⊓ E.0, 1 ↦ ([0,1] ⊓ D.1 ⊓ E.2) ⊔ ([1,0] ⊓ D.1), 2 ↦ [0,1] ⊓ D.1 ⊓ D.2 ⊓ E.1 ⊓ E.2}
     E: {0 ↦ [0,1] ⊓ D.0 ⊓ E.0, 1 ↦ [0,1] ⊓ D.1 ⊓ E.1 ⊓ E.2, 2 ↦ [0,1] ⊓ E.2}
     -- Infer6 --
+    D: {0 ↦ [0,1] ⊓ D.0 ⊓ E.0, 1 ↦ ([0,1] ⊓ D.1 ⊓ E.2) ⊔ ([1,0] ⊓ D.1), 2 ↦ [0,1] ⊓ D.1 ⊓ D.2 ⊓ E.1 ⊓ E.2}
+    E: {0 ↦ [0,1] ⊓ D.0 ⊓ E.0, 1 ↦ [0,1] ⊓ D.1 ⊓ E.1 ⊓ E.2, 2 ↦ [0,1] ⊓ E.2}
+    -- Infer7 --
     D: {0 ↦ [0,1] ⊓ D.0 ⊓ E.0, 1 ↦ ([0,1] ⊓ D.1 ⊓ E.2) ⊔ ([1,0] ⊓ D.1), 2 ↦ [0,1] ⊓ D.1 ⊓ D.2 ⊓ E.1 ⊓ E.2}
     E: {0 ↦ [0,1] ⊓ D.0 ⊓ E.0, 1 ↦ [0,1] ⊓ D.1 ⊓ E.1 ⊓ E.2, 2 ↦ [0,1] ⊓ E.2}
     -- Infer6 D debug --

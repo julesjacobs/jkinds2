@@ -79,6 +79,11 @@
  (libraries jkinds_lib)
  (modules test_ldd_solver_pair))
 
+(test
+ (name test_wdd_ldd_pair)
+ (libraries jkinds_lib)
+ (modules test_wdd_ldd_pair))
+
 (library
  (name expect_lib)
  (libraries jkinds_lib)
