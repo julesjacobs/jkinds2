@@ -398,7 +398,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
      - Parentheses around meets when there are multiple terms
      - Constants: ⊥ when empty; ⊤ when constant-top. *)
   (* Extract terms with optional naming function for non-rigid vars. *)
-  let to_named_terms (w : node) : (C.t * string list) list =
+  let to_named_terms_with (pp_unsolved : var -> string) (w : node) :
+      (C.t * string list) list =
     let rec aux (acc : string list) (w : node) : (C.t * string list) list =
       match w with
       | Leaf { c; _ } -> if C.equal c C.bot then [] else [ (c, acc) ]
@@ -406,7 +407,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         let acc_hi =
           match n.v.state with
           | Rigid name -> V.to_string name :: acc
-          | Unsolved -> "<unsolved-var>" :: acc
+          | Unsolved -> pp_unsolved n.v :: acc
           | Solved _ -> failwith "solved vars should not appear after force"
         in
         let lo_list = aux acc n.lo in
@@ -414,6 +415,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         lo_list @ hi_list
     in
     aux [] (force w)
+
+  let to_named_terms (w : node) : (C.t * string list) list =
+    to_named_terms_with (fun _ -> "<unsolved-var>") w
 
   (* Pretty-print in polynomial style. If [pp_var] is provided, it is used to
      name non-rigid variables when encountered on hi-edges (e.g., unsolved vars

@@ -144,7 +144,7 @@ let%expect_test
   [%expect {| [0,1] ⊔ ([2,0] ⊓ x) ⊔ ([2,0] ⊓ y) ⊔ ([2,0] ⊓ z) |}]
 
 let%expect_test
-    "ldd: join x with [1, 1] ⊔ ([2, 0] ⊓ x) ⊔ ([2, 0] ⊓ y) ⊔ ([2, 0] ⊓ z)" =
+    "ldd: join x with [1,1] ⊔ ([2,0] ⊓ x) ⊔ ([2,0] ⊓ y) ⊔ ([2,0] ⊓ z)" =
   let x = L.var (L.rigid "x") in
   let y = L.var (L.rigid "y") in
   let z = L.var (L.rigid "z") in

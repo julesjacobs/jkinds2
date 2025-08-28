@@ -152,7 +152,7 @@ let () =
 
   (* pretty print exact check *)
   let pp_str = L.pp ~axis_names:[| "A"; "B"; "C"; "D" |] v1 in
-  assert_eq "pp" pp_str "[1, 2, 0, 1]";
+  assert_eq "pp" pp_str "[1,2,0,1]";
   print_endline "✓ pp ok";
 
   print_endline "All product_lattice tests passed"

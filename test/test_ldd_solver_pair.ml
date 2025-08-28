@@ -67,7 +67,14 @@ module Pair = struct
 
   let to_string ((p, w) : t) : string * string =
     let sp = render_terms (LS.normalize p) in
-    let sw_terms = L.to_named_terms (L.normalize w) in
+    let sw_terms =
+      L.to_named_terms_with
+        (fun v ->
+          match Hashtbl.find_opt var_names v with
+          | Some s -> s
+          | None -> "<unsolved-var>")
+        (L.normalize w)
+    in
     let sw = render_terms sw_terms in
     (sp, sw)
 
