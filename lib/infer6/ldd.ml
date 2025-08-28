@@ -100,7 +100,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   module Unique = Hashtbl.Make (UKey)
 
-  let uniq_tbl : node Unique.t = Unique.create 1024
+  let initial_hashtbl_size = 1024
+  let uniq_tbl : node Unique.t = Unique.create initial_hashtbl_size
 
   (* --------- persistent memos --------- *)
   module NodeTbl = struct
@@ -117,18 +118,31 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let clear tbl = Tbl.clear tbl
   end
 
+  (* Pack two 30-bit ids into one 60-bit int key. *)
+  module PairKey = struct
+    let bits = 30
+    let mask = (1 lsl bits) - 1
+
+    let[@inline] make_int a b =
+      (* debug guard, elide in production *)
+      assert (a land lnot mask = 0 && b land lnot mask = 0);
+      ((a land mask) lsl bits) lor (b land mask)
+
+    let[@inline] of_nodes h l = make_int (node_id h) (node_id l)
+  end
+
   module NodePairTbl = struct
     module Tbl = Hashtbl.Make (struct
-      type t = int * int
+      type t = int
 
-      let equal (a, b) (c, d) = a = c && b = d
+      let equal = ( = )
       let hash = Hashtbl.hash
     end)
 
-    let create () = Tbl.create 1024
-    let find_opt tbl n m = Tbl.find_opt tbl (node_id n, node_id m)
-    let add tbl n m r = Tbl.add tbl (node_id n, node_id m) r
-    let clear tbl = Tbl.clear tbl
+    let create () = Tbl.create initial_hashtbl_size
+    let find_opt tbl n m = Tbl.find_opt tbl (PairKey.of_nodes n m)
+    let add tbl n m r = Tbl.add tbl (PairKey.of_nodes n m) r
+    let clear = Tbl.clear
   end
 
   (* For asserting that var ids are strictly increasing down the tree. *)
@@ -154,6 +168,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* Subtract subsets h - l *)
   let memo_subs = NodePairTbl.create ()
+  let rec down0 = function Leaf { c; _ } -> c | Node { lo; _ } -> down0 lo
 
   let rec sub_subsets (h : node) (l : node) : node =
     if node_id h = node_id l then bot
@@ -162,40 +177,41 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     (* No need to test if h is top or bot because that path is fast anyway *)
       else
       (* Value at empty set *)
-      let rec down0 = function
-        | Leaf { c; _ } -> c
-        | Node { lo; _ } -> down0 lo
-      in
       match NodePairTbl.find_opt memo_subs h l with
       | Some r -> r
       | None ->
         Global_counters.inc "sub_subsets";
         let r =
-          match (h, l) with
-          | Leaf x, _ -> leaf (C.co_sub x.c (down0 l))
-          | Node nh, Leaf _ ->
-            node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
-          | Node nh, Node nl ->
-            if nh.v.id = nl.v.id then
-              let lo' = sub_subsets nh.lo nl.lo in
-              let hi' = sub_subsets (sub_subsets nh.hi nl.lo) nl.hi in
-              node_raw nh.v lo' hi'
-            else if nh.v.id < nl.v.id then
+          match h with
+          | Leaf x -> leaf (C.co_sub x.c (down0 l))
+          | Node nh -> (
+            match l with
+            | Leaf _ ->
               node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
-            else (* h.id > l.id *)
-              sub_subsets h nl.lo
+            | Node nl ->
+              if nh.v.id = nl.v.id then
+                let lo' = sub_subsets nh.lo nl.lo in
+                (* let hi' = sub_subsets (sub_subsets nh.hi nl.lo) nl.hi in *)
+                let hi' = sub_subsets (sub_subsets nh.hi nl.hi) nl.lo in
+                (* let hi' = sub_subsets nh.hi (join nl.lo nl.hi) in *)
+                node_raw nh.v lo' hi'
+              else if nh.v.id < nl.v.id then
+                node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
+              else (* h.id > l.id *)
+                sub_subsets h nl.lo)
         in
         NodePairTbl.add memo_subs h l r;
+        if node_id h == node_id r then Global_counters.inc "sub_subsets_hit";
         r
 
-  let rec node (v : var) (lo : node) (hi : node) : node =
+  let node (v : var) (lo : node) (hi : node) : node =
     (* Don't need to memo this because sub_subsets and node_raw are memoized *)
     let hi' = sub_subsets hi lo in
     node_raw v lo hi'
 
-  and memo_join = NodePairTbl.create ()
+  let memo_join = NodePairTbl.create ()
 
-  and join (a : node) (b : node) =
+  let rec join (a : node) (b : node) =
     if node_id a = node_id b then a
     else if is_bot_node a then b
     else if is_bot_node b then a
@@ -301,7 +317,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         match w with
         | Leaf _ -> w
         | Node n ->
-          if n.v.id = x.id then restrict0 x n.lo
+          if x.id < n.v.id then w
+          else if n.v.id = x.id then restrict0 x n.lo
           else node n.v (restrict0 x n.lo) (restrict0 x n.hi)
       in
       VarNodePairTbl.add memo_restrict0 x w r;
@@ -317,7 +334,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         match w with
         | Leaf _ -> w
         | Node n ->
-          if n.v.id = x.id then join n.lo n.hi
+          if x.id < n.v.id then w
+          else if n.v.id = x.id then join n.lo n.hi
           else node n.v (restrict1 x n.lo) (restrict1 x n.hi)
       in
       VarNodePairTbl.add memo_restrict1 x w r;
@@ -382,6 +400,23 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       let var, rhs_raw = Stack.pop gfp_queue in
       solve_gfp var rhs_raw
     done
+
+  let lfp_queue = Stack.create ()
+
+  let enqueue_lfp (var : var) (rhs_raw : node) : unit =
+    (* Eager solving seems best *)
+    solve_lfp var rhs_raw
+  (* Stack.push (var, rhs_raw) lfp_queue *)
+
+  let solve_pending_lfps () : unit =
+    while not (Stack.is_empty lfp_queue) do
+      let var, rhs_raw = Stack.pop lfp_queue in
+      solve_lfp var rhs_raw
+    done
+
+  let solve_pending () : unit =
+    solve_pending_lfps ();
+    solve_pending_gfps ()
 
   (* Decompose into linear terms *)
   let decompose_linear ~(universe : var list) (n : node) =

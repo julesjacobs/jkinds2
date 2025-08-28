@@ -164,9 +164,9 @@ end = struct
             (List.combine coeffs coeffs'))
         else (
           (* We need to solve for the coeffs *)
-          LSolver.solve_lfp base base';
+          LSolver.enqueue_lfp base base';
           List.iter2
-            (fun coeff coeff' -> LSolver.solve_lfp coeff coeff')
+            (fun coeff coeff' -> LSolver.enqueue_lfp coeff coeff')
             coeffs coeffs');
         (base, coeffs)
     and constr c ks =
@@ -190,7 +190,7 @@ end = struct
     and ops = { const; join; modality; constr; kind_of; rigid } in
     let constr_kind_poly c =
       let base, coeffs = constr_kind c in
-      LSolver.solve_pending_gfps ();
+      LSolver.solve_pending ();
       let base_poly = LSolver.normalize (LSolver.var base) in
       let coeffs_poly =
         List.map (fun coeff -> LSolver.normalize (LSolver.var coeff)) coeffs
@@ -211,7 +211,7 @@ end = struct
 
   let normalize (solver : solver) (k : ckind) : (lat * atom list) list =
     let p = k solver.ops in
-    LSolver.solve_pending_gfps ();
+    LSolver.solve_pending ();
     let terms = LSolver.to_list p in
     let conv_atom = function
       | RigidName.Atom a -> Some { constr = a.constr; arg_index = a.arg_index }
@@ -238,16 +238,16 @@ end = struct
   (* LSolver.round_up (norm env k) *)
 
   let pp (p : poly) : string =
-    LSolver.solve_pending_gfps ();
+    LSolver.solve_pending ();
     LSolver.pp p
 
   let pp_debug (p : poly) : string =
-    LSolver.solve_pending_gfps ();
+    LSolver.solve_pending ();
     (* Intentionally do not force here: we want to see Solved states if any. *)
     LSolver.pp_debug p
 
   let pp_debug_forced (p : poly) : string =
-    LSolver.solve_pending_gfps ();
+    LSolver.solve_pending ();
     let p' = LSolver.normalize p in
     LSolver.pp_debug p'
 end
