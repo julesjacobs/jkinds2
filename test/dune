@@ -14,6 +14,7 @@
   (:standard
    \
    ldd_expect_tests
+   infer6_expect_tests
    type_parser_expect_tests
    poly_expect_tests
    modality_expect_tests
@@ -86,6 +87,7 @@
   ldd_expect_tests
   poly_expect_tests
   modality_expect_tests
+  infer6_expect_tests
   solver_expect_tests
   infer2_expect_tests
   infer2_fh_expect_tests

@@ -208,7 +208,10 @@ end = struct
     let terms = LSolver.to_list p in
     let conv_atom = function
       | RigidName.Atom a -> Some { constr = a.constr; arg_index = a.arg_index }
-      | RigidName.Ty _ -> None
+      | RigidName.Ty ty ->
+        failwith
+          (Printf.sprintf "normalize: Ty should not appear in terms: %s"
+             (RigidName.to_string (RigidName.Ty ty)))
     in
     let conv_vars vs = vs |> List.filter_map conv_atom in
     List.map (fun (coeff, vars) -> (coeff, conv_vars vars)) terms
@@ -227,7 +230,7 @@ end = struct
       List.fold_left (fun acc (c', _) -> Lat.join acc c') c rest
   (* LSolver.round_up (norm env k) *)
 
-  let pp p =
+  let pp (p : poly) : string =
     LSolver.solve_pending_gfps ();
     LSolver.pp p
 end
