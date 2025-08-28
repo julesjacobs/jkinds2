@@ -59,4 +59,5 @@ module Make
   val leq : solver -> ckind -> ckind -> bool
   val round_up : solver -> ckind -> lat
   val pp : poly -> string
+  val pp_debug : poly -> string
 end

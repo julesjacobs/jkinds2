@@ -47,6 +47,7 @@ module Make
   val leq : solver -> ckind -> ckind -> bool
   val round_up : solver -> ckind -> lat
   val pp : poly -> string
+  val pp_debug : poly -> string
 end = struct
   type ty = Ty.t
   type constr = Constr.t
@@ -187,6 +188,7 @@ end = struct
       k'
     and ops = { const; join; modality; constr; kind_of; rigid } in
     let constr_kind_poly c =
+      LSolver.solve_pending_gfps ();
       let base, coeffs = constr_kind c in
       let base_poly = LSolver.normalize (LSolver.var base) in
       let coeffs_poly =
@@ -233,4 +235,8 @@ end = struct
   let pp (p : poly) : string =
     LSolver.solve_pending_gfps ();
     LSolver.pp p
+
+  let pp_debug (p : poly) : string =
+    LSolver.solve_pending_gfps ();
+    LSolver.pp_debug p
 end

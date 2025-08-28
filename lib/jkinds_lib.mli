@@ -76,4 +76,5 @@ end
 
 module Infer6 : sig
   val run_program : Decl_parser.program -> string
+  val debug_constr : Decl_parser.program -> constr:string -> string
 end

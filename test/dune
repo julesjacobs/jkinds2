@@ -14,6 +14,8 @@
   (:standard
    \
    ldd_expect_tests
+   ldd_sub_subsets_expect_tests
+   infer6_discrepancy_expect_tests
    infer6_expect_tests
    type_parser_expect_tests
    poly_expect_tests
@@ -86,6 +88,8 @@
  (modules
   ldd_expect_tests
   poly_expect_tests
+  ldd_sub_subsets_expect_tests
+  infer6_discrepancy_expect_tests
   modality_expect_tests
   infer6_expect_tests
   solver_expect_tests

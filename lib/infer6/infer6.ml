@@ -69,3 +69,21 @@ let run_program (prog : Decl_parser.program) : string =
          in
          Printf.sprintf "%s: {%s}" it.name body)
   |> String.concat "\n"
+
+(* Debug: dump LDD debug structures for a constructor's base and coefficients *)
+let debug_constr (prog : Decl_parser.program) ~(constr : string) : string =
+  let env = env_of_program prog in
+  let solver = JK.make_solver env in
+  let base, coeffs = JK.constr_kind_poly solver constr in
+  let b = JK.pp_debug base in
+  let parts = ref [ "-- base.debug --\n" ^ b ] in
+  List.iteri
+    (fun i c ->
+      parts :=
+        !parts
+        @ [
+            Printf.sprintf "\n-- %s.%d.debug --\n%s" constr (i + 1)
+              (JK.pp_debug c);
+          ])
+    coeffs;
+  String.concat "\n" !parts

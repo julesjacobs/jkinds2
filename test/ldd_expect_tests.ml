@@ -95,34 +95,34 @@ let%expect_test "ldd: layered joins reproducer (structure debug)" =
   [%expect
     {|
 -- w_x.debug --
-Node#26 v#9:Rigid(x) lo=#10 hi=#5
-  Leaf#10 c=[1,1]
-  Leaf#5 c=[2,0]
+Node#15 v#0:Rigid(x) lo=#8 hi=#4
+  Leaf#8 c=[1,1]
+  Leaf#4 c=[2,0]
 
 -- w_y.debug --
-Node#29 v#9:Rigid(x) lo=#28 hi=#5
-  Node#28 v#10:Rigid(y) lo=#10 hi=#5
-    Leaf#10 c=[1,1]
-    Leaf#5 c=[2,0]
-  #5 = <ref>
+Node#17 v#0:Rigid(x) lo=#16 hi=#4
+  Node#16 v#1:Rigid(y) lo=#8 hi=#4
+    Leaf#8 c=[1,1]
+    Leaf#4 c=[2,0]
+  #4 = <ref>
 
 -- w_z.debug --
-Node#33 v#9:Rigid(x) lo=#32 hi=#5
-  Node#32 v#10:Rigid(y) lo=#31 hi=#5
-    Node#31 v#11:Rigid(z) lo=#10 hi=#5
-      Leaf#10 c=[1,1]
-      Leaf#5 c=[2,0]
-    #5 = <ref>
-  #5 = <ref>
+Node#21 v#0:Rigid(x) lo=#20 hi=#4
+  Node#20 v#1:Rigid(y) lo=#19 hi=#4
+    Node#19 v#2:Rigid(z) lo=#8 hi=#4
+      Leaf#8 c=[1,1]
+      Leaf#4 c=[2,0]
+    #4 = <ref>
+  #4 = <ref>
 
 -- r.debug --
-Node#33 v#9:Rigid(x) lo=#32 hi=#5
-  Node#32 v#10:Rigid(y) lo=#31 hi=#5
-    Node#31 v#11:Rigid(z) lo=#10 hi=#5
-      Leaf#10 c=[1,1]
-      Leaf#5 c=[2,0]
-    #5 = <ref>
-  #5 = <ref>
+Node#21 v#0:Rigid(x) lo=#20 hi=#4
+  Node#20 v#1:Rigid(y) lo=#19 hi=#4
+    Node#19 v#2:Rigid(z) lo=#8 hi=#4
+      Leaf#8 c=[1,1]
+      Leaf#4 c=[2,0]
+    #4 = <ref>
+  #4 = <ref>
 
 [1,1] ⊔ ([2,0] ⊓ x) ⊔ ([2,0] ⊓ y) ⊔ ([2,0] ⊓ z) |}]
 
@@ -187,27 +187,27 @@ let%expect_test "ldd: minimized reproducer with a,b,c; debug structure and join"
   [%expect
     {|
     -- arg1.debug --
-    Node#67 v#18:Rigid(a) lo=#66 hi=#5
-      Node#66 v#19:Rigid(b) lo=#65 hi=#5
-        Node#65 v#20:Rigid(c) lo=#42 hi=#5
-          Leaf#42 c=[0,1]
-          Leaf#5 c=[2,0]
-        #5 = <ref>
-      #5 = <ref>
+    Node#38 v#3:Rigid(a) lo=#37 hi=#4
+      Node#37 v#4:Rigid(b) lo=#36 hi=#4
+        Node#36 v#5:Rigid(c) lo=#24 hi=#4
+          Leaf#24 c=[0,1]
+          Leaf#4 c=[2,0]
+        #4 = <ref>
+      #4 = <ref>
 
     -- arg2.debug --
-    Node#59 v#20:Rigid(c) lo=#0 hi=#1
+    Node#30 v#5:Rigid(c) lo=#0 hi=#1
       Leaf#0 c=[0,0]
       Leaf#1 c=[2,1]
 
     -- result.debug --
-    Node#67 v#18:Rigid(a) lo=#66 hi=#5
-      Node#66 v#19:Rigid(b) lo=#65 hi=#5
-        Node#65 v#20:Rigid(c) lo=#42 hi=#5
-          Leaf#42 c=[0,1]
-          Leaf#5 c=[2,0]
-        #5 = <ref>
-      #5 = <ref>
+    Node#38 v#3:Rigid(a) lo=#37 hi=#4
+      Node#37 v#4:Rigid(b) lo=#36 hi=#4
+        Node#36 v#5:Rigid(c) lo=#24 hi=#4
+          Leaf#24 c=[0,1]
+          Leaf#4 c=[2,0]
+        #4 = <ref>
+      #4 = <ref>
 
     -- prints --
     [0,1] ⊔ ([2,0] ⊓ a) ⊔ ([2,0] ⊓ b) ⊔ ([2,0] ⊓ c)
@@ -239,27 +239,27 @@ let%expect_test "ldd: minimized reproducer order a,c,b; debug and join" =
   [%expect
     {|
     -- arg1.debug --
-    Node#78 v#21:Rigid(a) lo=#77 hi=#5
-      Node#77 v#22:Rigid(c) lo=#76 hi=#5
-        Node#76 v#23:Rigid(b) lo=#42 hi=#5
-          Leaf#42 c=[0,1]
-          Leaf#5 c=[2,0]
-        #5 = <ref>
-      #5 = <ref>
+    Node#38 v#3:Rigid(a) lo=#37 hi=#4
+      Node#37 v#4:Rigid(b) lo=#36 hi=#4
+        Node#36 v#5:Rigid(c) lo=#24 hi=#4
+          Leaf#24 c=[0,1]
+          Leaf#4 c=[2,0]
+        #4 = <ref>
+      #4 = <ref>
 
     -- arg2.debug --
-    Node#69 v#22:Rigid(c) lo=#0 hi=#1
+    Node#30 v#5:Rigid(c) lo=#0 hi=#1
       Leaf#0 c=[0,0]
       Leaf#1 c=[2,1]
 
     -- result.debug --
-    Node#78 v#21:Rigid(a) lo=#77 hi=#5
-      Node#77 v#22:Rigid(c) lo=#76 hi=#5
-        Node#76 v#23:Rigid(b) lo=#42 hi=#5
-          Leaf#42 c=[0,1]
-          Leaf#5 c=[2,0]
-        #5 = <ref>
-      #5 = <ref>
+    Node#38 v#3:Rigid(a) lo=#37 hi=#4
+      Node#37 v#4:Rigid(b) lo=#36 hi=#4
+        Node#36 v#5:Rigid(c) lo=#24 hi=#4
+          Leaf#24 c=[0,1]
+          Leaf#4 c=[2,0]
+        #4 = <ref>
+      #4 = <ref>
 
     -- prints --
     [0,1] ⊔ ([2,0] ⊓ a) ⊔ ([2,0] ⊓ b) ⊔ ([2,0] ⊓ c)
@@ -291,27 +291,27 @@ let%expect_test "ldd: minimized reproducer order b,a,c; debug and join" =
   [%expect
     {|
     -- arg1.debug --
-    Node#90 v#24:Rigid(b) lo=#89 hi=#5
-      Node#89 v#25:Rigid(a) lo=#88 hi=#5
-        Node#88 v#26:Rigid(c) lo=#42 hi=#5
-          Leaf#42 c=[0,1]
-          Leaf#5 c=[2,0]
-        #5 = <ref>
-      #5 = <ref>
+    Node#38 v#3:Rigid(a) lo=#37 hi=#4
+      Node#37 v#4:Rigid(b) lo=#36 hi=#4
+        Node#36 v#5:Rigid(c) lo=#24 hi=#4
+          Leaf#24 c=[0,1]
+          Leaf#4 c=[2,0]
+        #4 = <ref>
+      #4 = <ref>
 
     -- arg2.debug --
-    Node#81 v#26:Rigid(c) lo=#0 hi=#1
+    Node#30 v#5:Rigid(c) lo=#0 hi=#1
       Leaf#0 c=[0,0]
       Leaf#1 c=[2,1]
 
     -- result.debug --
-    Node#90 v#24:Rigid(b) lo=#89 hi=#5
-      Node#89 v#25:Rigid(a) lo=#88 hi=#5
-        Node#88 v#26:Rigid(c) lo=#42 hi=#5
-          Leaf#42 c=[0,1]
-          Leaf#5 c=[2,0]
-        #5 = <ref>
-      #5 = <ref>
+    Node#38 v#3:Rigid(a) lo=#37 hi=#4
+      Node#37 v#4:Rigid(b) lo=#36 hi=#4
+        Node#36 v#5:Rigid(c) lo=#24 hi=#4
+          Leaf#24 c=[0,1]
+          Leaf#4 c=[2,0]
+        #4 = <ref>
+      #4 = <ref>
 
     -- prints --
     [0,1] ⊔ ([2,0] ⊓ a) ⊔ ([2,0] ⊓ b) ⊔ ([2,0] ⊓ c)
@@ -343,27 +343,27 @@ let%expect_test "ldd: minimized reproducer order c,b,a; debug and join" =
   [%expect
     {|
     -- arg1.debug --
-    Node#102 v#27:Rigid(c) lo=#101 hi=#5
-      Node#101 v#28:Rigid(b) lo=#100 hi=#5
-        Node#100 v#29:Rigid(a) lo=#42 hi=#5
-          Leaf#42 c=[0,1]
-          Leaf#5 c=[2,0]
-        #5 = <ref>
-      #5 = <ref>
+    Node#38 v#3:Rigid(a) lo=#37 hi=#4
+      Node#37 v#4:Rigid(b) lo=#36 hi=#4
+        Node#36 v#5:Rigid(c) lo=#24 hi=#4
+          Leaf#24 c=[0,1]
+          Leaf#4 c=[2,0]
+        #4 = <ref>
+      #4 = <ref>
 
     -- arg2.debug --
-    Node#91 v#27:Rigid(c) lo=#0 hi=#1
+    Node#30 v#5:Rigid(c) lo=#0 hi=#1
       Leaf#0 c=[0,0]
       Leaf#1 c=[2,1]
 
     -- result.debug --
-    Node#102 v#27:Rigid(c) lo=#101 hi=#5
-      Node#101 v#28:Rigid(b) lo=#100 hi=#5
-        Node#100 v#29:Rigid(a) lo=#42 hi=#5
-          Leaf#42 c=[0,1]
-          Leaf#5 c=[2,0]
-        #5 = <ref>
-      #5 = <ref>
+    Node#38 v#3:Rigid(a) lo=#37 hi=#4
+      Node#37 v#4:Rigid(b) lo=#36 hi=#4
+        Node#36 v#5:Rigid(c) lo=#24 hi=#4
+          Leaf#24 c=[0,1]
+          Leaf#4 c=[2,0]
+        #4 = <ref>
+      #4 = <ref>
 
     -- prints --
     [0,1] ⊔ ([2,0] ⊓ a) ⊔ ([2,0] ⊓ b) ⊔ ([2,0] ⊓ c)

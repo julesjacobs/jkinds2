@@ -38,12 +38,28 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
     let var_id = ref (-1)
 
+    module VMap = Map.Make (struct
+      type t = V.t
+
+      let compare = V.compare
+    end)
+
+    let rigid_tbl : t VMap.t ref = ref VMap.empty
+
     let make state =
       incr var_id;
       { id = !var_id; state }
 
     let make_var () = make Unsolved
-    let make_rigid ~name () = make (Rigid name)
+
+    let make_rigid ~name () =
+      match VMap.find_opt name !rigid_tbl with
+      | Some v -> v
+      | None ->
+        let v = make (Rigid name) in
+        rigid_tbl := VMap.add name v !rigid_tbl;
+        v
+
     let id v = v.id
   end
 
