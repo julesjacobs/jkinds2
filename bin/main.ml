@@ -35,28 +35,28 @@ let () =
   let _unused = max_iters in
   (* keep flag accepted to avoid breaking scripts *)
   match bench_runs with
-  | Some n -> (
+  | Some n ->
     let t0 = Unix.gettimeofday () in
     for _i = 1 to n do
-      ignore (Jkinds_lib.Infer5.run_program prog)
+      ignore (Jkinds_lib.Infer6.run_program prog)
     done;
     let t1 = Unix.gettimeofday () in
     let total_ms = (t1 -. t0) *. 1000.0 in
     let avg_ms = total_ms /. float_of_int n in
-    Printf.printf "Bench: Infer5 x %d -> total %.3f ms, avg %.3f ms\n" n
+    Printf.printf "Bench: Infer6 x %d -> total %.3f ms, avg %.3f ms\n" n
       total_ms avg_ms;
     (* Print global counters, sorted by name *)
     let items = Jkinds_lib.Global_counters.counters () in
     let items = List.sort (fun (a, _) (b, _) -> String.compare a b) items in
-    List.iter (fun (k, v) -> Printf.printf "%s: %d\n" k v) items;
+    List.iter (fun (k, v) -> Printf.printf "%s: %d\n" k v) items
     (* Print result of program *)
-    Printf.printf "--------------------------------\n\n";
-    let result5 = Jkinds_lib.Infer5.run_program prog in
-    Printf.printf "Infer5 result: %s\n" result5;
+    (* Printf.printf "--------------------------------\n\n";
+    let result5 = Jkinds_lib.Infer6.run_program prog in
+    Printf.printf "Infer6 result: %s\n" result5;
     try
       let result6 = Jkinds_lib.Infer6.run_program prog in
       Printf.printf "Infer6 result: %s\n" result6
-    with _ -> ())
+    with _ -> () *)
   | None ->
     let t0 = Unix.gettimeofday () in
     let out2 = Jkinds_lib.Infer2.run_program prog in

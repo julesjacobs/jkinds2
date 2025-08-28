@@ -161,7 +161,7 @@ let () =
     aux n lst
   in
   Random.init 42;
-  let iters = 1000 in
+  let iters = 10000 in
   for _ = 1 to iters do
     let len = List.length !pool in
     let i = Random.int len in

@@ -146,6 +146,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       match Unique.find_opt uniq_tbl key with
       | Some n -> n
       | None ->
+        Global_counters.inc "node_raw_alloc";
         let n = Node { id = fresh_id (); v; lo; hi } in
         Unique.add uniq_tbl key n;
         n
@@ -154,31 +155,34 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let memo_subs = NodePairTbl.create ()
 
   let rec sub_subsets (h : node) (l : node) : node =
-    (* Value at empty set *)
-    let rec down0 = function
-      | Leaf { c; _ } -> c
-      | Node { lo; _ } -> down0 lo
-    in
-    match NodePairTbl.find_opt memo_subs h l with
-    | Some r -> r
-    | None ->
-      let r =
-        match (h, l) with
-        | Leaf x, _ -> leaf (C.co_sub x.c (down0 l))
-        | Node nh, Leaf _ ->
-          node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
-        | Node nh, Node nl ->
-          if nh.v.id = nl.v.id then
-            let lo' = sub_subsets nh.lo nl.lo in
-            let hi' = sub_subsets (sub_subsets nh.hi nl.lo) nl.hi in
-            node_raw nh.v lo' hi'
-          else if nh.v.id < nl.v.id then
-            node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
-          else (* h.id > l.id *)
-            sub_subsets h nl.lo
+    if node_id h = node_id l then bot
+    else
+      (* Value at empty set *)
+      let rec down0 = function
+        | Leaf { c; _ } -> c
+        | Node { lo; _ } -> down0 lo
       in
-      NodePairTbl.add memo_subs h l r;
-      r
+      match NodePairTbl.find_opt memo_subs h l with
+      | Some r -> r
+      | None ->
+        Global_counters.inc "sub_subsets";
+        let r =
+          match (h, l) with
+          | Leaf x, _ -> leaf (C.co_sub x.c (down0 l))
+          | Node nh, Leaf _ ->
+            node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
+          | Node nh, Node nl ->
+            if nh.v.id = nl.v.id then
+              let lo' = sub_subsets nh.lo nl.lo in
+              let hi' = sub_subsets (sub_subsets nh.hi nl.lo) nl.hi in
+              node_raw nh.v lo' hi'
+            else if nh.v.id < nl.v.id then
+              node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
+            else (* h.id > l.id *)
+              sub_subsets h nl.lo
+        in
+        NodePairTbl.add memo_subs h l r;
+        r
 
   let rec node (v : var) (lo : node) (hi : node) : node =
     (* Don't need to memo this because sub_subsets and node_raw are memoized *)
@@ -188,59 +192,68 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   and memo_join = NodePairTbl.create ()
 
   and join (a : node) (b : node) =
-    match NodePairTbl.find_opt memo_join a b with
-    | Some r -> r
-    | None ->
-      let r =
-        match (a, b) with
-        | Leaf x, Leaf y -> leaf (C.join x.c y.c)
-        | Node na, Node nb ->
-          if na.v.id = nb.v.id then
-            (* node na.v (join na.lo nb.lo) (join na.hi nb.hi) *)
-            node_raw na.v (join na.lo nb.lo)
-              (join (sub_subsets na.hi nb.lo) (sub_subsets nb.hi na.lo))
-          else if na.v.id < nb.v.id then
-            (* node na.v (join na.lo b) (join na.hi b) *)
-            node_raw na.v (join na.lo b) (sub_subsets na.hi b)
-          else
+    if node_id a = node_id b then a
+    else if node_id a > node_id b then join b a
+    else
+      match NodePairTbl.find_opt memo_join a b with
+      | Some r -> r
+      | None ->
+        Global_counters.inc "join";
+        let r =
+          match (a, b) with
+          | Leaf x, Leaf y -> leaf (C.join x.c y.c)
+          | Node na, Node nb ->
+            if na.v.id = nb.v.id then
+              (* node na.v (join na.lo nb.lo) (join na.hi nb.hi) *)
+              node_raw na.v (join na.lo nb.lo)
+                (join (sub_subsets na.hi nb.lo) (sub_subsets nb.hi na.lo))
+            else if na.v.id < nb.v.id then
+              (* node na.v (join na.lo b) (join na.hi b) *)
+              node_raw na.v (join na.lo b) (sub_subsets na.hi b)
+            else
+              (* node nb.v (join a nb.lo) (join a nb.hi) *)
+              node_raw nb.v (join a nb.lo) (sub_subsets nb.hi a)
+          | Leaf _, Node nb ->
             (* node nb.v (join a nb.lo) (join a nb.hi) *)
             node_raw nb.v (join a nb.lo) (sub_subsets nb.hi a)
-        | Leaf _, Node nb ->
-          (* node nb.v (join a nb.lo) (join a nb.hi) *)
-          node_raw nb.v (join a nb.lo) (sub_subsets nb.hi a)
-        | Node na, Leaf _ ->
-          (* node na.v (join na.lo b) (join na.hi b) *)
-          node_raw na.v (join na.lo b) (sub_subsets na.hi b)
-      in
-      NodePairTbl.add memo_join a b r;
-      r
+          | Node na, Leaf _ ->
+            (* node na.v (join na.lo b) (join na.hi b) *)
+            node_raw na.v (join na.lo b) (sub_subsets na.hi b)
+        in
+        NodePairTbl.add memo_join a b r;
+        r
 
   let memo_meet = NodePairTbl.create ()
 
   let rec meet (a : node) (b : node) =
-    match NodePairTbl.find_opt memo_meet a b with
-    | Some r -> r
-    | None ->
-      let r =
-        match (a, b) with
-        | Leaf x, Leaf y -> leaf (C.meet x.c y.c)
-        | Leaf _, Node nb ->
-          node nb.v (meet a nb.lo) (meet a nb.hi)
-          (* maps meet x across leaves *)
-        | Node na, Leaf _ -> node na.v (meet na.lo b) (meet na.hi b)
-        | Node na, Node nb ->
-          if na.v.id = nb.v.id then
-            let lo = meet na.lo nb.lo in
-            let hi =
-              join (meet na.hi nb.lo)
-                (join (meet na.lo nb.hi) (meet na.hi nb.hi))
-            in
-            node na.v lo hi
-          else if na.v.id < nb.v.id then node na.v (meet na.lo b) (meet na.hi b)
-          else node nb.v (meet a nb.lo) (meet a nb.hi)
-      in
-      NodePairTbl.add memo_meet a b r;
-      r
+    if node_id a = node_id b then a
+    else if node_id a > node_id b then meet b a
+    else
+      match NodePairTbl.find_opt memo_meet a b with
+      | Some r -> r
+      | None ->
+        Global_counters.inc "meet";
+        let r =
+          match (a, b) with
+          | Leaf x, Leaf y -> leaf (C.meet x.c y.c)
+          | Leaf _, Node nb ->
+            node nb.v (meet a nb.lo) (meet a nb.hi)
+            (* maps meet x across leaves *)
+          | Node na, Leaf _ -> node na.v (meet na.lo b) (meet na.hi b)
+          | Node na, Node nb ->
+            if na.v.id = nb.v.id then
+              let lo = meet na.lo nb.lo in
+              let hi =
+                join (meet na.hi nb.lo)
+                  (join (meet na.lo nb.hi) (meet na.hi nb.hi))
+              in
+              node na.v lo hi
+            else if na.v.id < nb.v.id then
+              node na.v (meet na.lo b) (meet na.hi b)
+            else node nb.v (meet a nb.lo) (meet a nb.hi)
+        in
+        NodePairTbl.add memo_meet a b r;
+        r
 
   (* --------- public constructors --------- *)
   let const (c : C.t) = leaf c
@@ -302,6 +315,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     match NodeTbl.find_opt memo_force w with
     | Some r -> r
     | None ->
+      Global_counters.inc "force";
       let r =
         match w with
         | Leaf _ -> w
@@ -313,9 +327,10 @@ module Make (C : LATTICE) (V : ORDERED) = struct
             let d' = force d in
             join lo' (meet hi' d')
           | Rigid _ | Unsolved ->
-            (* Todo: optimize this in the common case *)
-            let d' = mk_var n.v in
-            join lo' (meet hi' d'))
+            if node_id lo' = node_id n.lo && node_id hi' = node_id n.hi then w
+            else
+              let d' = mk_var n.v in
+              join lo' (meet hi' d'))
       in
       NodeTbl.add memo_force w r;
       r
@@ -342,14 +357,14 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       NodeTbl.clear memo_force
 
   (* Enqued gfps *)
-  let gfp_queue = Queue.create ()
+  let gfp_queue = Stack.create ()
 
   let enqueue_gfp (var : var) (rhs_raw : node) : unit =
-    Queue.push (var, rhs_raw) gfp_queue
+    Stack.push (var, rhs_raw) gfp_queue
 
   let solve_pending_gfps () : unit =
-    while not (Queue.is_empty gfp_queue) do
-      let var, rhs_raw = Queue.pop gfp_queue in
+    while not (Stack.is_empty gfp_queue) do
+      let var, rhs_raw = Stack.pop gfp_queue in
       solve_gfp var rhs_raw
     done
 
@@ -366,9 +381,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   (* --------- optional printer --------- *)
   (* Expose normalizer for testing: applies current solved bindings. *)
-  let normalize (w : node) : node =
-    NodeTbl.clear memo_force;
-    force w
+  let normalize (w : node) : node = force w
 
   let to_string (pp_var : var -> string) =
     let rec aux pref = function
