@@ -20,8 +20,8 @@ let%expect_test "infer6 vs infer2/4/5 on cyclic kinds" =
   [%expect
     {|
     Infer6 normalized kinds:
-    L: {0 ↦ <'a1> ⊓ L.0, 1 ↦ L.1}
-    Nested: {0 ↦ <'a1> ⊓ Nested.0, 1 ↦ Nested.1}
+    L: {0 ↦ ⊥, 1 ↦ L.1}
+    Nested: {0 ↦ ⊥, 1 ↦ Nested.1}
     Annot: {0 ↦ ⊥, 1 ↦ [1,0] ⊓ Annot.1}
     Infer2 & Infer4 & Infer5 normalized kinds:
     L: {0 ↦ ⊥, 1 ↦ L.1}

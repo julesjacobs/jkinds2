@@ -343,7 +343,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       | v :: vs' ->
         go vs' (restrict0 v m) (restrict1 v m :: List.map (restrict0 v) ns)
     in
-    let base, linears = go universe n [] in
+    let base, linears = go universe (force n) [] in
     (base, List.rev linears)
 
   (* --------- optional printer --------- *)
