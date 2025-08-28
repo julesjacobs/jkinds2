@@ -23,7 +23,11 @@ module VL = struct
     | Infer2.VarLabel.TyVar _, Infer2.VarLabel.TyRec _ -> -1
     | Infer2.VarLabel.TyRec _, Infer2.VarLabel.TyVar _ -> 1
 
-  let to_string _ = "<todo7>"
+  let to_string (v : t) =
+    match v with
+    | Infer2.VarLabel.Atom a -> Printf.sprintf "%s.%d" a.Modality.ctor a.index
+    | Infer2.VarLabel.TyVar x -> Printf.sprintf "'a%d" x
+    | Infer2.VarLabel.TyRec i -> Printf.sprintf "μb%d" i
 end
 
 module S = Lattice_solver.Make (C) (VL)
