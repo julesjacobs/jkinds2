@@ -37,6 +37,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     type t = var
 
     let var_id = ref (-1)
+    let rigid_var_start = 100000000
+    let rigid_var_id = ref rigid_var_start
 
     module VMap = Map.Make (struct
       type t = V.t
@@ -47,8 +49,13 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let rigid_tbl : t VMap.t ref = ref VMap.empty
 
     let make state =
-      incr var_id;
-      { id = !var_id; state }
+      match state with
+      | Rigid _ ->
+        incr rigid_var_id;
+        { id = !rigid_var_id; state }
+      | _ ->
+        incr var_id;
+        { id = !var_id; state }
 
     let make_var () = make Unsolved
 
@@ -353,17 +360,20 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         match w with
         | Leaf _ -> w
         | Node n -> (
-          let lo' = force n.lo
-          and hi' = force n.hi in
-          match n.v.state with
-          | Solved d ->
-            let d' = force d in
-            join lo' (meet hi' d')
-          | Rigid _ | Unsolved ->
-            if node_id lo' = node_id n.lo && node_id hi' = node_id n.hi then w
-            else
-              let d' = mk_var n.v in
-              join lo' (meet hi' d'))
+          if n.v.id > Var.rigid_var_start then w
+          else
+            let lo' = force n.lo
+            and hi' = force n.hi in
+            match n.v.state with
+            | Solved d ->
+              let d' = force d in
+              join lo' (meet hi' d')
+            | Unsolved ->
+              if node_id lo' = node_id n.lo && node_id hi' = node_id n.hi then w
+              else
+                let d' = mk_var n.v in
+                join lo' (meet hi' d')
+            | Rigid _ -> failwith "force: rigid variable shouldn't be here")
       in
       NodeTbl.add memo_force w r;
       r

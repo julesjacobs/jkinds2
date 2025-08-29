@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-08-29 02:47:59 UTC
+Generated: 2025-08-29 03:10:11 UTC
 
 ## abstracts.types
 
@@ -34,25 +34,6 @@ type G('a1) = [2,1] * 'a1
 
 Program output:
 ```
-Infer7 normalized kinds:
-none: {0 ↦ TODO}
-some: {0 ↦ TODO, 1 ↦ TODO}
-leaf: {0 ↦ TODO}
-node: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-foo: {0 ↦ TODO}
-bar: {0 ↦ TODO}
-baz: {0 ↦ TODO}
-one: {0 ↦ TODO}
-two: {0 ↦ TODO}
-maybe: {0 ↦ TODO, 1 ↦ TODO}
-wrap: {0 ↦ TODO, 1 ↦ TODO}
-wrap2: {0 ↦ TODO, 1 ↦ TODO}
-pairish: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-treeA: {0 ↦ TODO, 1 ↦ TODO}
-H: {0 ↦ TODO, 1 ↦ TODO}
-F: {0 ↦ TODO, 1 ↦ TODO}
-G: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 none: {0 ↦ none.0}
 some: {0 ↦ some.0, 1 ↦ some.1}
@@ -72,7 +53,7 @@ H: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ H.1}
 F: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ [0,1] ⊓ F.1 ⊓ H.1}
 G: {0 ↦ ⊤, 1 ↦ ⊥}
 
-Timing: Infer2: 0.219 ms, Infer4: 0.215 ms, Infer5: 0.264 ms, Infer6: 0.114, Infer7: 0.101 ms
+Timing: Infer2: 0.372 ms, Infer4: 0.371 ms, Infer5: 0.466 ms, Infer6: 0.185 ms
 ```
 
 ## benjamin.types
@@ -89,13 +70,6 @@ type bar('a1) = bar(t1('a1)) + bar(t2('a1)) + 'a1
 
 Program output:
 ```
-Infer7 normalized kinds:
-t1: {0 ↦ TODO, 1 ↦ TODO}
-t2: {0 ↦ TODO, 1 ↦ TODO}
-foo1: {0 ↦ TODO, 1 ↦ TODO}
-foo2: {0 ↦ TODO, 1 ↦ TODO}
-bar: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 t1: {0 ↦ t1.0, 1 ↦ t1.1}
 t2: {0 ↦ t2.0, 1 ↦ t2.1}
@@ -103,7 +77,7 @@ foo1: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ t1.1 ⊓ t2.1}
 foo2: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ t1.1 ⊓ t2.1}
 bar: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ ⊤}
 
-Timing: Infer2: 0.126 ms, Infer4: 0.097 ms, Infer5: 0.122 ms, Infer6: 0.061, Infer7: 0.065 ms
+Timing: Infer2: 0.137 ms, Infer4: 0.097 ms, Infer5: 0.141 ms, Infer6: 0.055 ms
 ```
 
 ## btree.types
@@ -117,17 +91,12 @@ type btree('a1) = (leaf('a1) + node(btree('a1), btree('a1)))
 
 Program output:
 ```
-Infer7 normalized kinds:
-leaf: {0 ↦ TODO, 1 ↦ TODO}
-node: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-btree: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 leaf: {0 ↦ leaf.0, 1 ↦ leaf.1}
 node: {0 ↦ node.0, 1 ↦ node.1, 2 ↦ node.2}
 btree: {0 ↦ leaf.0 ⊔ node.0, 1 ↦ leaf.1}
 
-Timing: Infer2: 0.079 ms, Infer4: 0.058 ms, Infer5: 0.078 ms, Infer6: 0.040, Infer7: 0.038 ms
+Timing: Infer2: 0.089 ms, Infer4: 0.069 ms, Infer5: 0.089 ms, Infer6: 0.042 ms
 ```
 
 ## cn_chain.types
@@ -142,19 +111,13 @@ type CN3('a1,'a2) = M2(A('a1) + B('a2))
 
 Program output:
 ```
-Infer7 normalized kinds:
-A: {0 ↦ TODO, 1 ↦ TODO}
-B: {0 ↦ TODO, 1 ↦ TODO}
-M2: {0 ↦ TODO, 1 ↦ TODO}
-CN3: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ B.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN3: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.082 ms, Infer4: 0.062 ms, Infer5: 0.061 ms, Infer6: 0.032, Infer7: 0.033 ms
+Timing: Infer2: 0.079 ms, Infer4: 0.061 ms, Infer5: 0.058 ms, Infer6: 0.026 ms
 ```
 
 ## cn_mix.types
@@ -168,17 +131,12 @@ type CNmix('a1,'a2) = A('a1) + My('a2)
 
 Program output:
 ```
-Infer7 normalized kinds:
-A: {0 ↦ TODO, 1 ↦ TODO}
-My: {0 ↦ TODO, 1 ↦ TODO}
-CNmix: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 My: {0 ↦ [0,1], 1 ↦ [2,0]}
 CNmix: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0]}
 
-Timing: Infer2: 0.058 ms, Infer4: 0.043 ms, Infer5: 0.040 ms, Infer6: 0.026, Infer7: 0.018 ms
+Timing: Infer2: 0.057 ms, Infer4: 0.042 ms, Infer5: 0.042 ms, Infer6: 0.021 ms
 ```
 
 ## cn_novar.types
@@ -192,17 +150,12 @@ type CN0('a1,'a2) = A('a1) + M2(unit)
 
 Program output:
 ```
-Infer7 normalized kinds:
-A: {0 ↦ TODO, 1 ↦ TODO}
-M2: {0 ↦ TODO, 1 ↦ TODO}
-CN0: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN0: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
 
-Timing: Infer2: 0.052 ms, Infer4: 0.043 ms, Infer5: 0.041 ms, Infer6: 0.033, Infer7: 0.027 ms
+Timing: Infer2: 0.050 ms, Infer4: 0.038 ms, Infer5: 0.036 ms, Infer6: 0.021 ms
 ```
 
 ## cn_simple.types
@@ -213,13 +166,10 @@ type A('a1) = 'a1
 
 Program output:
 ```
-Infer7 normalized kinds:
-A: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.015 ms, Infer4: 0.011 ms, Infer5: 0.008 ms, Infer6: 0.007, Infer7: 0.005 ms
+Timing: Infer2: 0.011 ms, Infer4: 0.008 ms, Infer5: 0.006 ms, Infer6: 0.005 ms
 ```
 
 ## cn2_min1.types
@@ -241,16 +191,6 @@ type CN2('a1,'a2) = CN2A('a1,'a2) + CN2B('a1,'a2)
 
 Program output:
 ```
-Infer7 normalized kinds:
-A: {0 ↦ TODO, 1 ↦ TODO}
-B: {0 ↦ TODO, 1 ↦ TODO}
-C: {0 ↦ TODO, 1 ↦ TODO}
-K: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-M2: {0 ↦ TODO, 1 ↦ TODO}
-CN2A: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-CN2B: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-CN2: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ B.1}
@@ -261,7 +201,7 @@ CN2A: {0 ↦ ⊥, 1 ↦ A.1, 2 ↦ B.1}
 CN2B: {0 ↦ [0,1], 1 ↦ ⊥, 2 ↦ [2,0] ⊓ B.1}
 CN2: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.184 ms, Infer4: 0.139 ms, Infer5: 0.137 ms, Infer6: 0.062, Infer7: 0.061 ms
+Timing: Infer2: 0.186 ms, Infer4: 0.143 ms, Infer5: 0.132 ms, Infer6: 0.051 ms
 ```
 
 ## cn2_min2.types
@@ -278,19 +218,13 @@ type CN('a1,'a2) = A('a1) + M2(B('a2))
 
 Program output:
 ```
-Infer7 normalized kinds:
-A: {0 ↦ TODO, 1 ↦ TODO}
-B: {0 ↦ TODO, 1 ↦ TODO}
-M2: {0 ↦ TODO, 1 ↦ TODO}
-CN: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ B.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.082 ms, Infer4: 0.071 ms, Infer5: 0.057 ms, Infer6: 0.031, Infer7: 0.026 ms
+Timing: Infer2: 0.075 ms, Infer4: 0.056 ms, Infer5: 0.057 ms, Infer6: 0.027 ms
 ```
 
 ## cn2.types
@@ -310,14 +244,6 @@ type CN2('a1,'a2) = K(A('a1),'a2) + M2(B('a2))
 
 Program output:
 ```
-Infer7 normalized kinds:
-A: {0 ↦ TODO, 1 ↦ TODO}
-B: {0 ↦ TODO, 1 ↦ TODO}
-C: {0 ↦ TODO, 1 ↦ TODO}
-K: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-M2: {0 ↦ TODO, 1 ↦ TODO}
-CN2: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
@@ -326,7 +252,7 @@ K: {0 ↦ ⊥, 1 ↦ ⊤, 2 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN2: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
 
-Timing: Infer2: 0.169 ms, Infer4: 0.118 ms, Infer5: 0.133 ms, Infer6: 0.064, Infer7: 0.064 ms
+Timing: Infer2: 0.161 ms, Infer4: 0.134 ms, Infer5: 0.152 ms, Infer6: 0.070 ms
 ```
 
 ## cyclic.types
@@ -341,17 +267,12 @@ type Annot('a1) : mu 'b1. (('a1 @@ [1,0]) + ('b1 @@ [0,1]))
 
 Program output:
 ```
-Infer7 normalized kinds:
-L: {0 ↦ TODO, 1 ↦ TODO}
-Nested: {0 ↦ TODO, 1 ↦ TODO}
-Annot: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 L: {0 ↦ ⊥, 1 ↦ L.1}
 Nested: {0 ↦ ⊥, 1 ↦ Nested.1}
 Annot: {0 ↦ ⊥, 1 ↦ [1,0] ⊓ Annot.1}
 
-Timing: Infer2: 0.052 ms, Infer4: 0.037 ms, Infer5: 0.035 ms, Infer6: 0.031, Infer7: 0.021 ms
+Timing: Infer2: 0.051 ms, Infer4: 0.038 ms, Infer5: 0.034 ms, Infer6: 0.024 ms
 ```
 
 ## discrepancy_hunt.types
@@ -477,63 +398,6 @@ type CCX('a1) : CAX('a1) @@ [1,0]
 
 Program output:
 ```
-Infer7 normalized kinds:
-A: {0 ↦ TODO, 1 ↦ TODO}
-B: {0 ↦ TODO, 1 ↦ TODO}
-C: {0 ↦ TODO, 1 ↦ TODO}
-D: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-E: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-R: {0 ↦ TODO, 1 ↦ TODO}
-K: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-U1: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-U2: {0 ↦ TODO, 1 ↦ TODO}
-U3: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-M1: {0 ↦ TODO, 1 ↦ TODO}
-M2: {0 ↦ TODO, 1 ↦ TODO}
-AC: {0 ↦ TODO, 1 ↦ TODO}
-PH: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-X1: {0 ↦ TODO, 1 ↦ TODO}
-X2: {0 ↦ TODO, 1 ↦ TODO}
-S: {0 ↦ TODO, 1 ↦ TODO}
-T: {0 ↦ TODO, 1 ↦ TODO}
-U: {0 ↦ TODO, 1 ↦ TODO}
-Z1: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-DUP: {0 ↦ TODO, 1 ↦ TODO}
-SW: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-ND1: {0 ↦ TODO, 1 ↦ TODO}
-ND2: {0 ↦ TODO, 1 ↦ TODO}
-ND3: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-CN1: {0 ↦ TODO, 1 ↦ TODO}
-CN2: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-NestSTU: {0 ↦ TODO, 1 ↦ TODO}
-AnnNest: {0 ↦ TODO, 1 ↦ TODO}
-RecNest1: {0 ↦ TODO, 1 ↦ TODO}
-RecNest2: {0 ↦ TODO, 1 ↦ TODO}
-MixNest: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-A0: {0 ↦ TODO}
-B0: {0 ↦ TODO}
-Z3: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO, 3 ↦ TODO}
-C3: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO, 3 ↦ TODO}
-DupSelf: {0 ↦ TODO, 1 ↦ TODO}
-PRF: {0 ↦ TODO, 1 ↦ TODO}
-PRE: {0 ↦ TODO, 1 ↦ TODO}
-PRC: {0 ↦ TODO, 1 ↦ TODO}
-PRD: {0 ↦ TODO, 1 ↦ TODO}
-PCX: {0 ↦ TODO, 1 ↦ TODO}
-PCY: {0 ↦ TODO, 1 ↦ TODO}
-PCZ: {0 ↦ TODO, 1 ↦ TODO}
-PRG: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-PRH: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-CA: {0 ↦ TODO, 1 ↦ TODO}
-CC: {0 ↦ TODO, 1 ↦ TODO}
-CA2: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-CC2: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-CA0: {0 ↦ TODO}
-CC0: {0 ↦ TODO}
-CAX: {0 ↦ TODO, 1 ↦ TODO}
-CBX: {0 ↦ TODO, 1 ↦ TODO}
-CCX: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
@@ -591,7 +455,7 @@ CAX: {0 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.0) ⊔ ([1,0] ⊓ CAX.0 ⊓ CCX.1), 1 ↦ C
 CBX: {0 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.0) ⊔ ([1,0] ⊓ CAX.0 ⊓ CCX.1), 1 ↦ ⊤}
 CCX: {0 ↦ [1,0] ⊓ CAX.0 ⊓ CCX.0, 1 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.1) ⊔ ([1,0] ⊓ CAX.1 ⊓ CCX.1)}
 
-Timing: Infer2: 1.726 ms, Infer4: 1.441 ms, Infer5: 1.694 ms, Infer6: 0.956, Infer7: 2.436 ms
+Timing: Infer2: 1.873 ms, Infer4: 1.373 ms, Infer5: 1.873 ms, Infer6: 0.908 ms
 ```
 
 ## easy.types
@@ -602,13 +466,10 @@ type A('a1) = unit + 'a1
 
 Program output:
 ```
-Infer7 normalized kinds:
-A: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.014 ms, Infer4: 0.011 ms, Infer5: 0.009 ms, Infer6: 0.009, Infer7: 0.006 ms
+Timing: Infer2: 0.016 ms, Infer4: 0.012 ms, Infer5: 0.009 ms, Infer6: 0.010 ms
 ```
 
 ## experiments.types
@@ -622,17 +483,12 @@ type lily('a1) = list(lily(list('a1)))
 
 Program output:
 ```
-Infer7 normalized kinds:
-list: {0 ↦ TODO, 1 ↦ TODO}
-rose: {0 ↦ TODO, 1 ↦ TODO}
-lily: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ list.1}
 rose: {0 ↦ ⊥, 1 ↦ list.1}
 lily: {0 ↦ ⊥, 1 ↦ ⊥}
 
-Timing: Infer2: 0.068 ms, Infer4: 0.061 ms, Infer5: 0.069 ms, Infer6: 0.034, Infer7: 0.030 ms
+Timing: Infer2: 0.067 ms, Infer4: 0.047 ms, Infer5: 0.056 ms, Infer6: 0.027 ms
 ```
 
 ## experiments2.types
@@ -646,17 +502,12 @@ type lily('a1) = list(lily(list('a1)))
 
 Program output:
 ```
-Infer7 normalized kinds:
-list: {0 ↦ TODO, 1 ↦ TODO}
-rose: {0 ↦ TODO, 1 ↦ TODO}
-lily: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 list: {0 ↦ [0,1] ⊓ list.0, 1 ↦ list.1}
 rose: {0 ↦ [0,1] ⊓ list.0, 1 ↦ list.1}
 lily: {0 ↦ [0,1] ⊓ list.0, 1 ↦ ⊥}
 
-Timing: Infer2: 0.074 ms, Infer4: 0.051 ms, Infer5: 0.067 ms, Infer6: 0.040, Infer7: 0.049 ms
+Timing: Infer2: 0.078 ms, Infer4: 0.057 ms, Infer5: 0.071 ms, Infer6: 0.036 ms
 ```
 
 ## fh.types
@@ -693,23 +544,6 @@ type C2('a1) = F('a1) + 'a1 @@ [1,0]
 
 Program output:
 ```
-Infer7 normalized kinds:
-H: {0 ↦ TODO, 1 ↦ TODO}
-F: {0 ↦ TODO, 1 ↦ TODO}
-H2: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-F2: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-X: {0 ↦ TODO, 1 ↦ TODO}
-Y: {0 ↦ TODO, 1 ↦ TODO}
-Z: {0 ↦ TODO, 1 ↦ TODO}
-P: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-Q: {0 ↦ TODO, 1 ↦ TODO}
-M: {0 ↦ TODO, 1 ↦ TODO}
-U: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-V: {0 ↦ TODO, 1 ↦ TODO}
-W: {0 ↦ TODO, 1 ↦ TODO}
-C1: {0 ↦ TODO, 1 ↦ TODO}
-C2: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 H: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ H.1}
 F: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ [0,1] ⊓ F.1 ⊓ H.1}
@@ -727,7 +561,7 @@ W: {0 ↦ [0,1] ⊓ U.0 ⊓ W.0, 1 ↦ [0,1] ⊓ U.2 ⊓ W.1}
 C1: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ ⊤}
 C2: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1) ⊔ [1,0]}
 
-Timing: Infer2: 0.435 ms, Infer4: 0.355 ms, Infer5: 0.317 ms, Infer6: 0.228, Infer7: 0.314 ms
+Timing: Infer2: 0.440 ms, Infer4: 0.359 ms, Infer5: 0.319 ms, Infer6: 0.214 ms
 ```
 
 ## hunt.types
@@ -740,15 +574,11 @@ type B('a1,'a2) = 'a1 + A('a2)
 
 Program output:
 ```
-Infer7 normalized kinds:
-A: {0 ↦ TODO, 1 ↦ TODO}
-B: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ [0,1], 1 ↦ [2,0]}
 B: {0 ↦ [0,1], 1 ↦ [2,0], 2 ↦ [2,0]}
 
-Timing: Infer2: 0.038 ms, Infer4: 0.029 ms, Infer5: 0.028 ms, Infer6: 0.018, Infer7: 0.013 ms
+Timing: Infer2: 0.037 ms, Infer4: 0.029 ms, Infer5: 0.028 ms, Infer6: 0.016 ms
 ```
 
 ## list_sum_pair.types
@@ -759,13 +589,10 @@ type list('a1) = unit + 'a1 * list('a1)
 
 Program output:
 ```
-Infer7 normalized kinds:
-list: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.020 ms, Infer4: 0.015 ms, Infer5: 0.014 ms, Infer6: 0.013, Infer7: 0.011 ms
+Timing: Infer2: 0.020 ms, Infer4: 0.015 ms, Infer5: 0.014 ms, Infer6: 0.012 ms
 ```
 
 ## modalities.types
@@ -814,34 +641,6 @@ type modal_pair('a1) = [1,0] * 'a1
 
 Program output:
 ```
-Infer7 normalized kinds:
-Node: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-F: {0 ↦ TODO, 1 ↦ TODO}
-G: {0 ↦ TODO, 1 ↦ TODO}
-nil: {0 ↦ TODO}
-cons: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-id_annot: {0 ↦ TODO, 1 ↦ TODO}
-pair_annot: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-nested: {0 ↦ TODO, 1 ↦ TODO}
-tree: {0 ↦ TODO, 1 ↦ TODO}
-both: {0 ↦ TODO, 1 ↦ TODO}
-id_bot: {0 ↦ TODO, 1 ↦ TODO}
-mix_sum: {0 ↦ TODO, 1 ↦ TODO}
-mix_pair: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-outer_vs_inner: {0 ↦ TODO, 1 ↦ TODO}
-inner_vs_outer: {0 ↦ TODO, 1 ↦ TODO}
-list_ann: {0 ↦ TODO, 1 ↦ TODO}
-two_axes: {0 ↦ TODO, 1 ↦ TODO}
-deeply: {0 ↦ TODO, 1 ↦ TODO}
-list: {0 ↦ TODO, 1 ↦ TODO}
-list_inner: {0 ↦ TODO, 1 ↦ TODO}
-list_outer: {0 ↦ TODO, 1 ↦ TODO}
-list2: {0 ↦ TODO, 1 ↦ TODO}
-list2_inner: {0 ↦ TODO, 1 ↦ TODO}
-list2_outer: {0 ↦ TODO, 1 ↦ TODO}
-modal_plus: {0 ↦ TODO, 1 ↦ TODO}
-modal_pair: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 Node: {0 ↦ Node.0, 1 ↦ Node.1, 2 ↦ Node.2}
 F: {0 ↦ F.0, 1 ↦ F.1}
@@ -870,7 +669,7 @@ list2_outer: {0 ↦ ([1,0] ⊓ cons.0) ⊔ ([1,0] ⊓ nil.0), 1 ↦ [1,0] ⊓ co
 modal_plus: {0 ↦ [1,0], 1 ↦ ⊤}
 modal_pair: {0 ↦ [1,0], 1 ↦ ⊤}
 
-Timing: Infer2: 0.399 ms, Infer4: 0.344 ms, Infer5: 0.327 ms, Infer6: 0.193, Infer7: 0.183 ms
+Timing: Infer2: 0.395 ms, Infer4: 0.340 ms, Infer5: 0.322 ms, Infer6: 0.162 ms
 ```
 
 ## modals.types
@@ -882,15 +681,11 @@ type bar() = foo() @@ [1,0]
 
 Program output:
 ```
-Infer7 normalized kinds:
-foo: {0 ↦ TODO}
-bar: {0 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 foo: {0 ↦ [1,1]}
 bar: {0 ↦ [1,0]}
 
-Timing: Infer2: 0.022 ms, Infer4: 0.012 ms, Infer5: 0.014 ms, Infer6: 0.011, Infer7: 0.008 ms
+Timing: Infer2: 0.023 ms, Infer4: 0.011 ms, Infer5: 0.014 ms, Infer6: 0.011 ms
 ```
 
 ## mutual.types
@@ -904,17 +699,12 @@ type evenlist('a1) = unit + cons('a1, oddlist('a1))
 
 Program output:
 ```
-Infer7 normalized kinds:
-cons: {0 ↦ TODO, 1 ↦ TODO}
-oddlist: {0 ↦ TODO, 1 ↦ TODO}
-evenlist: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 cons: {0 ↦ cons.0, 1 ↦ cons.1}
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
 
-Timing: Infer2: 0.082 ms, Infer4: 0.055 ms, Infer5: 0.041 ms, Infer6: 0.029, Infer7: 0.024 ms
+Timing: Infer2: 0.084 ms, Infer4: 0.056 ms, Infer5: 0.042 ms, Infer6: 0.025 ms
 ```
 
 ## portable.types
@@ -930,13 +720,6 @@ type orchid('a1) = unit + portable('a1) * orchid('a1 * 'a1)
 
 Program output:
 ```
-Infer7 normalized kinds:
-portable: {0 ↦ TODO, 1 ↦ TODO}
-list: {0 ↦ TODO, 1 ↦ TODO}
-lily: {0 ↦ TODO, 1 ↦ TODO}
-tulip: {0 ↦ TODO, 1 ↦ TODO}
-orchid: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 portable: {0 ↦ portable.0, 1 ↦ portable.1}
 list: {0 ↦ ⊥, 1 ↦ ⊤}
@@ -944,7 +727,7 @@ lily: {0 ↦ portable.0, 1 ↦ portable.1}
 tulip: {0 ↦ portable.0, 1 ↦ ⊤}
 orchid: {0 ↦ portable.0, 1 ↦ portable.1}
 
-Timing: Infer2: 0.127 ms, Infer4: 0.096 ms, Infer5: 0.137 ms, Infer6: 0.063, Infer7: 0.062 ms
+Timing: Infer2: 0.124 ms, Infer4: 0.093 ms, Infer5: 0.118 ms, Infer6: 0.056 ms
 ```
 
 ## ref.types
@@ -957,17 +740,12 @@ type foo('a1) = portended(ref('a1))
 
 Program output:
 ```
-Infer7 normalized kinds:
-portended: {0 ↦ TODO, 1 ↦ TODO}
-ref: {0 ↦ TODO, 1 ↦ TODO}
-foo: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 portended: {0 ↦ portended.0, 1 ↦ portended.1}
 ref: {0 ↦ ref.0, 1 ↦ ref.1}
 foo: {0 ↦ portended.0 ⊔ (portended.1 ⊓ ref.0), 1 ↦ portended.1 ⊓ ref.1}
 
-Timing: Infer2: 0.057 ms, Infer4: 0.048 ms, Infer5: 0.041 ms, Infer6: 0.026, Infer7: 0.018 ms
+Timing: Infer2: 0.058 ms, Infer4: 0.039 ms, Infer5: 0.040 ms, Infer6: 0.021 ms
 ```
 
 ## rose_sum_pair.types
@@ -980,17 +758,12 @@ type lily('a1) = list('a1 * lily(list('a1)))
 
 Program output:
 ```
-Infer7 normalized kinds:
-list: {0 ↦ TODO, 1 ↦ TODO}
-rose: {0 ↦ TODO, 1 ↦ TODO}
-lily: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 rose: {0 ↦ ⊥, 1 ↦ ⊥}
 lily: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.068 ms, Infer4: 0.063 ms, Infer5: 0.058 ms, Infer6: 0.029, Infer7: 0.026 ms
+Timing: Infer2: 0.065 ms, Infer4: 0.055 ms, Infer5: 0.058 ms, Infer6: 0.027 ms
 ```
 
 ## simple_example.types
@@ -1003,15 +776,11 @@ type bar() = foo()
 
 Program output:
 ```
-Infer7 normalized kinds:
-foo: {0 ↦ TODO}
-bar: {0 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 foo: {0 ↦ foo.0}
 bar: {0 ↦ foo.0}
 
-Timing: Infer2: 0.023 ms, Infer4: 0.016 ms, Infer5: 0.012 ms, Infer6: 0.009, Infer7: 0.007 ms
+Timing: Infer2: 0.020 ms, Infer4: 0.011 ms, Infer5: 0.011 ms, Infer6: 0.009 ms
 ```
 
 ## zipper.types
@@ -1027,13 +796,6 @@ type zipper('a1) = (ctx('a1) * list('a1))
 
 Program output:
 ```
-Infer7 normalized kinds:
-cons: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-down: {0 ↦ TODO, 1 ↦ TODO, 2 ↦ TODO}
-list: {0 ↦ TODO, 1 ↦ TODO}
-ctx: {0 ↦ TODO, 1 ↦ TODO}
-zipper: {0 ↦ TODO, 1 ↦ TODO}
-
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 cons: {0 ↦ cons.0, 1 ↦ cons.1, 2 ↦ cons.2}
 down: {0 ↦ down.0, 1 ↦ down.1, 2 ↦ down.2}
@@ -1041,5 +803,5 @@ list: {0 ↦ cons.0, 1 ↦ cons.1}
 ctx: {0 ↦ down.0, 1 ↦ down.1}
 zipper: {0 ↦ cons.0 ⊔ down.0, 1 ↦ cons.1 ⊔ down.1}
 
-Timing: Infer2: 0.122 ms, Infer4: 0.089 ms, Infer5: 0.108 ms, Infer6: 0.059, Infer7: 0.054 ms
+Timing: Infer2: 0.123 ms, Infer4: 0.095 ms, Infer5: 0.116 ms, Infer6: 0.051 ms
 ```
