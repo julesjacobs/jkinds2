@@ -167,49 +167,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         Unique.add uniq_tbl key n;
         n
 
-  (* Subtract subsets h - l *)
-  let memo_subs = NodePairTbl.create ()
-  let rec down0 = function Leaf { c; _ } -> c | Node { lo; _ } -> down0 lo
-
-  let rec sub_subsets (h : node) (l : node) : node =
-    if node_id h = node_id l then bot
-    else if is_bot_node l then h
-    else if is_top_node l then bot
-    (* No need to test if h is top or bot because that path is fast anyway *)
-      else
-      (* Value at empty set *)
-      match NodePairTbl.find_opt memo_subs h l with
-      | Some r -> r
-      | None ->
-        Global_counters.inc "sub_subsets";
-        let r =
-          match h with
-          | Leaf x -> leaf (C.co_sub x.c (down0 l))
-          | Node nh -> (
-            match l with
-            | Leaf _ ->
-              node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
-            | Node nl ->
-              if nh.v.id = nl.v.id then
-                let lo' = sub_subsets nh.lo nl.lo in
-                (* let hi' = sub_subsets (sub_subsets nh.hi nl.lo) nl.hi in *)
-                let hi' = sub_subsets (sub_subsets nh.hi nl.hi) nl.lo in
-                (* let hi' = sub_subsets nh.hi (join nl.lo nl.hi) in *)
-                node_raw nh.v lo' hi'
-              else if nh.v.id < nl.v.id then
-                node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
-              else (* h.id > l.id *)
-                sub_subsets h nl.lo)
-        in
-        NodePairTbl.add memo_subs h l r;
-        if node_id h == node_id r then Global_counters.inc "sub_subsets_hit";
-        r
-
-  let node (v : var) (lo : node) (hi : node) : node =
-    (* Don't need to memo this because sub_subsets and node_raw are memoized *)
-    let hi' = sub_subsets hi lo in
-    node_raw v lo hi'
-
   let memo_join = NodePairTbl.create ()
 
   let rec join (a : node) (b : node) =
@@ -229,21 +186,12 @@ module Make (C : LATTICE) (V : ORDERED) = struct
           | Leaf x, Leaf y -> leaf (C.join x.c y.c)
           | Node na, Node nb ->
             if na.v.id = nb.v.id then
-              (* node na.v (join na.lo nb.lo) (join na.hi nb.hi) *)
-              node_raw na.v (join na.lo nb.lo)
-                (join (sub_subsets na.hi nb.lo) (sub_subsets nb.hi na.lo))
+              node_raw na.v (join na.lo nb.lo) (join na.hi nb.hi)
             else if na.v.id < nb.v.id then
-              (* node na.v (join na.lo b) (join na.hi b) *)
-              node_raw na.v (join na.lo b) (sub_subsets na.hi b)
-            else
-              (* node nb.v (join a nb.lo) (join a nb.hi) *)
-              node_raw nb.v (join a nb.lo) (sub_subsets nb.hi a)
-          | Leaf _, Node nb ->
-            (* node nb.v (join a nb.lo) (join a nb.hi) *)
-            node_raw nb.v (join a nb.lo) (sub_subsets nb.hi a)
-          | Node na, Leaf _ ->
-            (* node na.v (join na.lo b) (join na.hi b) *)
-            node_raw na.v (join na.lo b) (sub_subsets na.hi b)
+              node_raw na.v (join na.lo b) (join na.hi b)
+            else node_raw nb.v (join a nb.lo) (join a nb.hi)
+          | Leaf _, Node nb -> node_raw nb.v (join a nb.lo) (join a nb.hi)
+          | Node na, Leaf _ -> node_raw na.v (join na.lo b) (join na.hi b)
         in
         NodePairTbl.add memo_join a b r;
         r
@@ -266,30 +214,20 @@ module Make (C : LATTICE) (V : ORDERED) = struct
           match (a, b) with
           | Leaf x, Leaf y -> leaf (C.meet x.c y.c)
           | (Leaf _ as x), Node na | Node na, (Leaf _ as x) ->
-            node na.v (meet na.lo x) (meet na.hi x)
+            node_raw na.v (meet na.lo x) (meet na.hi x)
           | Node na, Node nb ->
             if na.v.id = nb.v.id then
-              let lo = meet na.lo nb.lo in
-              (* let hi =
-                join (meet na.hi nb.lo)
-                  (join (meet na.lo nb.hi) (meet na.hi nb.hi)) *)
-              (* let left = sub_subsets (join na.hi na.lo) lo in
-              let right = sub_subsets (join nb.hi nb.lo) lo in
-              let hi = meet left right in *)
-              let hi = meet (join na.hi na.lo) (join nb.hi nb.lo) in
-              node na.v lo hi
+              node_raw na.v (meet na.lo nb.lo) (meet na.hi nb.hi)
             else if na.v.id < nb.v.id then
-              (* let lo = meet na.lo b in let hi = meet na.hi b in node_raw na.v
-                 lo (sub_subsets hi na.lo) *)
-              node na.v (meet na.lo b) (meet na.hi b)
-            else node nb.v (meet a nb.lo) (meet a nb.hi)
+              node_raw na.v (meet na.lo b) (meet na.hi b)
+            else node_raw nb.v (meet a nb.lo) (meet a nb.hi)
         in
         NodePairTbl.add memo_meet a b r;
         r
 
   (* --------- public constructors --------- *)
   let const (c : C.t) = leaf c
-  let mk_var (v : var) = node v bot top
+  let mk_var (v : var) = node_raw v bot top
   let rigid (name : V.t) = Var.make_rigid ~name ()
   let new_var () = Var.make_var ()
 
@@ -320,7 +258,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         | Node n ->
           if x.id < n.v.id then w
           else if n.v.id = x.id then restrict0 x n.lo
-          else node n.v (restrict0 x n.lo) (restrict0 x n.hi)
+          else node_raw n.v (restrict0 x n.lo) (restrict0 x n.hi)
       in
       VarNodePairTbl.add memo_restrict0 x w r;
       r
@@ -337,7 +275,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         | Node n ->
           if x.id < n.v.id then w
           else if n.v.id = x.id then join n.lo n.hi
-          else node n.v (restrict1 x n.lo) (restrict1 x n.hi)
+          else node_raw n.v (restrict1 x n.lo) (restrict1 x n.hi)
       in
       VarNodePairTbl.add memo_restrict1 x w r;
       r

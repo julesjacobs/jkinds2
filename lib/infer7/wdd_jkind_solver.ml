@@ -43,7 +43,8 @@ module Make
 
   val make_solver : env -> solver
   val constr_kind_poly : solver -> constr -> poly * poly list
-  val normalize : solver -> ckind -> (lat * atom list) list
+
+  (* val normalize : solver -> ckind -> (lat * atom list) list *)
   val leq : solver -> ckind -> ckind -> bool
   val round_up : solver -> ckind -> lat
   val pp : poly -> string
@@ -197,9 +198,9 @@ end = struct
       in
       let coeffs_minus_base =
         List.map
-          (fun p ->
-            LSolver.sub_subsets (LSolver.normalize p)
-              (LSolver.normalize base_poly))
+          (fun p -> LSolver.normalize p)
+          (* LSolver.sub_subsets (LSolver.normalize p) *)
+          (* (LSolver.normalize base_poly)) *)
           coeffs_poly
       in
       (base_poly, coeffs_minus_base)
@@ -237,9 +238,10 @@ end = struct
       List.fold_left (fun acc (c', _) -> Lat.join acc c') c rest
   (* LSolver.round_up (norm env k) *)
 
-  let pp (p : poly) : string =
+  let pp (_p : poly) : string =
     LSolver.solve_pending ();
-    LSolver.pp p
+    "TODO"
+  (* LSolver.pp p *)
 
   let pp_debug (p : poly) : string =
     LSolver.solve_pending ();

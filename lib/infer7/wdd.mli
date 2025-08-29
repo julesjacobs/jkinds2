@@ -33,7 +33,7 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   (* Boolean algebra over nodes *)
   val join : node -> node -> node
   val meet : node -> node -> node
-  val sub_subsets : node -> node -> node
+  (* val sub_subsets : node -> node -> node *)
 
   (* Solving interface *)
   val solve_lfp : var -> node -> unit
