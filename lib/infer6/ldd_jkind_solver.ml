@@ -11,42 +11,8 @@ module Make
 
       val compare : t -> t -> int
       val to_string : t -> string
-    end) : sig
-  type ty = Ty.t
-  type constr = Constr.t
-  type lat = Lat.t
-  type kind
-  type solver
-
-  type ops = {
-    const : lat -> kind;
-    join : kind list -> kind;
-    modality : lat -> kind -> kind;
-    constr : constr -> kind list -> kind;
-    kind_of : ty -> kind;
-    rigid : ty -> kind;
-  }
-
-  type ckind = ops -> kind
-  type constr_decl = { args : ty list; kind : ckind; abstract : bool }
-  type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
-  type atom = { constr : constr; arg_index : int }
-
-  module RigidName : sig
-    type t = Atom of atom | Ty of ty
-
-    val compare : t -> t -> int
-    val to_string : t -> string
-  end
-
-  type poly = Ldd.Make(Lat)(RigidName).node
-
-  val make_solver : env -> solver
-  val constr_kind_poly : solver -> constr -> poly * poly list
-  val pp : poly -> string
-  val pp_debug : poly -> string
-  val pp_debug_forced : poly -> string
-end = struct
+    end) =
+struct
   type ty = Ty.t
   type constr = Constr.t
   type lat = Lat.t
@@ -207,12 +173,9 @@ end = struct
 
   let pp_debug (p : poly) : string =
     LSolver.solve_pending ();
-    (* Intentionally do not force here: we want to see Solved states if any. *)
     LSolver.pp_debug p
 
   let pp_debug_forced (p : poly) : string =
     LSolver.solve_pending ();
-    (* Forcing is handled inside Ldd printers; just reuse pp_debug. *)
-    let p' = p in
-    LSolver.pp_debug p'
+    LSolver.pp_debug p
 end
