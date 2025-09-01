@@ -413,11 +413,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
 
   let lfp_queue = Stack.create ()
 
-  let enqueue_lfp (var : var) (rhs_raw : node) : unit =
-    (* Eager solving seems best *)
-    solve_lfp var rhs_raw
-  (* Stack.push (var, rhs_raw) lfp_queue *)
-
   let solve_pending_lfps () : unit =
     while not (Stack.is_empty lfp_queue) do
       let var, rhs_raw = Stack.pop lfp_queue in

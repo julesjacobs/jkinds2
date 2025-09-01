@@ -161,9 +161,9 @@ end = struct
             (List.combine coeffs coeffs'))
         else (
           (* We need to solve for the coeffs *)
-          LSolver.enqueue_lfp base base';
+          LSolver.solve_lfp base base';
           List.iter2
-            (fun coeff coeff' -> LSolver.enqueue_lfp coeff coeff')
+            (fun coeff coeff' -> LSolver.solve_lfp coeff coeff')
             coeffs coeffs');
         (base, coeffs)
     and constr c ks =

@@ -69,11 +69,7 @@ module Pair = struct
     let sp_raw = render_terms (LS.normalize p) in
     (* Sanitize LS side by hiding dynamic unknown names (uN) to match L.pp *)
     let replace_all s old repl =
-      let parts =
-        String.split_on_char '\000'
-          (String.concat "\000" (String.split_on_char '\000' s))
-      in
-      (* fallback: naive split on [old] via recursion *)
+      (* naive replace of substring [old] with [repl] *)
       let rec split_by substr text acc =
         match String.index_opt text substr.[0] with
         | None -> List.rev (text :: acc)
