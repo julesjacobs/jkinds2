@@ -190,19 +190,16 @@ end = struct
     and ops = { const; join; modality; constr; kind_of; rigid } in
     let constr_kind_poly c =
       let base, coeffs = constr_kind c in
+      (* Ensure any pending fixpoints are installed before inspecting. *)
       LSolver.solve_pending ();
-      let base_poly = LSolver.normalize (LSolver.var base) in
-      let coeffs_poly =
+      let base_norm = LSolver.normalize (LSolver.var base) in
+      let coeff_norms =
         List.map (fun coeff -> LSolver.normalize (LSolver.var coeff)) coeffs
       in
       let coeffs_minus_base =
-        List.map
-          (fun p ->
-            LSolver.sub_subsets (LSolver.normalize p)
-              (LSolver.normalize base_poly))
-          coeffs_poly
+        List.map (fun p -> LSolver.sub_subsets p base_norm) coeff_norms
       in
-      (base_poly, coeffs_minus_base)
+      (base_norm, coeffs_minus_base)
     in
     { ops; constr_kind_poly }
 

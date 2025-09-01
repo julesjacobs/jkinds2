@@ -48,6 +48,8 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   (* Normalization and inspection *)
   val normalize : node -> node
   val to_list : node -> (C.t * V.t list) list
+  val to_named_terms : node -> (C.t * string list) list
+  val to_named_terms_with : (var -> string) -> node -> (C.t * string list) list
 
   (* Pretty printers and checks *)
   val pp : node -> string

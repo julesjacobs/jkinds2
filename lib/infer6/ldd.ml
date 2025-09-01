@@ -67,7 +67,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
         rigid_tbl := VMap.add name v !rigid_tbl;
         v
 
-    let id v = v.id
+    let _id v = v.id
   end
 
   (* --------- stable node ids --------- *)
@@ -149,7 +149,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let create () = Tbl.create initial_hashtbl_size
     let find_opt tbl n m = Tbl.find_opt tbl (PairKey.of_nodes n m)
     let add tbl n m r = Tbl.add tbl (PairKey.of_nodes n m) r
-    let clear = Tbl.clear
+    let _clear = Tbl.clear
   end
 
   (* For asserting that var ids are strictly increasing down the tree. *)
@@ -311,7 +311,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let create () = Tbl.create 1024
     let find_opt tbl v n = Tbl.find_opt tbl (v.id, node_id n)
     let add tbl v n r = Tbl.add tbl (v.id, node_id n) r
-    let clear tbl = Tbl.clear tbl
+    let _clear tbl = Tbl.clear tbl
   end
 
   let memo_restrict0 = VarNodePairTbl.create ()
@@ -443,7 +443,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   (* Expose normalizer for testing: applies current solved bindings. *)
   let normalize (w : node) : node = force w
 
-  let to_string (pp_var : var -> string) =
+  let _to_string (pp_var : var -> string) =
     let rec aux pref = function
       | Leaf { c; _ } ->
         if C.equal c C.bot then "⊥"
