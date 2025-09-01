@@ -174,8 +174,4 @@ struct
   let pp_debug (p : poly) : string =
     LSolver.solve_pending ();
     LSolver.pp_debug p
-
-  let pp_debug_forced (p : poly) : string =
-    LSolver.solve_pending ();
-    LSolver.pp_debug p
 end

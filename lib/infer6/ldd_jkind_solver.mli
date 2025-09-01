@@ -57,5 +57,4 @@ module Make
   val constr_kind_poly : solver -> constr -> poly * poly list
   val pp : poly -> string
   val pp_debug : poly -> string
-  val pp_debug_forced : poly -> string
 end
