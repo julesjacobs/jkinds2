@@ -13,22 +13,87 @@
 - dune runtest: Run the full test suite, including expect tests.
 - scripts/run_types.sh [OUT_PATH]: Build and run the CLI over all `test/types/*.types` and write a consolidated report (env: `MAX_ITERS_FLAG` to pass `--max-iters`).
 
-## Coding Style & Naming Conventions
-- OCaml formatting is enforced by ocamlformat (see `.ocamlformat`). Use `dune fmt` before sending a PR.
-- Modules: `Snake_case.ml/mli`; public module names in `lib/dune` list define exposure.
-- Functions/values use snake_case; constructors and modules use Capitalized.
-- Keep modules focused (parsing, lattices, inference) and avoid cyclic deps.
-
 ## Testing Guidelines
-- Frameworks: Dune tests + ppx_expect inline tests. Add unit tests as `test_*.ml` and expect tests under the `expect_lib` library.
-- Run tests with `dune runtest`. For intentional output changes, use `dune runtest --auto-promote` (or `dune promote`) to update snapshots.
+- Framework: ppx_expect inline tests. Add unit tests as `test_*.ml`.
+- Run tests with `dune runtest`. For intentional output changes, use `dune promote` to update snapshots.
 - Prefer small, deterministic cases; reuse helpers in `test/poly_support.ml`.
+- Regenerate the `types_report.md` with `./scripts/run_types.sh`.
+- Validation note: For the recent LDD API cleanup (adding `lib/infer6/ldd.mli`), tests were not executed in this session. Please run `dune runtest` locally to verify.
 
-## Commit & Pull Request Guidelines
-- Commits: concise, imperative mood (e.g., "Fix kind normalization"), one logical change per commit. Reference issues when relevant.
-- PRs: include a clear description, test coverage for new logic, and CLI output screenshots or report diffs if behavior changes. Link related issues and note breaking changes.
+## Change Workflow (Always Do This)
+- Build and test: run `dune build` and then `dune runtest`.
+- Regenerate report: run `./scripts/run_types.sh` to update `types_report.md`.
+- Inspect changes: run `git diff -- types_report.md` and review differences.
+- If expect tests change: inspect the changes and if they look good, run `dune promote` to accept snapshots, then rerun `dune runtest` and the report script.
+- Optional: pass iterations via `MAX_ITERS_FLAG`, e.g. `MAX_ITERS_FLAG="--max-iters 50" ./scripts/run_types.sh`.
 
 ## Architecture Overview
 - Binary (`bin/main.ml`) parses a `.types` program, runs classic and polynomial inference, and prints normalized kinds and relations.
 - Library (`lib/`) is the source of truth; add new features here, then expose via CLI.
 
+## OCaml Modules Overview
+
+The list below groups OCaml files by area and explains each module’s role.
+
+**Binary**
+- `bin/main.ml`: CLI for `jkinds`. Parses a program, runs Infer2/Infer4/Infer5/Infer6, groups identical normalized outputs, and prints timings. Supports `--bench N` for micro-bench and retains `--max-iters` flag for compatibility.
+- `bin/print_cvars.ml`: Utility to print canonical cyclic parameter nodes and body `CVar` occurrences for each declaration; useful for parser/cyclic debugging.
+- `bin/check_arity.ml`: Placeholder binary (prints unimplemented); reserved for future constructor-arity checks.
+
+**Umbrella Library**
+- `lib/jkinds_lib.mli` / `lib/jkinds_lib.ml`: Public surface aggregating core modules (parsers, lattices), classic kinds, and inference passes (Infer2/4/5/6/7). Also exposes `Global_counters` and Menhir driver.
+
+**Parsers and Syntax**
+- `lib/parser/type_syntax.mli/.ml`: Simple type AST (`unit`, pairs, sums, constructors, `'aN`, modality `@@ [..]`, constants). Pretty-printer.
+- `lib/parser/type_parser.mli/.ml`: Extended `mu_raw` AST with `mu`/`&'bN`; conversion to simple AST; cyclic graph representation (`cyclic`) with stable IDs; `pp_cyclic` for readable cyclic printing.
+- `lib/parser/type_menhir_driver.mli/.ml`: Menhir entrypoint `parse_mu` producing `mu_raw` from a type string; wraps lexer/parser with error messages.
+- `lib/parser/type_lexer.mll`: Lexer for identifiers, quotes, integers, `mu`, punctuation, and modality `@@` syntax.
+- `lib/parser/type_menhir.mly`: Grammar for types including sums, products, constructors, `'aN`, `mu 'bN. ...`, modality annotations, and constants.
+- `lib/parser/decl_parser.mli/.ml`: Parses `type C('a1,...,'aN) =|: <rhs>` program lines. Supports concrete (`=`) and abstract (`:`) decls, validates parameter names/order, computes canonical param nodes, and precomputes simple and cyclic RHS.
+
+**Lattices and Polynomials**
+- `lib/lattices/lattice_intf.ml`: Lattice signature with `bot/top/join/meet/leq/co_sub/equal/hash/to_string`.
+- `lib/lattices/product_lattice.mli/.ml`: Bit-packed finite product lattice. Encode/decode axes, `co_sub` (co-Heyting subtraction), pretty-printing.
+- `lib/lattices/axis_lattice.ml`: Specialization of product lattice (shape `[3; 2]`) and string printer.
+- `lib/lattices/lattice_polynomial.mli/.ml`: Canonical DNF-like lattice polynomials over variables. Normalization, join/meet, substitution, approximate `co_sub`, eval, ceil/floor, pretty-printer.
+
+**Classic Kinds (Infer1)**
+- `lib/infer1/modality.mli/.ml`: Modality polynomials specialized to `Axis_lattice` via `Lattice_polynomial`. Atoms for constructor slots, `compose` as meet, `co_sub_approx`, and pretty-printer.
+- `lib/infer1/kind.mli/.ml`: Map from kind variables (indices) to modality. `get/set`, `max` (join), application by modality, normalization, substitution, and equality/order helpers.
+- `lib/infer1/infer.mli/.ml`: Classic two-phase least-fixpoint over kinds: concretes from ⊥; abstracts with self-init/meet and substitution. Skips µ-based decls. CLI-friendly `run_program`.
+
+**Polynomial Solver (Infer2)**
+- `lib/infer2/lattice_solver.mli/.ml`: Incremental solver for polynomials with named rigid vars and anonymous solver vars. Supports `assert_leq`, `solve_lfp`, normalization, decompose-by/linear, and pretty/state printing.
+- `lib/infer2/infer2.ml`: Translates simple/cyclic types to solver polynomials over `Axis_lattice`. Linear decomposition by type variables; two-phase program solve (concrete LFP, abstract ≤ constraints). Printing helpers, atom state introspection.
+
+**Experimental JKind v1/v3 (Infer3)**
+- `lib/infer3/jkind_solver1.mli/.ml`: Prototype Church-encoded kind solver over generic lattices and domains; integrates with `Lattice_solver`. Some operations (normalize/round_up) are placeholders.
+- `lib/infer3/infer3.ml`: Adapter from `Decl_parser` program to the prototype solver environment.
+
+**Fixpoint Solver with Rigid/Solver Split (Infer4)**
+- `lib/infer4/lattice_fixpoint_solver.mli/.ml`: New fixpoint-oriented polynomial solver separating rigid names from solver vars; LFP/GFP queues, forcing, normalization to rigid-only polynomials, decompose helpers, pretty-printer.
+- `lib/infer4/infer4.ml`: Translation of types using rigid atoms (`C.i`) and `'ai` as rigid, µ-binders as solver vars. Concrete decls solved via LFP; abstract decls as GFP constraints (`x := x_rigid ∧ bound`). Provides normalized output and atom-state dumps.
+
+**JKind over Fixpoint Solver (Infer5)**
+- `lib/infer5/jkind_solver.mli/.ml`: JKind solver implemented over `lattice_fixpoint_solver`. Exposes base and per-argument coefficient rigid polynomials; `normalize/leq/round_up` over Church-encoded kinds.
+- `lib/infer5/infer5.ml`: Program adapter using the above solver to print normalized kinds.
+
+**LDD Backend (Infer6)**
+- `lib/infer6/ldd.ml`: Lattice-valued ZDD: unique table, memoized `join/meet`, subset subtraction `sub_subsets`, restrictions, `force`, LFP/GFP solving + pending queues, normalization, list/pretty/structural debug printers, and invariants.
+- `lib/infer6/ldd_jkind_solver.mli/.ml`: JKind solver over `ldd`. Builds per-constructor base/coeff vars; linear decomposition over rigid type params; queues LFP/GFP appropriately. Includes `pp`, `pp_debug`, `pp_debug_forced`, and normalization to constructor atoms.
+- `lib/infer6/infer6.ml`: Wires the LDD JKind solver to programs; prints per-constructor base and coefficients; `debug_constr` dumps solver internals for one constructor.
+
+**WDD Backend (Infer7)**
+- `lib/infer7/wdd.mli/.ml`: Weighted decision diagram variant with similar surface to LDD: normalization, list/pretty/debug utilities, var-order checks.
+- `lib/infer7/wdd_jkind_solver.mli/.ml`: JKind solver over `wdd`. Mirrors Infer6 structure; coefficient-minus-base printing is currently simplified; `pp` is marked TODO.
+- `lib/infer7/infer7.ml`: Program adapter using the WDD-based solver; includes `debug_constr` for diagnostics.
+
+**Utilities**
+- `lib/global_counters.mli/.ml`: Process-wide counters used by solvers/structures for lightweight instrumentation (e.g., memo hits, allocations).
+
+**Tests (selected)**
+- `test/poly_support.ml`: Helpers for polynomial-based tests.
+- `test/infer2_expect_tests.ml`, `test/infer2_fh_expect_tests.ml`: Expect tests for `Lattice_solver` and related behaviors.
+- `test/ldd_expect_tests.ml`, `test/ldd_sub_subsets_expect_tests.ml`, `test/infer6_*`: LDD solver and Infer6 behavior/consistency tests.
+- `test/test_*`: Unit/property tests for parser, modalities/kinds, product lattice, polynomial semantics, decomposition, and solver pairs (e.g., LDD/WDD parity).
+- `test/type_parser_expect_tests.ml`: Expect tests for parsing, including `mu`/recvars and annotations.
