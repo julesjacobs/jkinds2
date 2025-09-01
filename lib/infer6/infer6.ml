@@ -45,7 +45,7 @@ let env_of_program (prog : program) : env =
     | Some it ->
       let args = it.params in
       let kind : JK.ckind = fun ops -> ops.kind_of it.rhs_cyclic in
-      let decl : JK.constr_decl = Ty { args; kind; abstract = it.abstract } in
+      let decl : JK.constr_decl = { args; kind; abstract = it.abstract } in
       decl
   in
   { lookup; kind_of }

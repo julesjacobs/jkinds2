@@ -54,11 +54,7 @@ struct
   }
 
   type ckind = ops -> kind
-
-  type constr_decl =
-    | Ty of { args : ty list; kind : ckind; abstract : bool }
-    | Poly of poly * poly list
-
+  type constr_decl = { args : ty list; kind : ckind; abstract : bool }
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
   type solver = { constr_kind_poly : constr -> poly * poly list }
 
@@ -88,57 +84,54 @@ struct
     and constr_kind c =
       match Hashtbl.find_opt constr_to_coeffs c with
       | Some base_and_coeffs -> base_and_coeffs
-      | None -> (
-        match env.lookup c with
-        | Poly (base, coeffs) -> (base, coeffs)
-        | Ty { args; kind; abstract } ->
-          let base = LSolver.new_var () in
-          (* Allocate coefficient vars based on declared arity, not on ks
-             length *)
-          let coeffs =
-            List.init (List.length args) (fun _ -> LSolver.new_var ())
-          in
-          Hashtbl.add constr_to_coeffs c
-            (LSolver.var base, List.map LSolver.var coeffs);
-          (* Recursively compute the kind of the body *)
-          let rigid_vars =
-            List.map (fun ty -> LSolver.rigid (RigidName.Ty ty)) args
-          in
+      | None ->
+        let base = LSolver.new_var () in
+        (* Allocate coefficient vars based on declared arity, not on ks
+           length *)
+        let { args; kind; abstract } = env.lookup c in
+        let coeffs =
+          List.init (List.length args) (fun _ -> LSolver.new_var ())
+        in
+        Hashtbl.add constr_to_coeffs c (base, coeffs);
+        (* Recursively compute the kind of the body *)
+        let rigid_vars =
+          List.map (fun ty -> LSolver.rigid (RigidName.Ty ty)) args
+        in
+        List.iter2
+          (fun ty var -> Hashtbl.add ty_to_kind ty (LSolver.var var))
+          args rigid_vars;
+        (* Compute body kind *)
+        let kind' = kind ops in
+        (* Extract coeffs' from kind' *)
+        let base', coeffs' =
+          LSolver.decompose_linear ~universe:rigid_vars kind'
+        in
+        if List.length coeffs <> List.length coeffs' then
+          failwith
+            (Printf.sprintf
+               "jkind_solver: coeffs mismatch for constr %s (length %d vs %d)"
+               (Constr.to_string c) (List.length coeffs) (List.length coeffs'));
+        if abstract then (
+          (* We need to assert that kind' is less than or equal to the base *)
+          LSolver.enqueue_gfp base
+            (LSolver.meet base'
+               (LSolver.var (LSolver.rigid (RigidName.atomic c 0))));
+          List.iteri
+            (fun i (coeff, coeff') ->
+              let rhs = LSolver.join coeff' base' in
+              let bound =
+                LSolver.meet rhs
+                  (LSolver.var (LSolver.rigid (RigidName.atomic c (i + 1))))
+              in
+              LSolver.enqueue_gfp coeff bound)
+            (List.combine coeffs coeffs'))
+        else (
+          (* We need to solve for the coeffs *)
+          LSolver.solve_lfp base base';
           List.iter2
-            (fun ty var -> Hashtbl.add ty_to_kind ty (LSolver.var var))
-            args rigid_vars;
-          (* Compute body kind *)
-          let kind' = kind ops in
-          (* Extract coeffs' from kind' *)
-          let base', coeffs' =
-            LSolver.decompose_linear ~universe:rigid_vars kind'
-          in
-          if List.length coeffs <> List.length coeffs' then
-            failwith
-              (Printf.sprintf
-                 "jkind_solver: coeffs mismatch for constr %s (length %d vs %d)"
-                 (Constr.to_string c) (List.length coeffs) (List.length coeffs'));
-          if abstract then (
-            (* We need to assert that kind' is less than or equal to the base *)
-            LSolver.enqueue_gfp base
-              (LSolver.meet base'
-                 (LSolver.var (LSolver.rigid (RigidName.atomic c 0))));
-            List.iteri
-              (fun i (coeff, coeff') ->
-                let rhs = LSolver.join coeff' base' in
-                let bound =
-                  LSolver.meet rhs
-                    (LSolver.var (LSolver.rigid (RigidName.atomic c (i + 1))))
-                in
-                LSolver.enqueue_gfp coeff bound)
-              (List.combine coeffs coeffs'))
-          else (
-            (* We need to solve for the coeffs *)
-            LSolver.solve_lfp base base';
-            List.iter2
-              (fun coeff coeff' -> LSolver.solve_lfp coeff coeff')
-              coeffs coeffs');
-          (LSolver.var base, List.map LSolver.var coeffs))
+            (fun coeff coeff' -> LSolver.solve_lfp coeff coeff')
+            coeffs coeffs');
+        (base, coeffs)
     and constr c ks =
       let base, coeffs = constr_kind c in
       (* Meet each arg with the corresponding coeff *)
@@ -150,11 +143,11 @@ struct
             let k =
               match nth_opt ks i with Some k -> k | None -> LSolver.bot
             in
-            LSolver.meet k coeff)
+            LSolver.meet k (LSolver.var coeff))
           coeffs
       in
       (* Join all the ks'' plus the base *)
-      let k' = List.fold_left LSolver.join base ks' in
+      let k' = List.fold_left LSolver.join (LSolver.var base) ks' in
       (* Return that kind *)
       k'
     and ops = { const; join; modality; constr; kind_of; rigid } in
@@ -162,10 +155,12 @@ struct
       let base, coeffs = constr_kind c in
       (* Ensure any pending fixpoints are installed before inspecting. *)
       LSolver.solve_pending ();
+      let base_norm = LSolver.var base in
+      let coeff_norms = List.map (fun coeff -> LSolver.var coeff) coeffs in
       let coeffs_minus_base =
-        List.map (fun p -> LSolver.sub_subsets p base) coeffs
+        List.map (fun p -> LSolver.sub_subsets p base_norm) coeff_norms
       in
-      (base, coeffs_minus_base)
+      (base_norm, coeffs_minus_base)
     in
     { constr_kind_poly }
 
