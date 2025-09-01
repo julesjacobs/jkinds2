@@ -66,16 +66,43 @@ module Pair = struct
       |> String.concat " ⊔ "
 
   let to_string ((p, w) : t) : string * string =
-    let sp = render_terms (LS.normalize p) in
-    let sw_terms =
-      L.to_named_terms_with
-        (fun v ->
-          match Hashtbl.find_opt var_names v with
-          | Some s -> s
-          | None -> "<unsolved-var>")
-        (L.normalize w)
+    let sp_raw = render_terms (LS.normalize p) in
+    (* Sanitize LS side by hiding dynamic unknown names (uN) to match L.pp *)
+    let replace_all s old repl =
+      let parts =
+        String.split_on_char '\000'
+          (String.concat "\000" (String.split_on_char '\000' s))
+      in
+      (* fallback: naive split on [old] via recursion *)
+      let rec split_by substr text acc =
+        match String.index_opt text substr.[0] with
+        | None -> List.rev (text :: acc)
+        | Some i ->
+          if
+            i + String.length substr <= String.length text
+            && String.sub text i (String.length substr) = substr
+          then
+            let before = String.sub text 0 i in
+            let after =
+              String.sub text
+                (i + String.length substr)
+                (String.length text - i - String.length substr)
+            in
+            split_by substr after (repl :: before :: acc)
+          else
+            let next = i + 1 in
+            let before = String.sub text 0 next in
+            let after = String.sub text next (String.length text - next) in
+            split_by substr after (before :: acc)
+      in
+      String.concat "" (split_by old s [])
     in
-    let sw = render_terms sw_terms in
+    let sp =
+      Hashtbl.fold
+        (fun _ name acc -> replace_all acc name "<unsolved-var>")
+        var_names sp_raw
+    in
+    let sw = L.pp w in
     (sp, sw)
 
   let check msg r =
@@ -211,7 +238,7 @@ let () =
           let sp, sw = Pair.to_string t in
           assert_eq ("post-solve parity (" ^ name ^ ")") sp sw
         done;
-        let bound_pair = (LS.bound vs, L.normalize (L.var vl)) in
+        let bound_pair = (LS.bound vs, L.var vl) in
         add bound_pair)
       else ())
   done

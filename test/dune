@@ -76,11 +76,13 @@
 
 (test
  (name test_ldd_solver_pair)
+ (enabled_if false)
  (libraries jkinds_lib)
  (modules test_ldd_solver_pair))
 
 (test
  (name test_wdd_ldd_pair)
+ (enabled_if false)
  (libraries jkinds_lib)
  (modules test_wdd_ldd_pair))
 

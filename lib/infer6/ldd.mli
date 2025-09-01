@@ -45,14 +45,7 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   (* Linear decomposition/composition helpers *)
   val decompose_linear : universe:var list -> node -> node * node list
 
-  (* Normalization and inspection *)
-  val normalize : node -> node
-  val to_list : node -> (C.t * V.t list) list
-  val to_named_terms : node -> (C.t * string list) list
-  val to_named_terms_with : (var -> string) -> node -> (C.t * string list) list
-
   (* Pretty printers and checks *)
   val pp : node -> string
   val pp_debug : node -> string
-  val check_var_order : node -> bool
 end

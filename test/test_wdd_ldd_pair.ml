@@ -8,8 +8,6 @@ module C = struct
   let hash = Hashtbl.hash
 end
 
-let show_c (x : C.t) = C.pp x
-
 module Name = struct
   type t = string
 
@@ -30,58 +28,7 @@ let assert_eq msg a b =
 module Pair = struct
   type t = W.node * L.node
 
-  let render_terms (ts : (C.t * string list) list) : string =
-    (* Canonicalize via polynomial over string names to eliminate supersets *)
-    let to_set vs =
-      List.fold_left (fun acc v -> PStr.VarSet.add v acc) PStr.VarSet.empty vs
-    in
-    let poly = PStr.of_list (List.map (fun (c, vs) -> (to_set vs, c)) ts) in
-    let ts =
-      PStr.to_list poly |> List.map (fun (s, c) -> (c, PStr.VarSet.elements s))
-    in
-    if ts = [] then "⊥"
-    else
-      let bodies =
-        List.map
-          (fun (c, vs) ->
-            let vs = List.sort String.compare vs in
-            let body =
-              if C.equal c C.top then
-                if vs = [] then "⊤" else String.concat " ⊓ " vs
-              else if vs = [] then show_c c
-              else show_c c ^ " ⊓ " ^ String.concat " ⊓ " vs
-            in
-            let has_meet =
-              ((not (C.equal c C.top)) && vs <> []) || List.length vs > 1
-            in
-            (body, has_meet))
-          ts
-      in
-      let items = List.sort (fun (a, _) (b, _) -> String.compare a b) bodies in
-      let n = List.length items in
-      items
-      |> List.map (fun (b, has_meet) ->
-             if n > 1 && has_meet then "(" ^ b ^ ")" else b)
-      |> String.concat " ⊔ "
-
-  let to_string ((w, l) : t) : string * string =
-    let sw_terms =
-      W.to_named_terms_with
-        (fun v ->
-          match Hashtbl.find_opt var_names_w v with
-          | Some s -> s
-          | None -> "<unsolved-var>")
-        (W.normalize w)
-    in
-    let sl_terms =
-      L.to_named_terms_with
-        (fun v ->
-          match Hashtbl.find_opt var_names_l v with
-          | Some s -> s
-          | None -> "<unsolved-var>")
-        (L.normalize l)
-    in
-    (render_terms sw_terms, render_terms sl_terms)
+  let to_string ((w, l) : t) : string * string = (W.pp w, L.pp l)
 
   let check msg r =
     let sw, sl = to_string r in
@@ -203,6 +150,6 @@ let () =
           let sw, sl = Pair.to_string t in
           assert_eq ("post-solve parity (" ^ name ^ ")") sw sl
         done;
-        add (W.normalize (W.var vw), L.normalize (L.var vl)))
+        add (W.var vw, L.var vl))
       else ())
   done

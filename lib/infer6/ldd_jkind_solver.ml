@@ -43,9 +43,6 @@ module Make
 
   val make_solver : env -> solver
   val constr_kind_poly : solver -> constr -> poly * poly list
-  val normalize : solver -> ckind -> (lat * atom list) list
-  val leq : solver -> ckind -> ckind -> bool
-  val round_up : solver -> ckind -> lat
   val pp : poly -> string
   val pp_debug : poly -> string
   val pp_debug_forced : poly -> string
@@ -93,7 +90,7 @@ end = struct
   type ckind = ops -> kind
   type constr_decl = { args : ty list; kind : ckind; abstract : bool }
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
-  type solver = { ops : ops; constr_kind_poly : constr -> poly * poly list }
+  type solver = { constr_kind_poly : constr -> poly * poly list }
 
   let make_solver (env : env) : solver =
     (* Define all the trivial ops *)
@@ -192,47 +189,17 @@ end = struct
       let base, coeffs = constr_kind c in
       (* Ensure any pending fixpoints are installed before inspecting. *)
       LSolver.solve_pending ();
-      let base_norm = LSolver.normalize (LSolver.var base) in
-      let coeff_norms =
-        List.map (fun coeff -> LSolver.normalize (LSolver.var coeff)) coeffs
-      in
+      let base_norm = LSolver.var base in
+      let coeff_norms = List.map (fun coeff -> LSolver.var coeff) coeffs in
       let coeffs_minus_base =
         List.map (fun p -> LSolver.sub_subsets p base_norm) coeff_norms
       in
       (base_norm, coeffs_minus_base)
     in
-    { ops; constr_kind_poly }
+    { constr_kind_poly }
 
   let constr_kind_poly (solver : solver) (c : constr) : poly * poly list =
     solver.constr_kind_poly c
-
-  let normalize (solver : solver) (k : ckind) : (lat * atom list) list =
-    let p = k solver.ops in
-    LSolver.solve_pending ();
-    let terms = LSolver.to_list p in
-    let conv_atom = function
-      | RigidName.Atom a -> Some { constr = a.constr; arg_index = a.arg_index }
-      | RigidName.Ty ty ->
-        failwith
-          (Printf.sprintf "normalize: Ty should not appear in terms: %s"
-             (RigidName.to_string (RigidName.Ty ty)))
-    in
-    let conv_vars vs = vs |> List.filter_map conv_atom in
-    List.map (fun (coeff, vars) -> (coeff, conv_vars vars)) terms
-
-  let leq (solver : solver) (k1 : ckind) (k2 : ckind) : bool =
-    let _k1' = k1 solver.ops in
-    let _k2' = k2 solver.ops in
-    (* LSolver.leq k1' k2' *)
-    true
-
-  let round_up (solver : solver) (k : ckind) : lat =
-    let terms = normalize solver k in
-    match terms with
-    | [] -> Lat.bot
-    | (c, _) :: rest ->
-      List.fold_left (fun acc (c', _) -> Lat.join acc c') c rest
-  (* LSolver.round_up (norm env k) *)
 
   let pp (p : poly) : string =
     LSolver.solve_pending ();
@@ -245,6 +212,7 @@ end = struct
 
   let pp_debug_forced (p : poly) : string =
     LSolver.solve_pending ();
-    let p' = LSolver.normalize p in
+    (* Forcing is handled inside Ldd printers; just reuse pp_debug. *)
+    let p' = p in
     LSolver.pp_debug p'
 end

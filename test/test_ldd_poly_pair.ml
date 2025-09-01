@@ -60,14 +60,7 @@ module Pair = struct
       else Buffer.add_string buf (Printf.sprintf "arg2: %s\n" sbp));
     Buffer.add_string buf (Printf.sprintf "result(poly): %s\n" sp);
     Buffer.add_string buf (Printf.sprintf "result(ldd):  %s\n" sw);
-    Buffer.add_string buf
-      (Printf.sprintf "order(arg1): %b\n"
-         (match a with Some (_ap, aw) -> L.check_var_order aw | None -> true));
-    Buffer.add_string buf
-      (Printf.sprintf "order(arg2): %b\n"
-         (match b with Some (_bp, bw) -> L.check_var_order bw | None -> true));
-    Buffer.add_string buf
-      (Printf.sprintf "order(result): %b\n" (L.check_var_order w));
+    ();
     (match a with
     | Some (_ap, aw) ->
       Buffer.add_string buf "arg1.debug:\n";

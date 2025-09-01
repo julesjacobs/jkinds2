@@ -440,8 +440,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     (base, List.rev linears)
 
   (* --------- optional printer --------- *)
-  (* Expose normalizer for testing: applies current solved bindings. *)
-  let normalize (w : node) : node = force w
 
   let _to_string (pp_var : var -> string) =
     let rec aux pref = function
@@ -461,29 +459,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     in
     aux ""
 
-  (* --------- enumeration to list --------- *)
-  (* Turns an LDD into a list of (coeff * rigid_vars).
-     - coeff is a C.t from the leaf
-     - rigid_vars is the list of names for variables encountered on hi-edges
-       that are marked Rigid in their state, in traversal order.
-       Rigid variables are guaranteed unique per path, so no dedup is needed.
-     - entries with coeff = bot are omitted. *)
-
-  let to_list (w : node) : (C.t * V.t list) list =
-    let rec aux (acc : V.t list) (w : node) : (C.t * V.t list) list =
-      match w with
-      | Leaf { c; _ } -> if C.equal c C.bot then [] else [ (c, acc) ]
-      | Node n ->
-        let acc_hi =
-          match n.v.state with
-          | Rigid name -> name :: acc
-          | _ -> failwith "to_list: non-rigid variable"
-        in
-        let lo_list = aux acc n.lo in
-        let hi_list = aux acc_hi n.hi in
-        lo_list @ hi_list
-    in
-    aux [] w
+  (* (Previously: enumeration helpers moved out of public API) *)
 
   (* --------- polynomial-style pretty printer --------- *)
   (* Prints using the same conventions as lattice_polynomial.pp:
@@ -554,17 +530,8 @@ module Make (C : LATTICE) (V : ORDERED) = struct
              if n_terms > 1 && has_meet then "(" ^ body ^ ")" else body)
       |> String.concat " ⊔ "
 
-  (* --------- invariants (for tests/debug) --------- *)
-  (* Check that along every path, variable ids are strictly increasing
-     (smaller id = higher node). Returns true if order is respected. *)
-  let check_var_order (w : node) : bool =
-    let rec aux last_id = function
-      | Leaf _ -> true
-      | Node n ->
-        let ok_here = last_id < n.v.id in
-        ok_here && aux n.v.id n.lo && aux n.v.id n.hi
-    in
-    aux (-1) w
+  (* (Previously: var-order invariant checker was public; tests now rely on
+     pp/structural debug) *)
 
   (* --------- structural debug printer --------- *)
   (* Prints full DAG structure with node ids, var ids/states, and shared-node

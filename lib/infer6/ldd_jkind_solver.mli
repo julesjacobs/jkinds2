@@ -55,9 +55,6 @@ module Make
 
   val make_solver : env -> solver
   val constr_kind_poly : solver -> constr -> poly * poly list
-  val normalize : solver -> ckind -> (lat * atom list) list
-  val leq : solver -> ckind -> ckind -> bool
-  val round_up : solver -> ckind -> lat
   val pp : poly -> string
   val pp_debug : poly -> string
   val pp_debug_forced : poly -> string
