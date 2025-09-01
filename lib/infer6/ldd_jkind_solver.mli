@@ -55,6 +55,7 @@ module Make
 
   val make_solver : env -> solver
   val constr_kind_poly : solver -> constr -> poly * poly list
+  val clear_memos : unit -> unit
   val pp : poly -> string
   val pp_debug : poly -> string
 end

@@ -167,6 +167,8 @@ struct
   let constr_kind_poly (solver : solver) (c : constr) : poly * poly list =
     solver.constr_kind_poly c
 
+  let clear_memos () : unit = LSolver.clear_memos ()
+
   let pp (p : poly) : string =
     LSolver.solve_pending ();
     LSolver.pp p

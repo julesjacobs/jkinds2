@@ -149,7 +149,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let create () = Tbl.create initial_hashtbl_size
     let find_opt tbl n m = Tbl.find_opt tbl (PairKey.of_nodes n m)
     let add tbl n m r = Tbl.add tbl (PairKey.of_nodes n m) r
-    let _clear = Tbl.clear
+    let clear = Tbl.clear
   end
 
   (* For asserting that var ids are strictly increasing down the tree. *)
@@ -311,7 +311,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let create () = Tbl.create 1024
     let find_opt tbl v n = Tbl.find_opt tbl (v.id, node_id n)
     let add tbl v n r = Tbl.add tbl (v.id, node_id n) r
-    let _clear tbl = Tbl.clear tbl
+    let clear tbl = Tbl.clear tbl
   end
 
   let memo_restrict0 = VarNodePairTbl.create ()
@@ -423,6 +423,17 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     in
     let base, linears = go universe (force n) [] in
     (base, List.rev linears)
+
+  (* Clear all memo tables *)
+  let clear_memos () : unit =
+    LeafTbl.clear leaf_tbl;
+    Unique.clear uniq_tbl;
+    NodeTbl.clear memo_force;
+    NodePairTbl.clear memo_join;
+    NodePairTbl.clear memo_meet;
+    VarNodePairTbl.clear memo_restrict0;
+    VarNodePairTbl.clear memo_restrict1;
+    NodePairTbl.clear memo_subs
 
   (* --------- optional printer --------- *)
 

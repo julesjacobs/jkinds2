@@ -43,6 +43,9 @@ module Make (C : LATTICE) (V : ORDERED) : sig
   (* Linear decomposition/composition helpers *)
   val decompose_linear : universe:var list -> node -> node * node list
 
+  (* Clear all memo tables *)
+  val clear_memos : unit -> unit
+
   (* Pretty printers and checks *)
   val pp : node -> string
   val pp_debug : node -> string
