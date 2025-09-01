@@ -429,6 +429,28 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     let base, linears = go universe (force n) [] in
     (base, List.rev linears)
 
+  let leq (a : node) (b : node) =
+    let a = force a in
+    let b = force b in
+    node_id (join a b) = node_id b
+
+  let round_up'_memo = NodeTbl.create ()
+
+  let rec round_up' (n : node) =
+    match NodeTbl.find_opt round_up'_memo n with
+    | Some c -> c
+    | None -> (
+      match n with
+      | Leaf { c; _ } -> c
+      | Node n ->
+        let lo' = round_up' n.lo in
+        let hi' = round_up' n.hi in
+        C.join lo' hi')
+
+  let round_up (n : node) =
+    let n = force n in
+    round_up' n
+
   (* Clear all memo tables *)
   let clear_memos () : unit =
     LeafTbl.clear leaf_tbl;

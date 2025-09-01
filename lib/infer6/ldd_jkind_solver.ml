@@ -60,7 +60,7 @@ struct
     | Poly of poly * poly list
 
   type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
-  type solver = { constr_kind_poly : constr -> poly * poly list }
+  type solver = { ops : ops; constr_kind_poly : constr -> poly * poly list }
 
   let make_solver (env : env) : solver =
     (* Define all the trivial ops *)
@@ -169,10 +169,19 @@ struct
       in
       (base_norm, coeffs_minus_base)
     in
-    { constr_kind_poly }
+    { ops; constr_kind_poly }
 
   let constr_kind_poly (solver : solver) (c : constr) : poly * poly list =
     solver.constr_kind_poly c
+
+  let leq (solver : solver) (k1 : ckind) (k2 : ckind) : bool =
+    let k1' = k1 solver.ops in
+    let k2' = k2 solver.ops in
+    LSolver.leq k1' k2'
+
+  let round_up (solver : solver) (k : ckind) : lat =
+    let k' = k solver.ops in
+    LSolver.round_up k'
 
   let clear_memos () : unit = LSolver.clear_memos ()
 
