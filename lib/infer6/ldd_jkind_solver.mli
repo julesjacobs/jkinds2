@@ -39,9 +39,6 @@ module Make
     rigid : ty -> kind;
   }
 
-  type ckind = ops -> kind
-  type constr_decl = { args : ty list; kind : ckind; abstract : bool }
-  type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
   type atom = { constr : constr; arg_index : int }
 
   module RigidName : sig
@@ -52,6 +49,13 @@ module Make
   end
 
   type poly = Ldd.Make(Lat)(RigidName).node
+  type ckind = ops -> kind
+
+  type constr_decl =
+    | Ty of { args : ty list; kind : ckind; abstract : bool }
+    | Poly of poly * poly list
+
+  type env = { kind_of : ty -> ckind; lookup : constr -> constr_decl }
 
   val make_solver : env -> solver
   val constr_kind_poly : solver -> constr -> poly * poly list
