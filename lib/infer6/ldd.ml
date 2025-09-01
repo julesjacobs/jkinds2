@@ -411,17 +411,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       solve_gfp var rhs_raw
     done
 
-  let lfp_queue = Stack.create ()
-
-  let solve_pending_lfps () : unit =
-    while not (Stack.is_empty lfp_queue) do
-      let var, rhs_raw = Stack.pop lfp_queue in
-      solve_lfp var rhs_raw
-    done
-
-  let solve_pending () : unit =
-    solve_pending_lfps ();
-    solve_pending_gfps ()
+  let solve_pending () : unit = solve_pending_gfps ()
 
   (* Decompose into linear terms *)
   let decompose_linear ~(universe : var list) (n : node) =
@@ -435,24 +425,6 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     (base, List.rev linears)
 
   (* --------- optional printer --------- *)
-
-  let _to_string (pp_var : var -> string) =
-    let rec aux pref = function
-      | Leaf { c; _ } ->
-        if C.equal c C.bot then "⊥"
-        else if C.equal c C.top then if pref = "" then "⊤" else pref
-        else if pref = "" then C.to_string c
-        else C.to_string c ^ " ⊓ " ^ pref
-      | Node n ->
-        let p =
-          let s = pp_var n.v in
-          if pref = "" then s else pref ^ " ⊓ " ^ s
-        in
-        let a = aux pref n.lo
-        and b = aux p n.hi in
-        if a = "⊥" then b else if b = "⊥" then a else a ^ " ⊔ " ^ b
-    in
-    aux ""
 
   (* (Previously: enumeration helpers moved out of public API) *)
 
