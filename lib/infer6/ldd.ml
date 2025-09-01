@@ -177,7 +177,7 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let memo_subs = NodePairTbl.create ()
   let rec down0 = function Leaf { c; _ } -> c | Node { lo; _ } -> down0 lo
 
-  let rec sub_subsets (h : node) (l : node) : node =
+  let rec canonicalize (h : node) (l : node) : node =
     if node_id h = node_id l then bot
     else if is_bot_node l then h
     else if is_top_node l then bot
@@ -187,33 +187,33 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       match NodePairTbl.find_opt memo_subs h l with
       | Some r -> r
       | None ->
-        Global_counters.inc "sub_subsets";
+        Global_counters.inc "canonicalize";
         let r =
           match h with
           | Leaf x -> leaf (C.co_sub x.c (down0 l))
           | Node nh -> (
             match l with
             | Leaf _ ->
-              node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
+              node_raw nh.v (canonicalize nh.lo l) (canonicalize nh.hi l)
             | Node nl ->
               if nh.v.id = nl.v.id then
-                let lo' = sub_subsets nh.lo nl.lo in
-                (* let hi' = sub_subsets (sub_subsets nh.hi nl.lo) nl.hi in *)
-                let hi' = sub_subsets (sub_subsets nh.hi nl.hi) nl.lo in
-                (* let hi' = sub_subsets nh.hi (join nl.lo nl.hi) in *)
+                let lo' = canonicalize nh.lo nl.lo in
+                (* let hi' = canonicalize (canonicalize nh.hi nl.lo) nl.hi in *)
+                let hi' = canonicalize (canonicalize nh.hi nl.hi) nl.lo in
+                (* let hi' = canonicalize nh.hi (join nl.lo nl.hi) in *)
                 node_raw nh.v lo' hi'
               else if nh.v.id < nl.v.id then
-                node_raw nh.v (sub_subsets nh.lo l) (sub_subsets nh.hi l)
+                node_raw nh.v (canonicalize nh.lo l) (canonicalize nh.hi l)
               else (* h.id > l.id *)
-                sub_subsets h nl.lo)
+                canonicalize h nl.lo)
         in
         NodePairTbl.add memo_subs h l r;
-        if node_id h == node_id r then Global_counters.inc "sub_subsets_hit";
+        if node_id h == node_id r then Global_counters.inc "canonicalize_hit";
         r
 
   let node (v : var) (lo : node) (hi : node) : node =
-    (* Don't need to memo this because sub_subsets and node_raw are memoized *)
-    let hi' = sub_subsets hi lo in
+    (* Don't need to memo this because canonicalize and node_raw are memoized *)
+    let hi' = canonicalize hi lo in
     node_raw v lo hi'
 
   let memo_join = NodePairTbl.create ()
@@ -237,19 +237,19 @@ module Make (C : LATTICE) (V : ORDERED) = struct
             if na.v.id = nb.v.id then
               (* node na.v (join na.lo nb.lo) (join na.hi nb.hi) *)
               node_raw na.v (join na.lo nb.lo)
-                (join (sub_subsets na.hi nb.lo) (sub_subsets nb.hi na.lo))
+                (join (canonicalize na.hi nb.lo) (canonicalize nb.hi na.lo))
             else if na.v.id < nb.v.id then
               (* node na.v (join na.lo b) (join na.hi b) *)
-              node_raw na.v (join na.lo b) (sub_subsets na.hi b)
+              node_raw na.v (join na.lo b) (canonicalize na.hi b)
             else
               (* node nb.v (join a nb.lo) (join a nb.hi) *)
-              node_raw nb.v (join a nb.lo) (sub_subsets nb.hi a)
+              node_raw nb.v (join a nb.lo) (canonicalize nb.hi a)
           | Leaf _, Node nb ->
             (* node nb.v (join a nb.lo) (join a nb.hi) *)
-            node_raw nb.v (join a nb.lo) (sub_subsets nb.hi a)
+            node_raw nb.v (join a nb.lo) (canonicalize nb.hi a)
           | Node na, Leaf _ ->
             (* node na.v (join na.lo b) (join na.hi b) *)
-            node_raw na.v (join na.lo b) (sub_subsets na.hi b)
+            node_raw na.v (join na.lo b) (canonicalize na.hi b)
         in
         NodePairTbl.add memo_join a b r;
         r
@@ -371,14 +371,19 @@ module Make (C : LATTICE) (V : ORDERED) = struct
             | Unsolved ->
               if node_id lo' = node_id n.lo && node_id hi' = node_id n.hi then w
               else
-                let d' = mk_var n.v in
+                let d' = force (mk_var n.v) in
                 join lo' (meet hi' d')
             | Rigid _ -> failwith "force: rigid variable shouldn't be here")
       in
       NodeTbl.add memo_force w r;
       r
 
-  and var (v : var) = force (mk_var v)
+  and var (v : var) = mk_var v
+
+  let sub_subsets (a : node) (b : node) =
+    let a = force a in
+    let b = force b in
+    canonicalize a b
 
   (* --------- solve-on-install (per-call; no env) --------- *)
   let solve_lfp (var : var) (rhs_raw : node) : unit =

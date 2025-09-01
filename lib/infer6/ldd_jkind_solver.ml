@@ -92,7 +92,8 @@ struct
         let coeffs =
           List.init (List.length args) (fun _ -> LSolver.new_var ())
         in
-        Hashtbl.add constr_to_coeffs c (base, coeffs);
+        Hashtbl.add constr_to_coeffs c
+          (LSolver.var base, List.map LSolver.var coeffs);
         (* Recursively compute the kind of the body *)
         let rigid_vars =
           List.map (fun ty -> LSolver.rigid (RigidName.Ty ty)) args
@@ -131,7 +132,7 @@ struct
           List.iter2
             (fun coeff coeff' -> LSolver.solve_lfp coeff coeff')
             coeffs coeffs');
-        (base, coeffs)
+        (LSolver.var base, List.map LSolver.var coeffs)
     and constr c ks =
       let base, coeffs = constr_kind c in
       (* Meet each arg with the corresponding coeff *)
@@ -143,11 +144,11 @@ struct
             let k =
               match nth_opt ks i with Some k -> k | None -> LSolver.bot
             in
-            LSolver.meet k (LSolver.var coeff))
+            LSolver.meet k coeff)
           coeffs
       in
       (* Join all the ks'' plus the base *)
-      let k' = List.fold_left LSolver.join (LSolver.var base) ks' in
+      let k' = List.fold_left LSolver.join base ks' in
       (* Return that kind *)
       k'
     and ops = { const; join; modality; constr; kind_of; rigid } in
@@ -155,8 +156,8 @@ struct
       let base, coeffs = constr_kind c in
       (* Ensure any pending fixpoints are installed before inspecting. *)
       LSolver.solve_pending ();
-      let base_norm = LSolver.var base in
-      let coeff_norms = List.map (fun coeff -> LSolver.var coeff) coeffs in
+      let base_norm = base in
+      let coeff_norms = List.map (fun coeff -> coeff) coeffs in
       let coeffs_minus_base =
         List.map (fun p -> LSolver.sub_subsets p base_norm) coeff_norms
       in
