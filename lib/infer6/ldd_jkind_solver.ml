@@ -63,6 +63,13 @@ struct
   type solver = { ops : ops; constr_kind_poly : constr -> poly * poly list }
 
   let make_solver (env : env) : solver =
+    let enqueue_lfp_enabled =
+      match Sys.getenv_opt "JKINDS_ENQUEUE_LFP" with
+      | Some s ->
+        let s = String.lowercase_ascii s in
+        s = "1" || s = "true" || s = "yes"
+      | None -> false
+    in
     (* Define all the trivial ops *)
     let const l = LSolver.const l in
     let join ks = List.fold_left LSolver.join LSolver.bot ks in
@@ -83,6 +90,7 @@ struct
         let v = LSolver.new_var () in
         Hashtbl.add ty_to_kind t (LSolver.var v);
         let kind = env.kind_of t ops in
+        (* Always solve LFPs here to avoid correctness issues *)
         LSolver.solve_lfp v kind;
         kind
     and constr_kind c =
@@ -132,8 +140,15 @@ struct
                 in
                 LSolver.enqueue_gfp coeff bound)
               (List.combine coeffs coeffs'))
-          else (
+          else if
             (* We need to solve for the coeffs *)
+            enqueue_lfp_enabled
+          then (
+            LSolver.enqueue_lfp base base';
+            List.iter2
+              (fun coeff coeff' -> LSolver.enqueue_lfp coeff coeff')
+              coeffs coeffs')
+          else (
             LSolver.solve_lfp base base';
             List.iter2
               (fun coeff coeff' -> LSolver.solve_lfp coeff coeff')

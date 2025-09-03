@@ -37,6 +37,7 @@ module Make (C : LATTICE) (V : ORDERED) : sig
 
   (* Solving interface *)
   val solve_lfp : var -> node -> unit
+  val enqueue_lfp : var -> node -> unit
   val enqueue_gfp : var -> node -> unit
   val solve_pending : unit -> unit
 

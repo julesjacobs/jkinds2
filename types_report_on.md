@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-09-03 14:55:52 UTC
+Generated: 2025-09-03 14:59:26 UTC
 
 ## abstracts.types
 
@@ -53,7 +53,7 @@ H: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ H.1}
 F: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ [0,1] ⊓ F.1 ⊓ H.1}
 G: {0 ↦ ⊤, 1 ↦ ⊥}
 
-Timing: Infer2: 0.203 ms, Infer4: 0.208 ms, Infer5: 0.290 ms, Infer6: 0.101 ms
+Timing: Infer2: 0.235 ms, Infer4: 0.224 ms, Infer5: 0.269 ms, Infer6: 0.108 ms
 ```
 
 ## benjamin.types
@@ -77,7 +77,7 @@ foo1: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ t1.1 ⊓ t2.1}
 foo2: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ t1.1 ⊓ t2.1}
 bar: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ ⊤}
 
-Timing: Infer2: 0.126 ms, Infer4: 0.089 ms, Infer5: 0.127 ms, Infer6: 0.061 ms
+Timing: Infer2: 0.134 ms, Infer4: 0.087 ms, Infer5: 0.120 ms, Infer6: 0.058 ms
 ```
 
 ## btree.types
@@ -96,35 +96,80 @@ leaf: {0 ↦ leaf.0, 1 ↦ leaf.1}
 node: {0 ↦ node.0, 1 ↦ node.1, 2 ↦ node.2}
 btree: {0 ↦ leaf.0 ⊔ node.0, 1 ↦ leaf.1}
 
-Timing: Infer2: 0.081 ms, Infer4: 0.060 ms, Infer5: 0.079 ms, Infer6: 0.038 ms
+Timing: Infer2: 0.083 ms, Infer4: 0.061 ms, Infer5: 0.079 ms, Infer6: 0.038 ms
 ```
 
-## cn2.types
+## cn_chain.types
 
 ```
-# Minimal repro for CN2 discrepancy
-
-type A('a1) : B('a1) @@ [1,0] + 'a1
-type B('a1) : C('a1) @@ [0,1]
-type C('a1) : A('a1)
-
-type K('a1,'a2) = A('a1) * (B('a2) + 'a1)
+type A('a1) : 'a1
+type B('a1) : 'a1
 type M2('a1) = [0,1] * 'a1
 
-type CN2('a1,'a2) = K(A('a1),'a2) + M2(B('a2))
+type CN3('a1,'a2) = M2(A('a1) + B('a2))
 ```
 
 Program output:
 ```
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
-B: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
-C: {0 ↦ ⊥, 1 ↦ A.1 ⊓ C.1}
-K: {0 ↦ ⊥, 1 ↦ ⊤, 2 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
+B: {0 ↦ ⊥, 1 ↦ B.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
-CN2: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
+CN3: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.161 ms, Infer4: 0.118 ms, Infer5: 0.132 ms, Infer6: 0.068 ms
+Timing: Infer2: 0.098 ms, Infer4: 0.072 ms, Infer5: 0.069 ms, Infer6: 0.038 ms
+```
+
+## cn_mix.types
+
+```
+type A('a1) : 'a1
+type My('a1) = [0,1] * 'a1
+
+type CNmix('a1,'a2) = A('a1) + My('a2)
+```
+
+Program output:
+```
+Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+A: {0 ↦ ⊥, 1 ↦ A.1}
+My: {0 ↦ [0,1], 1 ↦ [2,0]}
+CNmix: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0]}
+
+Timing: Infer2: 0.058 ms, Infer4: 0.043 ms, Infer5: 0.041 ms, Infer6: 0.025 ms
+```
+
+## cn_novar.types
+
+```
+type A('a1) : 'a1
+type M2('a1) = [0,1] * 'a1
+
+type CN0('a1,'a2) = A('a1) + M2(unit)
+```
+
+Program output:
+```
+Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+A: {0 ↦ ⊥, 1 ↦ A.1}
+M2: {0 ↦ [0,1], 1 ↦ [2,0]}
+CN0: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
+
+Timing: Infer2: 0.053 ms, Infer4: 0.042 ms, Infer5: 0.036 ms, Infer6: 0.024 ms
+```
+
+## cn_simple.types
+
+```
+type A('a1) = 'a1
+```
+
+Program output:
+```
+Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+A: {0 ↦ ⊥, 1 ↦ ⊤}
+
+Timing: Infer2: 0.019 ms, Infer4: 0.013 ms, Infer5: 0.009 ms, Infer6: 0.009 ms
 ```
 
 ## cn2_min1.types
@@ -156,7 +201,7 @@ CN2A: {0 ↦ ⊥, 1 ↦ A.1, 2 ↦ B.1}
 CN2B: {0 ↦ [0,1], 1 ↦ ⊥, 2 ↦ [2,0] ⊓ B.1}
 CN2: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.183 ms, Infer4: 0.152 ms, Infer5: 0.132 ms, Infer6: 0.066 ms
+Timing: Infer2: 0.182 ms, Infer4: 0.136 ms, Infer5: 0.137 ms, Infer6: 0.065 ms
 ```
 
 ## cn2_min2.types
@@ -179,80 +224,35 @@ B: {0 ↦ ⊥, 1 ↦ B.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.079 ms, Infer4: 0.061 ms, Infer5: 0.058 ms, Infer6: 0.032 ms
+Timing: Infer2: 0.075 ms, Infer4: 0.058 ms, Infer5: 0.057 ms, Infer6: 0.031 ms
 ```
 
-## cn_chain.types
+## cn2.types
 
 ```
-type A('a1) : 'a1
-type B('a1) : 'a1
+# Minimal repro for CN2 discrepancy
+
+type A('a1) : B('a1) @@ [1,0] + 'a1
+type B('a1) : C('a1) @@ [0,1]
+type C('a1) : A('a1)
+
+type K('a1,'a2) = A('a1) * (B('a2) + 'a1)
 type M2('a1) = [0,1] * 'a1
 
-type CN3('a1,'a2) = M2(A('a1) + B('a2))
+type CN2('a1,'a2) = K(A('a1),'a2) + M2(B('a2))
 ```
 
 Program output:
 ```
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
-B: {0 ↦ ⊥, 1 ↦ B.1}
+B: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
+C: {0 ↦ ⊥, 1 ↦ A.1 ⊓ C.1}
+K: {0 ↦ ⊥, 1 ↦ ⊤, 2 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
-CN3: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
+CN2: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
 
-Timing: Infer2: 0.080 ms, Infer4: 0.062 ms, Infer5: 0.059 ms, Infer6: 0.032 ms
-```
-
-## cn_mix.types
-
-```
-type A('a1) : 'a1
-type My('a1) = [0,1] * 'a1
-
-type CNmix('a1,'a2) = A('a1) + My('a2)
-```
-
-Program output:
-```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
-A: {0 ↦ ⊥, 1 ↦ A.1}
-My: {0 ↦ [0,1], 1 ↦ [2,0]}
-CNmix: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0]}
-
-Timing: Infer2: 0.057 ms, Infer4: 0.042 ms, Infer5: 0.048 ms, Infer6: 0.025 ms
-```
-
-## cn_novar.types
-
-```
-type A('a1) : 'a1
-type M2('a1) = [0,1] * 'a1
-
-type CN0('a1,'a2) = A('a1) + M2(unit)
-```
-
-Program output:
-```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
-A: {0 ↦ ⊥, 1 ↦ A.1}
-M2: {0 ↦ [0,1], 1 ↦ [2,0]}
-CN0: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
-
-Timing: Infer2: 0.060 ms, Infer4: 0.049 ms, Infer5: 0.043 ms, Infer6: 0.027 ms
-```
-
-## cn_simple.types
-
-```
-type A('a1) = 'a1
-```
-
-Program output:
-```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
-A: {0 ↦ ⊥, 1 ↦ ⊤}
-
-Timing: Infer2: 0.014 ms, Infer4: 0.009 ms, Infer5: 0.007 ms, Infer6: 0.007 ms
+Timing: Infer2: 0.298 ms, Infer4: 0.155 ms, Infer5: 0.156 ms, Infer6: 0.091 ms
 ```
 
 ## cyclic.types
@@ -272,7 +272,7 @@ L: {0 ↦ ⊥, 1 ↦ L.1}
 Nested: {0 ↦ ⊥, 1 ↦ Nested.1}
 Annot: {0 ↦ ⊥, 1 ↦ [1,0] ⊓ Annot.1}
 
-Timing: Infer2: 0.051 ms, Infer4: 0.037 ms, Infer5: 0.034 ms, Infer6: 0.024 ms
+Timing: Infer2: 0.053 ms, Infer4: 0.039 ms, Infer5: 0.036 ms, Infer6: 0.024 ms
 ```
 
 ## discrepancy_hunt.types
@@ -455,7 +455,7 @@ CAX: {0 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.0) ⊔ ([1,0] ⊓ CAX.0 ⊓ CCX.1), 1 ↦ C
 CBX: {0 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.0) ⊔ ([1,0] ⊓ CAX.0 ⊓ CCX.1), 1 ↦ ⊤}
 CCX: {0 ↦ [1,0] ⊓ CAX.0 ⊓ CCX.0, 1 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.1) ⊔ ([1,0] ⊓ CAX.1 ⊓ CCX.1)}
 
-Timing: Infer2: 1.685 ms, Infer4: 1.367 ms, Infer5: 1.669 ms, Infer6: 1.447 ms
+Timing: Infer2: 1.677 ms, Infer4: 1.388 ms, Infer5: 2.003 ms, Infer6: 1.102 ms
 ```
 
 ## easy.types
@@ -469,7 +469,7 @@ Program output:
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.015 ms, Infer4: 0.010 ms, Infer5: 0.009 ms, Infer6: 0.009 ms
+Timing: Infer2: 0.015 ms, Infer4: 0.010 ms, Infer5: 0.009 ms, Infer6: 0.010 ms
 ```
 
 ## experiments.types
@@ -488,7 +488,7 @@ list: {0 ↦ ⊥, 1 ↦ list.1}
 rose: {0 ↦ ⊥, 1 ↦ list.1}
 lily: {0 ↦ ⊥, 1 ↦ ⊥}
 
-Timing: Infer2: 0.067 ms, Infer4: 0.048 ms, Infer5: 0.057 ms, Infer6: 0.031 ms
+Timing: Infer2: 0.067 ms, Infer4: 0.048 ms, Infer5: 0.067 ms, Infer6: 0.031 ms
 ```
 
 ## experiments2.types
@@ -507,7 +507,7 @@ list: {0 ↦ [0,1] ⊓ list.0, 1 ↦ list.1}
 rose: {0 ↦ [0,1] ⊓ list.0, 1 ↦ list.1}
 lily: {0 ↦ [0,1] ⊓ list.0, 1 ↦ ⊥}
 
-Timing: Infer2: 0.084 ms, Infer4: 0.058 ms, Infer5: 0.079 ms, Infer6: 0.040 ms
+Timing: Infer2: 0.078 ms, Infer4: 0.051 ms, Infer5: 0.073 ms, Infer6: 0.040 ms
 ```
 
 ## fh.types
@@ -561,7 +561,7 @@ W: {0 ↦ [0,1] ⊓ U.0 ⊓ W.0, 1 ↦ [0,1] ⊓ U.2 ⊓ W.1}
 C1: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ ⊤}
 C2: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1) ⊔ [1,0]}
 
-Timing: Infer2: 0.443 ms, Infer4: 0.362 ms, Infer5: 0.321 ms, Infer6: 0.209 ms
+Timing: Infer2: 0.451 ms, Infer4: 0.363 ms, Infer5: 0.324 ms, Infer6: 0.210 ms
 ```
 
 ## hunt.types
@@ -578,7 +578,7 @@ Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 A: {0 ↦ [0,1], 1 ↦ [2,0]}
 B: {0 ↦ [0,1], 1 ↦ [2,0], 2 ↦ [2,0]}
 
-Timing: Infer2: 0.037 ms, Infer4: 0.030 ms, Infer5: 0.028 ms, Infer6: 0.019 ms
+Timing: Infer2: 0.037 ms, Infer4: 0.030 ms, Infer5: 0.030 ms, Infer6: 0.019 ms
 ```
 
 ## list_sum_pair.types
@@ -592,7 +592,7 @@ Program output:
 Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.022 ms, Infer4: 0.015 ms, Infer5: 0.014 ms, Infer6: 0.013 ms
+Timing: Infer2: 0.020 ms, Infer4: 0.016 ms, Infer5: 0.013 ms, Infer6: 0.014 ms
 ```
 
 ## modalities.types
@@ -669,7 +669,7 @@ list2_outer: {0 ↦ ([1,0] ⊓ cons.0) ⊔ ([1,0] ⊓ nil.0), 1 ↦ [1,0] ⊓ co
 modal_plus: {0 ↦ [1,0], 1 ↦ ⊤}
 modal_pair: {0 ↦ [1,0], 1 ↦ ⊤}
 
-Timing: Infer2: 0.392 ms, Infer4: 0.635 ms, Infer5: 0.383 ms, Infer6: 0.231 ms
+Timing: Infer2: 0.402 ms, Infer4: 0.341 ms, Infer5: 0.321 ms, Infer6: 0.176 ms
 ```
 
 ## modals.types
@@ -685,7 +685,7 @@ Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 foo: {0 ↦ [1,1]}
 bar: {0 ↦ [1,0]}
 
-Timing: Infer2: 0.038 ms, Infer4: 0.097 ms, Infer5: 0.185 ms, Infer6: 0.027 ms
+Timing: Infer2: 0.027 ms, Infer4: 0.021 ms, Infer5: 0.017 ms, Infer6: 0.024 ms
 ```
 
 ## mutual.types
@@ -704,7 +704,7 @@ cons: {0 ↦ cons.0, 1 ↦ cons.1}
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
 
-Timing: Infer2: 0.101 ms, Infer4: 0.066 ms, Infer5: 0.097 ms, Infer6: 0.042 ms
+Timing: Infer2: 0.085 ms, Infer4: 0.056 ms, Infer5: 0.050 ms, Infer6: 0.026 ms
 ```
 
 ## portable.types
@@ -727,7 +727,7 @@ lily: {0 ↦ portable.0, 1 ↦ portable.1}
 tulip: {0 ↦ portable.0, 1 ↦ ⊤}
 orchid: {0 ↦ portable.0, 1 ↦ portable.1}
 
-Timing: Infer2: 0.138 ms, Infer4: 0.095 ms, Infer5: 0.139 ms, Infer6: 0.062 ms
+Timing: Infer2: 0.130 ms, Infer4: 0.092 ms, Infer5: 0.122 ms, Infer6: 0.060 ms
 ```
 
 ## ref.types
@@ -745,7 +745,7 @@ portended: {0 ↦ portended.0, 1 ↦ portended.1}
 ref: {0 ↦ ref.0, 1 ↦ ref.1}
 foo: {0 ↦ portended.0 ⊔ (portended.1 ⊓ ref.0), 1 ↦ portended.1 ⊓ ref.1}
 
-Timing: Infer2: 0.065 ms, Infer4: 0.040 ms, Infer5: 0.044 ms, Infer6: 0.023 ms
+Timing: Infer2: 0.065 ms, Infer4: 0.044 ms, Infer5: 0.042 ms, Infer6: 0.024 ms
 ```
 
 ## rose_sum_pair.types
@@ -763,7 +763,7 @@ list: {0 ↦ ⊥, 1 ↦ ⊤}
 rose: {0 ↦ ⊥, 1 ↦ ⊥}
 lily: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.069 ms, Infer4: 0.076 ms, Infer5: 0.059 ms, Infer6: 0.034 ms
+Timing: Infer2: 0.065 ms, Infer4: 0.052 ms, Infer5: 0.057 ms, Infer6: 0.032 ms
 ```
 
 ## simple_example.types
@@ -780,7 +780,7 @@ Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
 foo: {0 ↦ foo.0}
 bar: {0 ↦ foo.0}
 
-Timing: Infer2: 0.024 ms, Infer4: 0.011 ms, Infer5: 0.011 ms, Infer6: 0.010 ms
+Timing: Infer2: 0.020 ms, Infer4: 0.011 ms, Infer5: 0.011 ms, Infer6: 0.009 ms
 ```
 
 ## zipper.types
@@ -803,5 +803,5 @@ list: {0 ↦ cons.0, 1 ↦ cons.1}
 ctx: {0 ↦ down.0, 1 ↦ down.1}
 zipper: {0 ↦ cons.0 ⊔ down.0, 1 ↦ cons.1 ⊔ down.1}
 
-Timing: Infer2: 0.125 ms, Infer4: 0.090 ms, Infer5: 0.108 ms, Infer6: 0.055 ms
+Timing: Infer2: 0.124 ms, Infer4: 0.101 ms, Infer5: 0.109 ms, Infer6: 0.057 ms
 ```

@@ -6,7 +6,10 @@ let read_file path =
   s
 
 let () =
-  let usage = "Usage: jkinds <typedef-file> [--max-iters N] [--bench N]" in
+  let usage =
+    "Usage: jkinds <typedef-file> [--max-iters N] [--bench N] [--bench-timeout \
+     SECONDS]"
+  in
   let argc = Array.length Sys.argv in
   if argc < 2 then (
     prerr_endline usage;
@@ -30,21 +33,60 @@ let () =
     in
     loop 2 None
   in
+  let bench_timeout_s =
+    let rec loop i acc =
+      if i + 1 < argc && Sys.argv.(i) = "--bench-timeout" then
+        Some (int_of_string Sys.argv.(i + 1))
+      else if i + 1 < argc then loop (i + 1) acc
+      else acc
+    in
+    loop 2 None
+  in
   let content = read_file file in
   let prog = Jkinds_lib.Decl_parser.parse_program_exn content in
   let _unused = max_iters in
   (* keep flag accepted to avoid breaking scripts *)
   match bench_runs with
   | Some n ->
+    (* Optional per-run timeout via SIGALRM/Unix.alarm *)
+    let timed_out = ref 0 in
+    let old_handler =
+      Sys.signal Sys.sigalrm (Sys.Signal_handle (fun _ -> raise Exit))
+    in
+    let cancel_alarm () = ignore (Unix.alarm 0) in
+    let with_timeout f =
+      (match bench_timeout_s with
+      | Some s when s > 0 -> ignore (Unix.alarm s)
+      | _ -> ());
+      try
+        let r = f () in
+        cancel_alarm ();
+        r
+      with
+      | Exit ->
+        incr timed_out;
+        cancel_alarm ()
+      | exn ->
+        (* Cancel alarm and re-raise unexpected exceptions *)
+        cancel_alarm ();
+        raise exn
+    in
     let t0 = Unix.gettimeofday () in
     for _i = 1 to n do
-      ignore (Jkinds_lib.Infer6.run_program prog)
+      with_timeout (fun () -> ignore (Jkinds_lib.Infer6.run_program prog))
     done;
+    (* Restore old signal handler *)
+    ignore (Sys.signal Sys.sigalrm old_handler);
     let t1 = Unix.gettimeofday () in
     let total_ms = (t1 -. t0) *. 1000.0 in
     let avg_ms = total_ms /. float_of_int n in
     Printf.printf "Bench: Infer6 x %d -> total %.3f ms, avg %.3f ms\n" n
       total_ms avg_ms;
+    (match !timed_out with
+    | 0 -> ()
+    | k ->
+      Printf.printf "Timeouts: %d/%d (per-run %s s)\n" k n
+        (match bench_timeout_s with Some s -> string_of_int s | None -> "-"));
     (* Print global counters, sorted by name *)
     let items = Jkinds_lib.Global_counters.counters () in
     let items = List.sort (fun (a, _) (b, _) -> String.compare a b) items in

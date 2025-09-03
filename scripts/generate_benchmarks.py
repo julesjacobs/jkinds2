@@ -320,6 +320,95 @@ def gen_dense_cross_types_concrete_dag(n_types: int = 200, arity: int = 2) -> st
 
     return "".join(lines)
 
+def _gen_dense_cross_common(n_types: int, arity: int, *, op_selector, name_prefix: str, dag: bool) -> str:
+    assert arity in (2, 3)
+    dag_sfx = ", DAG" if dag else ""
+    lines = [w(f"# Dense cross-referencing ({name_prefix}{dag_sfx}): {n_types} types, arity {arity}")]
+    params = ",".join(f"'a{i}" for i in range(1, arity + 1))
+
+    def pname(i: int) -> str:
+        return f"DX{name_prefix[0].upper()}{i}"
+
+    def args(order: tuple[int, ...] | None = None) -> str:
+        if order is None:
+            order = tuple(range(1, arity + 1))
+        return ",".join(f"'a{i}" for i in order)
+
+    for i in range(n_types):
+        if dag and i == 0:
+            if arity == 2:
+                rhs = "('a1 @@ [1,0]) + ('a2 @@ [0,1])"
+            else:
+                rhs = "('a1 @@ [1,0]) + ('a2 @@ [0,1]) + ('a3 @@ [1,1])"
+            op = op_selector(i)
+            lines.append(w(f"type {pname(i)}({params}) {op} {rhs}"))
+            continue
+
+        if dag:
+            j1 = max(0, i - 1)
+            j2 = max(0, i - 3)
+            j3 = max(0, i // 2)
+        else:
+            j1 = (i + 1) % n_types
+            j2 = (i + 7) % n_types
+            j3 = (i * 5 + 3) % n_types
+
+        t1 = f"{pname(j1)}({args(tuple(range(arity, 0, -1)))}) @@ [1,0]"
+        if arity == 2:
+            t2 = f"({pname(j2)}({args()}) * 'a1)"
+            # choose a simple cross term for stability across categories
+            t3 = f"({pname(j3)}({pname(j1)}({args()}),'a2))"
+            t4 = "'a2 @@ [0,1]"
+        else:
+            t2 = f"({pname(j2)}({args()}) * 'a1)"
+            t3 = f"({pname(j3)}({pname(j1)}({args()}),'a2,'a3))"
+            t4 = "('a2 @@ [0,1]) + ('a3 @@ [1,0])"
+
+        if i % 4 == 0:
+            t2 = f"({t2} @@ [0,1])"
+
+        rhs = " + ".join([t1, t2, t3, t4])
+        op = op_selector(i)
+        lines.append(w(f"type {pname(i)}({params}) {op} {rhs}"))
+
+    return "".join(lines)
+
+def gen_dense_cross_types_abstract(n_types: int = 200, arity: int = 2) -> str:
+    return _gen_dense_cross_common(
+        n_types,
+        arity,
+        op_selector=lambda _i: ":",
+        name_prefix="abstract only",
+        dag=False,
+    )
+
+def gen_dense_cross_types_abstract_dag(n_types: int = 200, arity: int = 2) -> str:
+    return _gen_dense_cross_common(
+        n_types,
+        arity,
+        op_selector=lambda _i: ":",
+        name_prefix="abstract only",
+        dag=True,
+    )
+
+def gen_dense_cross_types_mixed(n_types: int = 200, arity: int = 2) -> str:
+    return _gen_dense_cross_common(
+        n_types,
+        arity,
+        op_selector=lambda i: "=" if (i % 2 == 0) else ":",
+        name_prefix="mixed",
+        dag=False,
+    )
+
+def gen_dense_cross_types_mixed_dag(n_types: int = 200, arity: int = 2) -> str:
+    return _gen_dense_cross_common(
+        n_types,
+        arity,
+        op_selector=lambda i: "=" if (i % 2 == 0) else ":",
+        name_prefix="mixed",
+        dag=True,
+    )
+
 def main() -> None:
     ensure_dir()
 
@@ -338,6 +427,24 @@ def main() -> None:
         "bench_dense_cross_concrete.types": gen_dense_cross_types_concrete(35, 2),
         "bench_dense_cross_concrete_100_dag.types": gen_dense_cross_types_concrete_dag(100, 2),
         "bench_dense_cross_concrete_100.types": gen_dense_cross_types_concrete(100, 2),
+        "bench_dense_cross_concrete_200.types": gen_dense_cross_types_concrete(200, 2),
+        "bench_dense_cross_abstract_100.types": gen_dense_cross_types_abstract(100, 2),
+        "bench_dense_cross_abstract_100_dag.types": gen_dense_cross_types_abstract_dag(100, 2),
+        "bench_dense_cross_mixed_100.types": gen_dense_cross_types_mixed(100, 2),
+        "bench_dense_cross_mixed_100_dag.types": gen_dense_cross_types_mixed_dag(100, 2),
+        # Smaller variants for heavy cases
+        "bench_dense_cross_abstract_50.types": gen_dense_cross_types_abstract(50, 2),
+        "bench_dense_cross_abstract_50_dag.types": gen_dense_cross_types_abstract_dag(50, 2),
+        "bench_dense_cross_mixed_50.types": gen_dense_cross_types_mixed(50, 2),
+        "bench_dense_cross_mixed_50_dag.types": gen_dense_cross_types_mixed_dag(50, 2),
+        "bench_dense_cross_abstract_30.types": gen_dense_cross_types_abstract(30, 2),
+        "bench_dense_cross_abstract_30_dag.types": gen_dense_cross_types_abstract_dag(30, 2),
+        "bench_dense_cross_mixed_30.types": gen_dense_cross_types_mixed(30, 2),
+        "bench_dense_cross_mixed_30_dag.types": gen_dense_cross_types_mixed_dag(30, 2),
+        # Abstract non-DAG reduced to 20
+        "bench_dense_cross_abstract_20.types": gen_dense_cross_types_abstract(20, 2),
+        # Abstract non-DAG reduced further to 15
+        "bench_dense_cross_abstract_15.types": gen_dense_cross_types_abstract(15, 2),
     }
 
     for name, body in files.items():

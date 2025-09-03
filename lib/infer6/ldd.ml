@@ -404,19 +404,62 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       var.state <- Solved (restrict1 var rhs_forced);
       NodeTbl.clear memo_force
 
-  (* Enqued gfps *)
-  let gfp_queue = Stack.create ()
+  (* Pending queues: configurable FIFO (Queue) or LIFO (Stack) ordering. *)
+  type 'a pending = PStack of 'a Stack.t | PQueue of 'a Queue.t
+
+  let parse_bool_env var ~default =
+    match Sys.getenv_opt var with
+    | Some s ->
+      let s = String.lowercase_ascii s in
+      s = "1" || s = "true" || s = "yes"
+    | None -> default
+
+  let use_fifo_default = parse_bool_env "JKINDS_LDD_FIFO" ~default:false
+
+  let use_fifo_lfp =
+    parse_bool_env "JKINDS_LDD_LFP_FIFO" ~default:use_fifo_default
+
+  let use_fifo_gfp =
+    parse_bool_env "JKINDS_LDD_GFP_FIFO" ~default:use_fifo_default
+
+  let make_pending use_fifo =
+    if use_fifo then PQueue (Queue.create ()) else PStack (Stack.create ())
+
+  let pending_is_empty = function
+    | PStack s -> Stack.is_empty s
+    | PQueue q -> Queue.is_empty q
+
+  let pending_push p x =
+    match p with PStack s -> Stack.push x s | PQueue q -> Queue.add x q
+
+  let pending_pop p =
+    match p with PStack s -> Stack.pop s | PQueue q -> Queue.take q
+
+  let lfp_queue : (var * node) pending = make_pending use_fifo_lfp
+  let gfp_queue : (var * node) pending = make_pending use_fifo_gfp
+
+  let enqueue_lfp (var : var) (rhs_raw : node) : unit =
+    pending_push lfp_queue (var, rhs_raw)
 
   let enqueue_gfp (var : var) (rhs_raw : node) : unit =
-    Stack.push (var, rhs_raw) gfp_queue
+    pending_push gfp_queue (var, rhs_raw)
+
+  let solve_pending_lfps () : unit =
+    while not (pending_is_empty lfp_queue) do
+      let var, rhs_raw = pending_pop lfp_queue in
+      solve_lfp var rhs_raw
+    done
 
   let solve_pending_gfps () : unit =
-    while not (Stack.is_empty gfp_queue) do
-      let var, rhs_raw = Stack.pop gfp_queue in
+    while not (pending_is_empty gfp_queue) do
+      let var, rhs_raw = pending_pop gfp_queue in
       solve_gfp var rhs_raw
     done
 
-  let solve_pending () : unit = solve_pending_gfps ()
+  let solve_pending () : unit =
+    (* Solve all pending LFPs first, then GFPs. *)
+    solve_pending_lfps ();
+    solve_pending_gfps ()
 
   (* Decompose into linear terms *)
   let decompose_linear ~(universe : var list) (n : node) =
