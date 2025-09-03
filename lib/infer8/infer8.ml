@@ -35,24 +35,24 @@ let kind_of (c : Type_parser.cyclic) : JK.ckind =
     ops.constr name arg_kinds
   | CVar _ -> ops.rigid c
 
+let lookup table (name : string) : JK.constr_decl =
+  match List.assoc_opt name table with
+  | None -> failwith ("infer8: unknown constructor " ^ name)
+  | Some it ->
+    let args = it.params in
+    let kind : JK.ckind = fun ops -> ops.kind_of it.rhs_cyclic in
+    let decl : JK.constr_decl = Ty { args; kind; abstract = it.abstract } in
+    decl
+
 let env_of_program (prog : program) : env =
   let table =
     List.fold_left (fun acc (it : decl_item) -> (it.name, it) :: acc) [] prog
   in
-  let lookup (name : string) : JK.constr_decl =
-    match List.assoc_opt name table with
-    | None -> failwith ("infer8: unknown constructor " ^ name)
-    | Some it ->
-      let args = it.params in
-      let kind : JK.ckind = fun ops -> ops.kind_of it.rhs_cyclic in
-      let decl : JK.constr_decl = Ty { args; kind; abstract = it.abstract } in
-      decl
-  in
-  { lookup; kind_of }
+  { lookup = lookup table; kind_of }
 
 let run_program (prog : Decl_parser.program) : string =
   let env = env_of_program prog in
-  let solver = JK.make_solver env in
+  let solver = JK.make_normalizer env in
   prog
   |> List.map (fun (it : Decl_parser.decl_item) ->
          let base_poly, coeffs = JK.constr_kind_poly solver it.name in

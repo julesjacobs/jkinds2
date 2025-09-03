@@ -33,6 +33,15 @@ let () =
     in
     loop 2 None
   in
+  let bench_solver =
+    let rec loop i acc =
+      if i + 1 < argc && Sys.argv.(i) = "--bench-solver" then
+        Some (String.lowercase_ascii Sys.argv.(i + 1))
+      else if i + 1 < argc then loop (i + 1) acc
+      else acc
+    in
+    loop 2 None
+  in
   let bench_timeout_s =
     let rec loop i acc =
       if i + 1 < argc && Sys.argv.(i) = "--bench-timeout" then
@@ -72,15 +81,26 @@ let () =
         raise exn
     in
     let t0 = Unix.gettimeofday () in
+    (* choose solver to bench; default Infer6 *)
+    let bench_fn : unit -> unit =
+      match bench_solver with
+      | Some "infer8" -> fun () -> ignore (Jkinds_lib.Infer8.run_program prog)
+      | _ -> fun () -> ignore (Jkinds_lib.Infer6.run_program prog)
+    in
     for _i = 1 to n do
-      with_timeout (fun () -> ignore (Jkinds_lib.Infer6.run_program prog))
+      with_timeout (fun () -> bench_fn ())
     done;
     (* Restore old signal handler *)
     ignore (Sys.signal Sys.sigalrm old_handler);
     let t1 = Unix.gettimeofday () in
     let total_ms = (t1 -. t0) *. 1000.0 in
     let avg_ms = total_ms /. float_of_int n in
-    Printf.printf "Bench: Infer6 x %d -> total %.3f ms, avg %.3f ms\n" n
+    let solver_name =
+      match bench_solver with
+      | Some s -> if s = "infer8" then "Infer8" else "Infer6"
+      | None -> "Infer6"
+    in
+    Printf.printf "Bench: %s x %d -> total %.3f ms, avg %.3f ms\n" solver_name n
       total_ms avg_ms;
     (match !timed_out with
     | 0 -> ()
