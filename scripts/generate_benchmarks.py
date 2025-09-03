@@ -222,6 +222,104 @@ def gen_dense_cross_types_simple(n_types: int = 200, arity: int = 2) -> str:
 
     return "".join(lines)
 
+def gen_dense_cross_types_concrete(n_types: int = 200, arity: int = 2) -> str:
+    """Concrete-only variant of dense cross-referencing types.
+
+    Mirrors gen_dense_cross_types but uses only concrete declarations (=).
+    """
+    assert arity in (2, 3)
+    lines = [w(f"# Dense cross-referencing (concrete only): {n_types} types, arity {arity}")]
+    params = ",".join(f"'a{i}" for i in range(1, arity + 1))
+
+    def pname(i: int) -> str:
+        return f"DXC{i}"
+
+    def args(order: tuple[int, ...] | None = None) -> str:
+        if order is None:
+            order = tuple(range(1, arity + 1))
+        return ",".join(f"'a{i}" for i in order)
+
+    for i in range(n_types):
+        j1 = (i + 1) % n_types
+        j2 = (i + 7) % n_types
+        j3 = (i * 5 + 3) % n_types
+
+        # Build 3–4 small terms mixing patterns (same as dense variant)
+        t1 = f"{pname(j1)}({args(tuple(range(arity, 0, -1)))}) @@ [1,0]"
+        if arity == 2:
+            t2 = f"({pname(j2)}({args()}) * 'a1)"
+            t3 = f"({pname(j3)}({pname(j1)}({args()}),'a2))"
+            t4 = "'a2 @@ [0,1]"
+        else:  # arity == 3
+            t2 = f"({pname(j2)}({args()}) * 'a1)"
+            t3 = f"({pname(j3)}({pname(j1)}({args()}),'a2,'a3))"
+            t4 = "('a2 @@ [0,1]) + ('a3 @@ [1,0])"
+
+        # Occasionally wrap with an extra modality
+        if i % 4 == 0:
+            t2 = f"({t2} @@ [0,1])"
+
+        rhs_terms = [t1, t2, t3, t4]
+        rhs = " + ".join(rhs_terms)
+        lines.append(w(f"type {pname(i)}({params}) = {rhs}"))
+
+    return "".join(lines)
+
+def gen_dense_cross_types_concrete_dag(n_types: int = 200, arity: int = 2) -> str:
+    """Concrete-only dense cross-ref, but DAG: each type i only references < i.
+
+    This ensures an acyclic dependency graph while keeping RHS expressions
+    similar in size/shape to the dense variants.
+    """
+    assert arity in (2, 3)
+    lines = [
+        w(
+            f"# Dense cross-referencing (concrete only, DAG): {n_types} types, arity {arity}"
+        )
+    ]
+    params = ",".join(f"'a{i}" for i in range(1, arity + 1))
+
+    def pname(i: int) -> str:
+        return f"DXD{i}"
+
+    def args(order: tuple[int, ...] | None = None) -> str:
+        if order is None:
+            order = tuple(range(1, arity + 1))
+        return ",".join(f"'a{i}" for i in order)
+
+    for i in range(n_types):
+        if i == 0:
+            # Base case can't reference previous types; just use params/modality
+            if arity == 2:
+                rhs = "('a1 @@ [1,0]) + ('a2 @@ [0,1])"
+            else:  # arity == 3
+                rhs = "('a1 @@ [1,0]) + ('a2 @@ [0,1]) + ('a3 @@ [1,1])"
+            lines.append(w(f"type {pname(i)}({params}) = {rhs}"))
+            continue
+
+        j1 = i - 1
+        j2 = max(0, i - 3)
+        j3 = max(0, i // 2)
+
+        t1 = f"{pname(j1)}({args(tuple(range(arity, 0, -1)))}) @@ [1,0]"
+        if arity == 2:
+            t2 = f"({pname(j2)}({args()}) * 'a1)"
+            t3 = f"({pname(j3)}({pname(j1)}({args()}),'a2))"
+            t4 = "'a2 @@ [0,1]"
+        else:  # arity == 3
+            t2 = f"({pname(j2)}({args()}) * 'a1)"
+            t3 = f"({pname(j3)}({pname(j1)}({args()}),'a2,'a3))"
+            t4 = "('a2 @@ [0,1]) + ('a3 @@ [1,0])"
+
+        if i % 4 == 0:
+            t2 = f"({t2} @@ [0,1])"
+
+        rhs_terms = [t1, t2, t3, t4]
+        rhs = " + ".join(rhs_terms)
+        lines.append(w(f"type {pname(i)}({params}) = {rhs}"))
+
+    return "".join(lines)
+
 def main() -> None:
     ensure_dir()
 
@@ -237,6 +335,9 @@ def main() -> None:
         "bench_abstract_concrete_mix.types": gen_abstract_concrete_mix(),
         "bench_dense_cross.types": gen_dense_cross_types(35, 2),
         "bench_dense_cross_simple.types": gen_dense_cross_types_simple(35, 2),
+        "bench_dense_cross_concrete.types": gen_dense_cross_types_concrete(35, 2),
+        "bench_dense_cross_concrete_100_dag.types": gen_dense_cross_types_concrete_dag(100, 2),
+        "bench_dense_cross_concrete_100.types": gen_dense_cross_types_concrete(100, 2),
     }
 
     for name, body in files.items():
