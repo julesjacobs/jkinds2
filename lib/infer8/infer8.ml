@@ -52,7 +52,7 @@ let env_of_program (prog : program) : env =
 
 let run_program (prog : Decl_parser.program) : string =
   let env = env_of_program prog in
-  let solver = JK.make_normalizer env in
+  let solver = JK.make_solver env in
   prog
   |> List.map (fun (it : Decl_parser.decl_item) ->
          let base_poly, coeffs = JK.constr_kind_poly solver it.name in
