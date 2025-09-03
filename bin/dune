@@ -12,3 +12,8 @@
  (public_name print_cvars)
  (name print_cvars)
  (libraries jkinds_lib))
+
+(executable
+ (public_name report_kinds)
+ (name report_kinds)
+ (libraries jkinds_lib))

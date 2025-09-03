@@ -50,8 +50,18 @@ for f in "${FILES[@]}"; do
   # Ensure exactly one newline after program output
   if [ -n "$(tail -c1 "$TMP_OUT")" ]; then echo >>"$TMP_OUT"; fi
   echo '```' >>"$TMP_OUT"
+
+  # Extras: Infer6/Infer8 leq and round_up
+  {
+    echo
+    echo "Extras (Infer6/Infer8 leq and round_up):"
+    echo '```'
+  } >>"$TMP_OUT"
+  (cd "$ROOT_DIR" && dune exec --display=quiet -- ./bin/report_kinds.exe "$f") \
+    | sed -e :a -e '/^[[:space:]]*$/{$d;N;ba' -e '}' >>"$TMP_OUT"
+  if [ -n "$(tail -c1 "$TMP_OUT")" ]; then echo >>"$TMP_OUT"; fi
+  echo '```' >>"$TMP_OUT"
 done
 
 mv "$TMP_OUT" "$OUT_PATH"
 echo "Wrote report to $OUT_PATH"
-

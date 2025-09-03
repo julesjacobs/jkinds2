@@ -422,6 +422,9 @@ module Make (C : LATTICE) (V : ORDERED) = struct
   let use_fifo_gfp =
     parse_bool_env "JKINDS_LDD_GFP_FIFO" ~default:use_fifo_default
 
+  (* Optional lightweight profiling prints *)
+  let profile_enabled = parse_bool_env "JKINDS_LDD_PROFILE" ~default:false
+
   let make_pending use_fifo =
     if use_fifo then PQueue (Queue.create ()) else PStack (Stack.create ())
 
@@ -457,9 +460,16 @@ module Make (C : LATTICE) (V : ORDERED) = struct
     done
 
   let solve_pending () : unit =
-    (* Solve all pending LFPs first, then GFPs. *)
+    (* Solve all pending LFPs first, then GFPs, and print timings. *)
+    let t0 = Sys.time () in
     solve_pending_lfps ();
-    solve_pending_gfps ()
+    let t1 = Sys.time () in
+    solve_pending_gfps ();
+    let t2 = Sys.time () in
+    let lfp_ms = (t1 -. t0) *. 1000. in
+    let gfp_ms = (t2 -. t1) *. 1000. in
+    if profile_enabled then
+      Printf.printf "solve_pending: LFPs %.3f ms, GFPs %.3f ms\n" lfp_ms gfp_ms
 
   (* Decompose into linear terms *)
   let decompose_linear ~(universe : var list) (n : node) =

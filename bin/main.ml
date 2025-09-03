@@ -109,8 +109,16 @@ let () =
     let t3 = Unix.gettimeofday () in
     let out6 = Jkinds_lib.Infer6.run_program prog in
     let t4 = Unix.gettimeofday () in
+    let out8 = Jkinds_lib.Infer8.run_program prog in
+    let t5 = Unix.gettimeofday () in
     let items =
-      [ ("Infer2", out2); ("Infer4", out4); ("Infer5", out5); ("Infer6", out6) ]
+      [
+        ("Infer2", out2);
+        ("Infer4", out4);
+        ("Infer5", out5);
+        ("Infer6", out6);
+        ("Infer8", out8);
+      ]
     in
     let groups = ref [] in
     let add_group label text =
@@ -133,7 +141,8 @@ let () =
     let infer4_ms = msf (t2 -. t1) in
     let infer5_ms = msf (t3 -. t2) in
     let infer6_ms = msf (t4 -. t3) in
+    let infer8_ms = msf (t5 -. t4) in
     Printf.printf
       "Timing: Infer2: %.3f ms, Infer4: %.3f ms, Infer5: %.3f ms, Infer6: %.3f \
-       ms\n"
-      infer2_ms infer4_ms infer5_ms infer6_ms
+       ms, Infer8: %.3f ms\n"
+      infer2_ms infer4_ms infer5_ms infer6_ms infer8_ms

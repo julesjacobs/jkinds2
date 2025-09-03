@@ -14,7 +14,9 @@
   infer4
   infer5
   ldd
+  udd
   infer6
+  infer8
   wdd
   infer7
   type_parser
@@ -22,6 +24,8 @@
   type_lexer
   type_menhir_driver
   jkind_solver
+  ldd_jkind_solver
+  udd_jkind_solver
   decl_parser
   lattice_intf
   global_counters

@@ -1,6 +1,6 @@
 # jkinds Types Report
 
-Generated: 2025-09-03 14:55:52 UTC
+Generated: 2025-09-03 17:27:29 UTC
 
 ## abstracts.types
 
@@ -34,7 +34,7 @@ type G('a1) = [2,1] * 'a1
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 none: {0 ↦ none.0}
 some: {0 ↦ some.0, 1 ↦ some.1}
 leaf: {0 ↦ leaf.0}
@@ -53,7 +53,47 @@ H: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ H.1}
 F: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ [0,1] ⊓ F.1 ⊓ H.1}
 G: {0 ↦ ⊤, 1 ↦ ⊥}
 
-Timing: Infer2: 0.203 ms, Infer4: 0.208 ms, Infer5: 0.290 ms, Infer6: 0.101 ms
+Timing: Infer2: 0.258 ms, Infer4: 0.245 ms, Infer5: 0.294 ms, Infer6: 0.149 ms, Infer8: 0.122 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+none <=: [none, two, G]
+some <=: [some, two, G]
+leaf <=: [leaf, two, G]
+node <=: [node, two, G]
+foo <=: [foo, two, G]
+bar <=: [bar, two, G]
+baz <=: [baz, two, G]
+one <=: [one, two, G]
+two <=: [two, G]
+maybe <=: [two, maybe, G]
+wrap <=: [two, wrap, G]
+wrap2 <=: [two, wrap2, G]
+pairish <=: [two, pairish, G]
+treeA <=: [two, treeA, G]
+H <=: [two, H, G]
+F <=: [two, F, G]
+G <=: [two, G]
+ROUND_UP (Infer6 & Infer8)
+none: [2,1]
+some: [2,1]
+leaf: [2,1]
+node: [2,1]
+foo: [2,1]
+bar: [2,1]
+baz: [2,1]
+one: [2,1]
+two: [0,0]
+maybe: [2,1]
+wrap: [2,1]
+wrap2: [2,1]
+pairish: [2,1]
+treeA: [2,1]
+H: [2,1]
+F: [2,1]
+G: [0,0]
 ```
 
 ## benjamin.types
@@ -70,14 +110,30 @@ type bar('a1) = bar(t1('a1)) + bar(t2('a1)) + 'a1
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 t1: {0 ↦ t1.0, 1 ↦ t1.1}
 t2: {0 ↦ t2.0, 1 ↦ t2.1}
 foo1: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ t1.1 ⊓ t2.1}
 foo2: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ t1.1 ⊓ t2.1}
 bar: {0 ↦ t1.0 ⊔ t2.0, 1 ↦ ⊤}
 
-Timing: Infer2: 0.126 ms, Infer4: 0.089 ms, Infer5: 0.127 ms, Infer6: 0.061 ms
+Timing: Infer2: 0.154 ms, Infer4: 0.089 ms, Infer5: 0.144 ms, Infer6: 0.074 ms, Infer8: 0.077 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+t1 <=: [t1, foo1, foo2, bar]
+t2 <=: [t2, foo1, foo2, bar]
+foo1 <=: [foo1, foo2, bar]
+foo2 <=: [foo1, foo2, bar]
+bar <=: [foo1, foo2, bar]
+ROUND_UP (Infer6 & Infer8)
+t1: [2,1]
+t2: [2,1]
+foo1: [0,0]
+foo2: [0,0]
+bar: [0,0]
 ```
 
 ## btree.types
@@ -91,12 +147,24 @@ type btree('a1) = (leaf('a1) + node(btree('a1), btree('a1)))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 leaf: {0 ↦ leaf.0, 1 ↦ leaf.1}
 node: {0 ↦ node.0, 1 ↦ node.1, 2 ↦ node.2}
 btree: {0 ↦ leaf.0 ⊔ node.0, 1 ↦ leaf.1}
 
-Timing: Infer2: 0.081 ms, Infer4: 0.060 ms, Infer5: 0.079 ms, Infer6: 0.038 ms
+Timing: Infer2: 0.099 ms, Infer4: 0.071 ms, Infer5: 0.099 ms, Infer6: 0.055 ms, Infer8: 0.042 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+leaf <=: [leaf, btree]
+node <=: [node, btree]
+btree <=: [btree]
+ROUND_UP (Infer6 & Infer8)
+leaf: [2,1]
+node: [2,1]
+btree: [0,0]
 ```
 
 ## cn2.types
@@ -116,7 +184,7 @@ type CN2('a1,'a2) = K(A('a1),'a2) + M2(B('a2))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
 C: {0 ↦ ⊥, 1 ↦ A.1 ⊓ C.1}
@@ -124,7 +192,25 @@ K: {0 ↦ ⊥, 1 ↦ ⊤, 2 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN2: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
 
-Timing: Infer2: 0.161 ms, Infer4: 0.118 ms, Infer5: 0.132 ms, Infer6: 0.068 ms
+Timing: Infer2: 0.192 ms, Infer4: 0.144 ms, Infer5: 0.169 ms, Infer6: 0.103 ms, Infer8: 0.087 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+A <=: [A, K, M2, CN2]
+B <=: [B, K, M2, CN2]
+C <=: [C, K, M2, CN2]
+K <=: [K, M2, CN2]
+M2 <=: [K, M2, CN2]
+CN2 <=: [K, M2, CN2]
+ROUND_UP (Infer6 & Infer8)
+A: [2,1]
+B: [2,1]
+C: [2,1]
+K: [0,0]
+M2: [0,0]
+CN2: [0,0]
 ```
 
 ## cn2_min1.types
@@ -146,7 +232,7 @@ type CN2('a1,'a2) = CN2A('a1,'a2) + CN2B('a1,'a2)
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ B.1}
 C: {0 ↦ ⊥, 1 ↦ C.1}
@@ -156,7 +242,29 @@ CN2A: {0 ↦ ⊥, 1 ↦ A.1, 2 ↦ B.1}
 CN2B: {0 ↦ [0,1], 1 ↦ ⊥, 2 ↦ [2,0] ⊓ B.1}
 CN2: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.183 ms, Infer4: 0.152 ms, Infer5: 0.132 ms, Infer6: 0.066 ms
+Timing: Infer2: 0.227 ms, Infer4: 0.161 ms, Infer5: 0.145 ms, Infer6: 0.089 ms, Infer8: 0.077 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+A <=: [A, K, M2, CN2A, CN2B, CN2]
+B <=: [B, K, M2, CN2A, CN2B, CN2]
+C <=: [C, K, M2, CN2A, CN2B, CN2]
+K <=: [K, M2, CN2A, CN2B, CN2]
+M2 <=: [K, M2, CN2A, CN2B, CN2]
+CN2A <=: [K, M2, CN2A, CN2B, CN2]
+CN2B <=: [K, M2, CN2A, CN2B, CN2]
+CN2 <=: [K, M2, CN2A, CN2B, CN2]
+ROUND_UP (Infer6 & Infer8)
+A: [2,1]
+B: [2,1]
+C: [2,1]
+K: [0,0]
+M2: [0,0]
+CN2A: [0,0]
+CN2B: [0,0]
+CN2: [0,0]
 ```
 
 ## cn2_min2.types
@@ -173,13 +281,27 @@ type CN('a1,'a2) = A('a1) + M2(B('a2))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ B.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.079 ms, Infer4: 0.061 ms, Infer5: 0.058 ms, Infer6: 0.032 ms
+Timing: Infer2: 0.089 ms, Infer4: 0.067 ms, Infer5: 0.066 ms, Infer6: 0.048 ms, Infer8: 0.039 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+A <=: [A, M2, CN]
+B <=: [B, M2, CN]
+M2 <=: [M2, CN]
+CN <=: [M2, CN]
+ROUND_UP (Infer6 & Infer8)
+A: [2,1]
+B: [2,1]
+M2: [0,0]
+CN: [0,0]
 ```
 
 ## cn_chain.types
@@ -194,13 +316,27 @@ type CN3('a1,'a2) = M2(A('a1) + B('a2))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ B.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN3: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0] ⊓ B.1}
 
-Timing: Infer2: 0.080 ms, Infer4: 0.062 ms, Infer5: 0.059 ms, Infer6: 0.032 ms
+Timing: Infer2: 0.098 ms, Infer4: 0.073 ms, Infer5: 0.077 ms, Infer6: 0.050 ms, Infer8: 0.041 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+A <=: [A, M2, CN3]
+B <=: [B, M2, CN3]
+M2 <=: [M2, CN3]
+CN3 <=: [M2, CN3]
+ROUND_UP (Infer6 & Infer8)
+A: [2,1]
+B: [2,1]
+M2: [0,0]
+CN3: [0,0]
 ```
 
 ## cn_mix.types
@@ -214,12 +350,24 @@ type CNmix('a1,'a2) = A('a1) + My('a2)
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 My: {0 ↦ [0,1], 1 ↦ [2,0]}
 CNmix: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ [2,0]}
 
-Timing: Infer2: 0.057 ms, Infer4: 0.042 ms, Infer5: 0.048 ms, Infer6: 0.025 ms
+Timing: Infer2: 0.063 ms, Infer4: 0.046 ms, Infer5: 0.044 ms, Infer6: 0.040 ms, Infer8: 0.035 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+A <=: [A, My, CNmix]
+My <=: [My, CNmix]
+CNmix <=: [My, CNmix]
+ROUND_UP (Infer6 & Infer8)
+A: [2,1]
+My: [0,0]
+CNmix: [0,0]
 ```
 
 ## cn_novar.types
@@ -233,12 +381,24 @@ type CN0('a1,'a2) = A('a1) + M2(unit)
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 M2: {0 ↦ [0,1], 1 ↦ [2,0]}
 CN0: {0 ↦ [0,1], 1 ↦ [2,0] ⊓ A.1, 2 ↦ ⊥}
 
-Timing: Infer2: 0.060 ms, Infer4: 0.049 ms, Infer5: 0.043 ms, Infer6: 0.027 ms
+Timing: Infer2: 0.054 ms, Infer4: 0.040 ms, Infer5: 0.038 ms, Infer6: 0.038 ms, Infer8: 0.024 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+A <=: [A, M2, CN0]
+M2 <=: [M2, CN0]
+CN0 <=: [M2, CN0]
+ROUND_UP (Infer6 & Infer8)
+A: [2,1]
+M2: [0,0]
+CN0: [0,0]
 ```
 
 ## cn_simple.types
@@ -249,10 +409,18 @@ type A('a1) = 'a1
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.014 ms, Infer4: 0.009 ms, Infer5: 0.007 ms, Infer6: 0.007 ms
+Timing: Infer2: 0.015 ms, Infer4: 0.010 ms, Infer5: 0.007 ms, Infer6: 0.011 ms, Infer8: 0.006 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+A <=: [A]
+ROUND_UP (Infer6 & Infer8)
+A: [2,1]
 ```
 
 ## cyclic.types
@@ -267,12 +435,24 @@ type Annot('a1) : mu 'b1. (('a1 @@ [1,0]) + ('b1 @@ [0,1]))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 L: {0 ↦ ⊥, 1 ↦ L.1}
 Nested: {0 ↦ ⊥, 1 ↦ Nested.1}
 Annot: {0 ↦ ⊥, 1 ↦ [1,0] ⊓ Annot.1}
 
-Timing: Infer2: 0.051 ms, Infer4: 0.037 ms, Infer5: 0.034 ms, Infer6: 0.024 ms
+Timing: Infer2: 0.062 ms, Infer4: 0.047 ms, Infer5: 0.040 ms, Infer6: 0.036 ms, Infer8: 0.027 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+L <=: [L]
+Nested <=: [Nested]
+Annot <=: [Annot]
+ROUND_UP (Infer6 & Infer8)
+L: [2,1]
+Nested: [2,1]
+Annot: [2,1]
 ```
 
 ## discrepancy_hunt.types
@@ -398,7 +578,7 @@ type CCX('a1) : CAX('a1) @@ [1,0]
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ A.1}
 B: {0 ↦ ⊥, 1 ↦ [0,1] ⊓ A.1 ⊓ B.1 ⊓ C.1}
 C: {0 ↦ ⊥, 1 ↦ A.1 ⊓ C.1}
@@ -455,7 +635,123 @@ CAX: {0 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.0) ⊔ ([1,0] ⊓ CAX.0 ⊓ CCX.1), 1 ↦ C
 CBX: {0 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.0) ⊔ ([1,0] ⊓ CAX.0 ⊓ CCX.1), 1 ↦ ⊤}
 CCX: {0 ↦ [1,0] ⊓ CAX.0 ⊓ CCX.0, 1 ↦ ([1,0] ⊓ CAX.0 ⊓ CCX.1) ⊔ ([1,0] ⊓ CAX.1 ⊓ CCX.1)}
 
-Timing: Infer2: 1.685 ms, Infer4: 1.367 ms, Infer5: 1.669 ms, Infer6: 1.447 ms
+Timing: Infer2: 1.982 ms, Infer4: 1.766 ms, Infer5: 1.763 ms, Infer6: 1.289 ms, Infer8: 1.837 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+A <=: [A, K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+B <=: [B, K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+C <=: [C, K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+D <=: [D, K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+E <=: [E, K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+R <=: [R, K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+K <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+U1 <=: [K, U1, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+U2 <=: [K, U2, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+U3 <=: [K, U3, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+M1 <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+M2 <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+AC <=: [K, M1, M2, AC, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+PH <=: [K, M1, M2, PH, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+X1 <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+X2 <=: [K, M1, M2, X1, X2, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+S <=: [K, M1, M2, X1, S, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+T <=: [K, M1, M2, X1, T, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+U <=: [K, M1, M2, X1, U, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+Z1 <=: [K, M1, M2, X1, Z1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+DUP <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+SW <=: [K, M1, M2, X1, DUP, SW, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+ND1 <=: [K, M1, M2, X1, DUP, ND1, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+ND2 <=: [K, M1, M2, X1, DUP, ND2, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+ND3 <=: [K, M1, M2, X1, DUP, ND3, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+CN1 <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+CN2 <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+NestSTU <=: [K, M1, M2, X1, DUP, CN1, CN2, NestSTU, C3, PCX, PCY, CC, CC2, CC0, CBX]
+AnnNest <=: [K, M1, M2, X1, DUP, CN1, CN2, AnnNest, C3, PCX, PCY, CC, CC2, CC0, CBX]
+RecNest1 <=: [K, M1, M2, X1, DUP, CN1, CN2, RecNest1, C3, PCX, PCY, CC, CC2, CC0, CBX]
+RecNest2 <=: [K, M1, M2, X1, DUP, CN1, CN2, RecNest2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+MixNest <=: [K, M1, M2, X1, DUP, CN1, CN2, MixNest, C3, PCX, PCY, CC, CC2, CC0, CBX]
+A0 <=: [K, M1, M2, X1, DUP, CN1, CN2, A0, C3, PCX, PCY, CC, CC2, CC0, CBX]
+B0 <=: [K, M1, M2, X1, DUP, CN1, CN2, B0, C3, PCX, PCY, CC, CC2, CC0, CBX]
+Z3 <=: [K, M1, M2, X1, DUP, CN1, CN2, Z3, C3, PCX, PCY, CC, CC2, CC0, CBX]
+C3 <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+DupSelf <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, DupSelf, PCX, PCY, CC, CC2, CC0, CBX]
+PRF <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PRF, PCX, PCY, CC, CC2, CC0, CBX]
+PRE <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PRE, PCX, PCY, CC, CC2, CC0, CBX]
+PRC <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PRC, PCX, PCY, CC, CC2, CC0, CBX]
+PRD <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PRD, PCX, PCY, CC, CC2, CC0, CBX]
+PCX <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+PCY <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+PCZ <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, PCZ, CC, CC2, CC0, CBX]
+PRG <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, PRG, CC, CC2, CC0, CBX]
+PRH <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, PRH, CC, CC2, CC0, CBX]
+CA <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CA, CC, CC2, CC0, CBX]
+CC <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+CA2 <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CA2, CC2, CC0, CBX]
+CC2 <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+CA0 <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CA0, CC0, CBX]
+CC0 <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+CAX <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CAX, CBX]
+CBX <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX]
+CCX <=: [K, M1, M2, X1, DUP, CN1, CN2, C3, PCX, PCY, CC, CC2, CC0, CBX, CCX]
+ROUND_UP (Infer6 & Infer8)
+A: [2,1]
+B: [2,1]
+C: [2,1]
+D: [2,1]
+E: [2,1]
+R: [2,1]
+K: [0,0]
+U1: [2,1]
+U2: [2,1]
+U3: [2,1]
+M1: [0,0]
+M2: [0,0]
+AC: [2,1]
+PH: [2,1]
+X1: [0,0]
+X2: [2,1]
+S: [2,1]
+T: [2,1]
+U: [2,1]
+Z1: [2,1]
+DUP: [0,0]
+SW: [2,1]
+ND1: [2,1]
+ND2: [2,1]
+ND3: [2,1]
+CN1: [0,0]
+CN2: [0,0]
+NestSTU: [2,1]
+AnnNest: [2,1]
+RecNest1: [2,1]
+RecNest2: [2,1]
+MixNest: [2,1]
+A0: [2,1]
+B0: [2,1]
+Z3: [2,1]
+C3: [0,0]
+DupSelf: [2,1]
+PRF: [2,1]
+PRE: [2,1]
+PRC: [2,1]
+PRD: [2,1]
+PCX: [0,0]
+PCY: [0,0]
+PCZ: [2,1]
+PRG: [2,1]
+PRH: [2,1]
+CA: [2,1]
+CC: [0,0]
+CA2: [2,1]
+CC2: [0,0]
+CA0: [2,1]
+CC0: [0,0]
+CAX: [2,1]
+CBX: [0,0]
+CCX: [2,1]
 ```
 
 ## easy.types
@@ -466,10 +762,18 @@ type A('a1) = unit + 'a1
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 A: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.015 ms, Infer4: 0.010 ms, Infer5: 0.009 ms, Infer6: 0.009 ms
+Timing: Infer2: 0.019 ms, Infer4: 0.012 ms, Infer5: 0.010 ms, Infer6: 0.013 ms, Infer8: 0.007 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+A <=: [A]
+ROUND_UP (Infer6 & Infer8)
+A: [0,0]
 ```
 
 ## experiments.types
@@ -483,12 +787,24 @@ type lily('a1) = list(lily(list('a1)))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ list.1}
 rose: {0 ↦ ⊥, 1 ↦ list.1}
 lily: {0 ↦ ⊥, 1 ↦ ⊥}
 
-Timing: Infer2: 0.067 ms, Infer4: 0.048 ms, Infer5: 0.057 ms, Infer6: 0.031 ms
+Timing: Infer2: 0.083 ms, Infer4: 0.056 ms, Infer5: 0.070 ms, Infer6: 0.045 ms, Infer8: 0.036 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+list <=: [list, rose, lily]
+rose <=: [rose, lily]
+lily <=: [rose, lily]
+ROUND_UP (Infer6 & Infer8)
+list: [2,1]
+rose: [0,0]
+lily: [0,0]
 ```
 
 ## experiments2.types
@@ -502,12 +818,24 @@ type lily('a1) = list(lily(list('a1)))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 list: {0 ↦ [0,1] ⊓ list.0, 1 ↦ list.1}
 rose: {0 ↦ [0,1] ⊓ list.0, 1 ↦ list.1}
 lily: {0 ↦ [0,1] ⊓ list.0, 1 ↦ ⊥}
 
-Timing: Infer2: 0.084 ms, Infer4: 0.058 ms, Infer5: 0.079 ms, Infer6: 0.040 ms
+Timing: Infer2: 0.092 ms, Infer4: 0.090 ms, Infer5: 0.100 ms, Infer6: 0.072 ms, Infer8: 0.047 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+list <=: [list, rose, lily]
+rose <=: [rose, lily]
+lily <=: [rose, lily]
+ROUND_UP (Infer6 & Infer8)
+list: [2,1]
+rose: [0,0]
+lily: [0,0]
 ```
 
 ## fh.types
@@ -544,7 +872,7 @@ type C2('a1) = F('a1) + 'a1 @@ [1,0]
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 H: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ H.1}
 F: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ [0,1] ⊓ F.1 ⊓ H.1}
 H2: {0 ↦ [0,1] ⊓ F2.0 ⊓ H2.0, 1 ↦ H2.1, 2 ↦ [0,1] ⊓ F2.1 ⊓ H2.1 ⊓ H2.2}
@@ -561,7 +889,43 @@ W: {0 ↦ [0,1] ⊓ U.0 ⊓ W.0, 1 ↦ [0,1] ⊓ U.2 ⊓ W.1}
 C1: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ ⊤}
 C2: {0 ↦ [0,1] ⊓ F.0 ⊓ H.0, 1 ↦ ([0,1] ⊓ F.1 ⊓ H.1) ⊔ [1,0]}
 
-Timing: Infer2: 0.443 ms, Infer4: 0.362 ms, Infer5: 0.321 ms, Infer6: 0.209 ms
+Timing: Infer2: 0.557 ms, Infer4: 0.410 ms, Infer5: 0.354 ms, Infer6: 0.271 ms, Infer8: 0.317 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+H <=: [H, C1, C2]
+F <=: [F, C1, C2]
+H2 <=: [H2, C1, C2]
+F2 <=: [F2, C1, C2]
+X <=: [X, C1, C2]
+Y <=: [Y, C1, C2]
+Z <=: [Z, C1, C2]
+P <=: [P, C1, C2]
+Q <=: [Q, C1, C2]
+M <=: [M, C1, C2]
+U <=: [U, C1, C2]
+V <=: [V, C1, C2]
+W <=: [W, C1, C2]
+C1 <=: [C1, C2]
+C2 <=: [C1, C2]
+ROUND_UP (Infer6 & Infer8)
+H: [2,1]
+F: [2,1]
+H2: [2,1]
+F2: [2,1]
+X: [2,1]
+Y: [2,1]
+Z: [2,1]
+P: [2,1]
+Q: [2,1]
+M: [2,1]
+U: [2,1]
+V: [2,1]
+W: [2,1]
+C1: [0,0]
+C2: [0,0]
 ```
 
 ## hunt.types
@@ -574,11 +938,21 @@ type B('a1,'a2) = 'a1 + A('a2)
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 A: {0 ↦ [0,1], 1 ↦ [2,0]}
 B: {0 ↦ [0,1], 1 ↦ [2,0], 2 ↦ [2,0]}
 
-Timing: Infer2: 0.037 ms, Infer4: 0.030 ms, Infer5: 0.028 ms, Infer6: 0.019 ms
+Timing: Infer2: 0.046 ms, Infer4: 0.035 ms, Infer5: 0.035 ms, Infer6: 0.031 ms, Infer8: 0.022 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+A <=: [A, B]
+B <=: [A, B]
+ROUND_UP (Infer6 & Infer8)
+A: [0,0]
+B: [0,0]
 ```
 
 ## list_sum_pair.types
@@ -589,10 +963,18 @@ type list('a1) = unit + 'a1 * list('a1)
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.022 ms, Infer4: 0.015 ms, Infer5: 0.014 ms, Infer6: 0.013 ms
+Timing: Infer2: 0.021 ms, Infer4: 0.016 ms, Infer5: 0.014 ms, Infer6: 0.017 ms, Infer8: 0.010 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+list <=: [list]
+ROUND_UP (Infer6 & Infer8)
+list: [0,0]
 ```
 
 ## modalities.types
@@ -641,7 +1023,7 @@ type modal_pair('a1) = [1,0] * 'a1
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 Node: {0 ↦ Node.0, 1 ↦ Node.1, 2 ↦ Node.2}
 F: {0 ↦ F.0, 1 ↦ F.1}
 G: {0 ↦ G.0, 1 ↦ G.1}
@@ -669,7 +1051,65 @@ list2_outer: {0 ↦ ([1,0] ⊓ cons.0) ⊔ ([1,0] ⊓ nil.0), 1 ↦ [1,0] ⊓ co
 modal_plus: {0 ↦ [1,0], 1 ↦ ⊤}
 modal_pair: {0 ↦ [1,0], 1 ↦ ⊤}
 
-Timing: Infer2: 0.392 ms, Infer4: 0.635 ms, Infer5: 0.383 ms, Infer6: 0.231 ms
+Timing: Infer2: 0.406 ms, Infer4: 0.364 ms, Infer5: 0.345 ms, Infer6: 0.237 ms, Infer8: 0.220 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+Node <=: [Node, id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+F <=: [F, id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+G <=: [G, id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+nil <=: [nil, id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+cons <=: [cons, id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+id_annot <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+pair_annot <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+nested <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+tree <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+both <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+id_bot <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+mix_sum <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+mix_pair <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+outer_vs_inner <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+inner_vs_outer <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+list_ann <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+two_axes <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+deeply <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+list <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+list_inner <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+list_outer <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+list2 <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+list2_inner <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+list2_outer <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+modal_plus <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+modal_pair <=: [id_annot, pair_annot, nested, tree, both, id_bot, mix_sum, mix_pair, outer_vs_inner, inner_vs_outer, list_ann, two_axes, deeply, list, list_inner, list_outer, list2, list2_inner, list2_outer, modal_plus, modal_pair]
+ROUND_UP (Infer6 & Infer8)
+Node: [2,1]
+F: [2,1]
+G: [2,1]
+nil: [2,1]
+cons: [2,1]
+id_annot: [0,0]
+pair_annot: [0,0]
+nested: [0,0]
+tree: [0,0]
+both: [0,0]
+id_bot: [0,0]
+mix_sum: [0,0]
+mix_pair: [0,0]
+outer_vs_inner: [0,0]
+inner_vs_outer: [0,0]
+list_ann: [0,0]
+two_axes: [0,0]
+deeply: [0,0]
+list: [0,0]
+list_inner: [0,0]
+list_outer: [0,0]
+list2: [0,0]
+list2_inner: [0,0]
+list2_outer: [0,0]
+modal_plus: [0,0]
+modal_pair: [0,0]
 ```
 
 ## modals.types
@@ -681,11 +1121,21 @@ type bar() = foo() @@ [1,0]
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 foo: {0 ↦ [1,1]}
 bar: {0 ↦ [1,0]}
 
-Timing: Infer2: 0.038 ms, Infer4: 0.097 ms, Infer5: 0.185 ms, Infer6: 0.027 ms
+Timing: Infer2: 0.030 ms, Infer4: 0.028 ms, Infer5: 0.017 ms, Infer6: 0.030 ms, Infer8: 0.012 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+foo <=: [foo, bar]
+bar <=: [foo, bar]
+ROUND_UP (Infer6 & Infer8)
+foo: [0,0]
+bar: [0,0]
 ```
 
 ## mutual.types
@@ -699,12 +1149,24 @@ type evenlist('a1) = unit + cons('a1, oddlist('a1))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 cons: {0 ↦ cons.0, 1 ↦ cons.1}
 oddlist: {0 ↦ cons.0, 1 ↦ cons.1}
 evenlist: {0 ↦ cons.0, 1 ↦ cons.1}
 
-Timing: Infer2: 0.101 ms, Infer4: 0.066 ms, Infer5: 0.097 ms, Infer6: 0.042 ms
+Timing: Infer2: 0.108 ms, Infer4: 0.133 ms, Infer5: 0.078 ms, Infer6: 0.061 ms, Infer8: 0.033 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+cons <=: [cons, oddlist, evenlist]
+oddlist <=: [oddlist, evenlist]
+evenlist <=: [oddlist, evenlist]
+ROUND_UP (Infer6 & Infer8)
+cons: [2,1]
+oddlist: [0,0]
+evenlist: [0,0]
 ```
 
 ## portable.types
@@ -720,14 +1182,30 @@ type orchid('a1) = unit + portable('a1) * orchid('a1 * 'a1)
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 portable: {0 ↦ portable.0, 1 ↦ portable.1}
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 lily: {0 ↦ portable.0, 1 ↦ portable.1}
 tulip: {0 ↦ portable.0, 1 ↦ ⊤}
 orchid: {0 ↦ portable.0, 1 ↦ portable.1}
 
-Timing: Infer2: 0.138 ms, Infer4: 0.095 ms, Infer5: 0.139 ms, Infer6: 0.062 ms
+Timing: Infer2: 0.133 ms, Infer4: 0.107 ms, Infer5: 0.128 ms, Infer6: 0.080 ms, Infer8: 0.062 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+portable <=: [portable, list, lily, tulip, orchid]
+list <=: [list, lily, tulip, orchid]
+lily <=: [list, lily, tulip, orchid]
+tulip <=: [list, lily, tulip, orchid]
+orchid <=: [list, lily, tulip, orchid]
+ROUND_UP (Infer6 & Infer8)
+portable: [2,1]
+list: [0,0]
+lily: [0,0]
+tulip: [0,0]
+orchid: [0,0]
 ```
 
 ## ref.types
@@ -740,12 +1218,24 @@ type foo('a1) = portended(ref('a1))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 portended: {0 ↦ portended.0, 1 ↦ portended.1}
 ref: {0 ↦ ref.0, 1 ↦ ref.1}
 foo: {0 ↦ portended.0 ⊔ (portended.1 ⊓ ref.0), 1 ↦ portended.1 ⊓ ref.1}
 
-Timing: Infer2: 0.065 ms, Infer4: 0.040 ms, Infer5: 0.044 ms, Infer6: 0.023 ms
+Timing: Infer2: 0.110 ms, Infer4: 0.087 ms, Infer5: 0.052 ms, Infer6: 0.052 ms, Infer8: 0.029 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+portended <=: [portended, foo]
+ref <=: [ref, foo]
+foo <=: [foo]
+ROUND_UP (Infer6 & Infer8)
+portended: [2,1]
+ref: [2,1]
+foo: [0,0]
 ```
 
 ## rose_sum_pair.types
@@ -758,12 +1248,24 @@ type lily('a1) = list('a1 * lily(list('a1)))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 list: {0 ↦ ⊥, 1 ↦ ⊤}
 rose: {0 ↦ ⊥, 1 ↦ ⊥}
 lily: {0 ↦ ⊥, 1 ↦ ⊤}
 
-Timing: Infer2: 0.069 ms, Infer4: 0.076 ms, Infer5: 0.059 ms, Infer6: 0.034 ms
+Timing: Infer2: 0.069 ms, Infer4: 0.056 ms, Infer5: 0.062 ms, Infer6: 0.040 ms, Infer8: 0.031 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+list <=: [list, rose, lily]
+rose <=: [list, rose, lily]
+lily <=: [list, rose, lily]
+ROUND_UP (Infer6 & Infer8)
+list: [0,0]
+rose: [0,0]
+lily: [0,0]
 ```
 
 ## simple_example.types
@@ -776,11 +1278,21 @@ type bar() = foo()
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 foo: {0 ↦ foo.0}
 bar: {0 ↦ foo.0}
 
-Timing: Infer2: 0.024 ms, Infer4: 0.011 ms, Infer5: 0.011 ms, Infer6: 0.010 ms
+Timing: Infer2: 0.043 ms, Infer4: 0.014 ms, Infer5: 0.015 ms, Infer6: 0.029 ms, Infer8: 0.010 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+foo <=: [foo, bar]
+bar <=: [bar]
+ROUND_UP (Infer6 & Infer8)
+foo: [2,1]
+bar: [0,0]
 ```
 
 ## zipper.types
@@ -796,12 +1308,28 @@ type zipper('a1) = (ctx('a1) * list('a1))
 
 Program output:
 ```
-Infer2 & Infer4 & Infer5 & Infer6 normalized kinds:
+Infer2 & Infer4 & Infer5 & Infer6 & Infer8 normalized kinds:
 cons: {0 ↦ cons.0, 1 ↦ cons.1, 2 ↦ cons.2}
 down: {0 ↦ down.0, 1 ↦ down.1, 2 ↦ down.2}
 list: {0 ↦ cons.0, 1 ↦ cons.1}
 ctx: {0 ↦ down.0, 1 ↦ down.1}
 zipper: {0 ↦ cons.0 ⊔ down.0, 1 ↦ cons.1 ⊔ down.1}
 
-Timing: Infer2: 0.125 ms, Infer4: 0.090 ms, Infer5: 0.108 ms, Infer6: 0.055 ms
+Timing: Infer2: 0.129 ms, Infer4: 0.112 ms, Infer5: 0.115 ms, Infer6: 0.069 ms, Infer8: 0.062 ms
+```
+
+Extras (Infer6/Infer8 leq and round_up):
+```
+LEQ (Infer6 & Infer8)
+cons <=: [cons, list, ctx, zipper]
+down <=: [down, list, ctx, zipper]
+list <=: [list, ctx, zipper]
+ctx <=: [list, ctx, zipper]
+zipper <=: [list, ctx, zipper]
+ROUND_UP (Infer6 & Infer8)
+cons: [2,1]
+down: [2,1]
+list: [0,0]
+ctx: [0,0]
+zipper: [0,0]
 ```
