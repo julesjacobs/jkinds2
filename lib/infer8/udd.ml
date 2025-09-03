@@ -405,44 +405,31 @@ module Make (C : LATTICE) (V : ORDERED) = struct
       NodeTbl.clear memo_force
 
   (* Pending queues: hard-coded LIFO (stack) ordering for UDD. *)
-  type 'a pending = PStack of 'a Stack.t
-
-  let profile_enabled = false
-  let pending_is_empty = function PStack s -> Stack.is_empty s
-  let pending_push (PStack s) x = Stack.push x s
-  let pending_pop (PStack s) = Stack.pop s
-  let lfp_queue : (var * node) pending = PStack (Stack.create ())
-  let gfp_queue : (var * node) pending = PStack (Stack.create ())
+  let lfp_stack : (var * node) Stack.t = Stack.create ()
+  let gfp_stack : (var * node) Stack.t = Stack.create ()
 
   let enqueue_lfp (var : var) (rhs_raw : node) : unit =
-    pending_push lfp_queue (var, rhs_raw)
+    Stack.push (var, rhs_raw) lfp_stack
 
   let enqueue_gfp (var : var) (rhs_raw : node) : unit =
-    pending_push gfp_queue (var, rhs_raw)
+    Stack.push (var, rhs_raw) gfp_stack
 
   let solve_pending_lfps () : unit =
-    while not (pending_is_empty lfp_queue) do
-      let var, rhs_raw = pending_pop lfp_queue in
+    while not (Stack.is_empty lfp_stack) do
+      let var, rhs_raw = Stack.pop lfp_stack in
       solve_lfp var rhs_raw
     done
 
   let solve_pending_gfps () : unit =
-    while not (pending_is_empty gfp_queue) do
-      let var, rhs_raw = pending_pop gfp_queue in
+    while not (Stack.is_empty gfp_stack) do
+      let var, rhs_raw = Stack.pop gfp_stack in
       solve_gfp var rhs_raw
     done
 
   let solve_pending () : unit =
-    (* Solve all pending LFPs first, then GFPs, and print timings. *)
-    let t0 = Sys.time () in
+    (* Solve all pending LFPs first, then GFPs. *)
     solve_pending_lfps ();
-    let t1 = Sys.time () in
-    solve_pending_gfps ();
-    let t2 = Sys.time () in
-    let lfp_ms = (t1 -. t0) *. 1000. in
-    let gfp_ms = (t2 -. t1) *. 1000. in
-    if profile_enabled then
-      Printf.printf "solve_pending: LFPs %.3f ms, GFPs %.3f ms\n" lfp_ms gfp_ms
+    solve_pending_gfps ()
 
   (* Decompose into linear terms *)
   let decompose_linear ~(universe : var list) (n : node) =
